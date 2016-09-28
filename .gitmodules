@@ -31,3 +31,9 @@
 [submodule "commons-rules"]
 	path = commons-rules
 	url = git@github.com:reportportal/commons-rules.git
+[submodule "client-Python"]
+	path = client-Python
+	url = git@github.com:reportportal/client-Python.git
+[submodule "agent-Python-RobotFramework"]
+	path = agent-Python-RobotFramework
+	url = git@github.com:reportportal/agent-Python-RobotFramework.git
