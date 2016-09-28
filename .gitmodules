@@ -1,0 +1,3 @@
+[submodule "service-authorization"]
+	path = service-authorization
+	url = git@github.com:reportportal/service-authorization.git
