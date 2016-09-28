@@ -13,3 +13,21 @@
 [submodule "service-gateway"]
 	path = service-gateway
 	url = git@github.com:reportportal/service-gateway.git
+[submodule "service-jira"]
+	path = service-jira
+	url = git@github.com:reportportal/service-jira.git
+[submodule "commons-dao"]
+	path = commons-dao
+	url = git@github.com:reportportal/commons-dao.git
+[submodule "commons-model"]
+	path = commons-model
+	url = git@github.com:reportportal/commons-model.git
+[submodule "commons"]
+	path = commons
+	url = git@github.com:reportportal/commons.git
+[submodule "commons-bugtracking"]
+	path = commons-bugtracking
+	url = git@github.com:reportportal/commons-bugtracking.git
+[submodule "commons-rules"]
+	path = commons-rules
+	url = git@github.com:reportportal/commons-rules.git
