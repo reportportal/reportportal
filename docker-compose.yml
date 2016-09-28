@@ -1,0 +1,112 @@
+## This is example of Docker Compose for ReportPortal
+## Do not forget to configure data volumes for production usage
+
+## Execute 'docker-compose -p reportportal up -d --force-recreate'
+## to start all containers in daemon mode
+## Where:
+##      '-p reportportal' -- specifies container's prefix (project name)
+##      '-d' -- enables daemon mode
+##      '--force-recreate' -- forces re-recreating of all containers
+
+version: '2'
+
+## Create separate volume for Redis and MongoDB data
+## See https://docs.docker.com/compose/compose-file/#/volume-configuration-reference
+volumes:
+  reportportal-data:
+    # external: true
+
+services:
+  redis:
+    image: redis
+    ## Uncomment if needed
+    # ports:
+    #   - "6379:6379"
+    volumes:
+      - reportportal-data:/data
+    restart: always
+
+  mongodb:
+    image: mongo
+    ## Uncomment if needed
+    # ports:
+    #     - "27017:27017"
+    volumes:
+      - reportportal-data:/data/db
+    restart: always
+    ## Consider disabling smallfiles for production usage
+    command: --smallfiles
+
+  registry:
+    image: reportportal/service-registry
+    # ports:
+    #   - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=native
+      - com.ta.reportportal.eureka.hostname=registry
+    restart: always
+
+  uat:
+    image: reportportal/service-authorization
+    # ports:
+    #   - "9999:9999"
+    depends_on:
+      - redis
+      - mongodb
+      - registry
+    environment:
+      - reportportal.config.server.host=registry
+      - SPRING_PROFILES_ACTIVE=docker
+    restart: always
+
+  gateway:
+    image: reportportal/service-gateway
+    ports:
+      - "8080:8080"
+      - "8443:8443"
+    depends_on:
+      - redis
+      - mongodb
+      - registry
+    environment:
+      - reportportal.config.server.host=registry
+      - SPRING_PROFILES_ACTIVE=docker
+    restart: always
+
+  api:
+    image: reportportal/service-api
+    depends_on:
+      - redis
+      - mongodb
+      - registry
+    environment:
+      - reportportal.config.server.host=registry
+      - SPRING_PROFILES_ACTIVE=docker
+    restart: always
+
+  ui:
+    image: reportportal/service-ui
+    depends_on:
+      - registry
+    environment:
+      - reportportal.config.server.host=registry
+      - SPRING_PROFILES_ACTIVE=docker
+    restart: always
+
+  jira:
+    image: reportportal/service-jira
+    depends_on:
+      - registry
+    environment:
+      - reportportal.config.server.host=registry
+      - SPRING_PROFILES_ACTIVE=docker
+    restart: always
+
+  rally:
+    image: reportportal/service-rally
+    depends_on:
+      - registry
+    environment:
+      - reportportal.config.server.host=registry
+      - SPRING_PROFILES_ACTIVE=docker
+    restart: always
