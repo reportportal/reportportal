@@ -8,14 +8,14 @@
 	path = service-authorization
 	url = git@github.com:reportportal/service-authorization.git
 [submodule "service-gateway"]
-  path = service-gateway
-  url = git@github.com:reportportal/service-gateway.git
+	path = service-gateway
+	url = git@github.com:reportportal/service-gateway.git
 [submodule "service-registry"]
 	path = service-registry
 	url = git@github.com:reportportal/service-api.git
 [submodule "service-jira"]
-  path = service-jira
-  url = git@github.com:reportportal/service-jira.git
+	path = service-jira
+	url = git@github.com:reportportal/service-jira.git
 [submodule "service-rally"]
-  path = service-rally
-  url = git@github.com:reportportal/service-rally.git
+	path = service-rally
+	url = git@github.com:reportportal/service-rally.git
