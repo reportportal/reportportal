@@ -30,17 +30,15 @@ Addapters (client side code) related repositories:
 - `logger-*` - logger appenders, which helps to collect logs, wire it with test case via agent-* and send to server via client-*
 
 
-
 ### Installation steps with Docker
 
 1. Install Docker (Docker Engine, Compose, Swarm, etc)
-2. Create separate docker network for ReportPortal. Make sure `ip_masquerade` feature is enabled.
-  - `docker network create -o "com.docker.network.bridge.enable_ip_masquerade"="true" reportportal`
-3. Deploy mongodb. 
-  - ReportPortal configuration properties are placed in: //MAKE_FOLDER
-  - Each new environment requires new configuration profile (see 'stag') for example. 
-4. Deploy ReportPortal using `docker-compose`.
-  - Example of compose descriptor: //LINK_TO_COMPOSE
+2. Deploy [mongoDB](https://docs.mongodb.com/manual/installation/) 
+3. Deploy ReportPortal using `docker-compose`.
+  ```
+  docker-compose
+  ```
+  - Example of compose descriptor available in repository root: [docker_compose.yaml example](https://github.com/reportportal/reportportal/blob/master/docker-compose.yml)
 
 ## Contribution
 
