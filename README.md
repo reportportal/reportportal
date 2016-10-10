@@ -35,9 +35,11 @@ Addapters (client side code) related repositories:
 1. Install [Docker](http://docs-stage.docker.com/engine/installation/) (Docker Engine, Compose, Swarm, etc)
 2. Deploy [mongoDB](https://docs.mongodb.com/manual/installation/) 
 3. Deploy ReportPortal using `docker-compose`.
+
   ```
   docker-compose up 
   ```
+  
   - Example of compose descriptor available in repository root: [docker_compose.yaml example](https://github.com/reportportal/reportportal/blob/master/docker-compose.yml)
 
 ## Contribution
