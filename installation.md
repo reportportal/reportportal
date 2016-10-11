@@ -1,11 +1,12 @@
 # Installation steps 
 
-- [Java installation]()
-- [Docker installation]()
-- [MongoDB installation]()
-- [Linux server  tuning]()
-- [Report Portal deploy]()
-- [Production readiness]()
+- [Java installation](https://github.com/reportportal/reportportal/blob/master/installation.md#java-installation)
+- [Docker installation](https://github.com/reportportal/reportportal/blob/master/installation.md#docker-installation)
+- [MongoDB installation](https://github.com/reportportal/reportportal/blob/master/installation.md#mongodb-installation-optional)
+- [Linux server  tuning](https://github.com/reportportal/reportportal/blob/master/installation.md#linux-server-tuning)
+- [Report Portal deploy](https://github.com/reportportal/reportportal/blob/master/installation.md#reportportal-application-installation)
+- [Production readiness](https://github.com/reportportal/reportportal/blob/master/installation.md#production-readiness)
+- [System requirements](https://github.com/reportportal/reportportal/blob/master/installation.md#system-requirements)
 
 ## Java installation
 
