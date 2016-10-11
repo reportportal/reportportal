@@ -30,8 +30,8 @@ Other repositories stored according to next rules
 Addapters (client side code) related repositories:
 
 - `client-*` - API integrations. Http clients, which process HTTP request sending. For Java (`client-java-*`), .Net (`client-net-*`), Ruby (`client-ruby-*`)
-- `agent-*` - Frameworks integration. Custom reporters (mostly Listeners), which monitor test events and trigger event sending via 'client-*'
-- `logger-*` - Logging integration. logger appenders, which helps to collect logs, wire it with test case via 'agent-*' and send to server via 'client-*'
+- `agent-*` - Frameworks integration. Custom reporters (mostly Listeners), which monitor test events and trigger event sending via `client-*`
+- `logger-*` - Logging integration. logger appenders, which helps to collect logs, wire it with test case via `agent-*` and send to server via `client-*`
 
 
 ## Installation steps
