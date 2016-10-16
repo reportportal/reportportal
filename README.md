@@ -52,7 +52,7 @@ Addapters (client side code) related repositories:
 
 ### Customizable deployment and production ready set with Docker
 
-To customize deployment and make it production ready please follow [detailed installation steps](https://github.com/reportportal/reportportal/blob/master/installation.md)
+To customize deployment and make it production-ready please follow [customization steps](https://github.com/reportportal/reportportal/blob/master/deploy_customization.md)
 
 ## Contribution
 
