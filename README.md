@@ -37,7 +37,7 @@ Addapters (client side code) related repositories:
 
 ## Installation steps
 
-### Simple set with Docker
+#### Simple set with Docker
 Best for demo purposes and small teams
 
 1. Install [Docker](http://docs-stage.docker.com/engine/installation/) ([Docker Engine](https://docs.docker.com/engine/installation/), [Compose](https://docs.docker.com/compose/install/), [Swarm](https://docs.docker.com/swarm/install-manual/))
@@ -54,7 +54,7 @@ Best for demo purposes and small teams
 
 >Note: Docker Compose is optional. It's possible to run containers using plain `docker run` mechanism and link it to each other
 
-### Production-ready set and Custom deployment with Docker
+#### Production-ready set and Custom deployment with Docker
 
 For production usage we recommend to:
 - deploy MongoDB database at separate enviroment, and link it with the App
