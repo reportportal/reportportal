@@ -1,7 +1,7 @@
 # EPAM Report Portal
 [![Join Slack chat!](https://reportporal-slack-auto.herokuapp.com/badge.svg)](https://reportporal-slack-auto.herokuapp.com)
 [![stackoverflow](https://img.shields.io/badge/reportportal-stackoverflow-orange.svg?style=flat)](http://stackoverflow.com/questions/tagged/reportportal)
-[![UserVoice](https://img.shields.io/badge/uservoice-vote%20ideas-orange.svg?style=flat)](http://stackoverflow.com/questions/tagged/reportportal)
+[![UserVoice](https://img.shields.io/badge/uservoice-vote%20ideas-orange.svg?style=flat)](https://rpp.uservoice.com/forums/247117-report-portal)
 [![GitHub contributors](https://img.shields.io/github/contributors/reportportal/reportportal.svg?maxAge=2592000)](https://github.com/reportportal/reportportal)
 [![Docker Pulls](https://img.shields.io/docker/pulls/reportportal/service-registry.svg?maxAge=2592000)](https://hub.docker.com/u/reportportal/)
 [![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](http://www.gnu.org/licenses/gpl-3.0.html)
@@ -83,7 +83,8 @@ Big features are also welcome but if you want to see your contributions included
 
 ## Community / Support
 
-* [Open Slack chat](https://reportporal-slack-auto.herokuapp.com)
+* [Slack chat](https://reportporal-slack-auto.herokuapp.com)
+* [UserVoice forum](https://rpp.uservoice.com/forums/247117-report-portal) Please share and vote for ideas
 * Report Portal Google Group (comming soon)
 * [GitHub Issues](https://github.com/reportportal/reportportal/issues)
 * [Stackoverflow Questions](http://stackoverflow.com/questions/tagged/reportportal)
