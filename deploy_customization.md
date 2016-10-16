@@ -46,7 +46,7 @@ There is possibility to setup limits for specified user and\or group. So...
 
 2.  ``` [root@server /]# vi /etc/security/limits.conf  ```
 
-3.  Add specified limits, for example following will setup limits in 65535 open 'files\file' descriptors:
+3.  Add specified limits, for example following will setup limits in 65535 open `files\file` descriptors:
   ```Shell
   #<domain> <type> <item> <value>
   * soft nproc 65535
