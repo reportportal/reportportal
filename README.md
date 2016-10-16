@@ -47,6 +47,7 @@ Best for demo purposes and small teams
   ```Shell
   docker-compose up 
   ```
+  
 >Mentioned compose file deploy MongoDB within the same enviroment witn App.
 
 >Mentioned compose file deploy all available Bug Tracking System integrations, which not always needed, but use resources
