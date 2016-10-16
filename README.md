@@ -37,22 +37,29 @@ Addapters (client side code) related repositories:
 
 ## Installation steps
 
-### Simple set (small project/demo set) with Docker
+### Simple set with Docker
+Best for demo purposes and small teams
 
 1. Install [Docker](http://docs-stage.docker.com/engine/installation/) ([Docker Engine](https://docs.docker.com/engine/installation/), [Compose](https://docs.docker.com/compose/install/), [Swarm](https://docs.docker.com/swarm/install-manual/))
-2. Deploy [mongoDB](https://docs.mongodb.com/manual/installation/)
-3. Download [Example of compose descriptor](https://github.com/reportportal/reportportal/blob/master/docker-compose.yml) to any folder
+2. Download [Example of compose descriptor](https://github.com/reportportal/reportportal/blob/master/docker-compose.yml) to any folder
 3. Deploy ReportPortal using `docker-compose` within the same folder with downloaded compose file
 
-  ```
+  ```Shell
   docker-compose up 
   ```
+>Mentioned compose file deploy MongoDB within the same enviroment witn App.
+
+>Mentioned compose file deploy all available Bug Tracking System integrations, which not always needed, but use resources
 
 >Note: Docker Compose is optional. It's possible to run containers using plain `docker run` mechanism and link it to each other
 
-### Customizable deployment and production ready set with Docker
+### Production-ready set and Custom deployment with Docker
 
-To customize deployment and make it production-ready please follow [customization steps](https://github.com/reportportal/reportportal/blob/master/deploy_customization.md)
+For production usage we recommend to:
+- deploy MongoDB database at separate enviroment, and link it with the App
+- chose only required Bug Tracking System integration. Exclude the rest
+
+To customize deployment and make it production-ready please follow [customization steps and details](https://github.com/reportportal/reportportal/blob/master/deploy_customization.md)
 
 ## Contribution
 
