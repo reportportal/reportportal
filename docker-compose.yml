@@ -38,7 +38,7 @@ services:
     command: --smallfiles
 
   registry:
-    image: reportportal/service-registry
+    image: reportportal/service-registry:2.6.0
     # ports:
     #   - "8761:8761"
     environment:
