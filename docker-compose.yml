@@ -18,7 +18,7 @@ volumes:
 
 services:
   redis:
-    image: redis
+    image: redis:3.2-alpine
     ## Uncomment if needed
     # ports:
     #   - "6379:6379"
@@ -27,7 +27,7 @@ services:
     restart: always
 
   mongodb:
-    image: mongo
+    image: mongo:3.2
     ## Uncomment if needed
     # ports:
     #     - "27017:27017"
