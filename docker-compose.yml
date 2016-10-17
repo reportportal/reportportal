@@ -47,7 +47,7 @@ services:
     restart: always
 
   uat:
-    image: reportportal/service-authorization
+    image: reportportal/service-authorization:2.6.0
     # ports:
     #   - "9999:9999"
     depends_on:
@@ -60,7 +60,7 @@ services:
     restart: always
 
   gateway:
-    image: reportportal/service-gateway
+    image: reportportal/service-gateway:2.6.0
     ports:
       - "8080:8080"
       - "8443:8443"
@@ -74,7 +74,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api
+    image: reportportal/service-api:2.6.0
     depends_on:
       - redis
       - mongodb
@@ -85,7 +85,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui
+    image: reportportal/service-ui:2.6.0
     depends_on:
       - registry
     environment:
@@ -94,7 +94,7 @@ services:
     restart: always
 
   jira:
-    image: reportportal/service-jira
+    image: reportportal/service-jira:2.6.0
     depends_on:
       - registry
     environment:
@@ -103,7 +103,7 @@ services:
     restart: always
 
   rally:
-    image: reportportal/service-rally
+    image: reportportal/service-rally:2.6.0
     depends_on:
       - registry
     environment:
