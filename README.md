@@ -40,7 +40,7 @@ Addapters (client side code) related repositories:
 #### Simple set with Docker
 Best for demo purposes and small teams
 
-1. Install [Docker](http://docs-stage.docker.com/engine/installation/) ([Docker Engine](https://docs.docker.com/engine/installation/), [Compose](https://docs.docker.com/compose/install/), [Swarm](https://docs.docker.com/swarm/install-manual/))
+1. Install [Docker](http://docs-stage.docker.com/engine/installation/) ([Docker Engine](https://docs.docker.com/engine/installation/), [Compose](https://docs.docker.com/compose/install/))
 2. Download [Example of compose descriptor](https://github.com/reportportal/reportportal/blob/master/docker-compose.yml) to any folder
 
   ```Shell
