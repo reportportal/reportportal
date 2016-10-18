@@ -42,7 +42,10 @@ Best for demo purposes and small teams
 
 1. Install [Docker](http://docs-stage.docker.com/engine/installation/) ([Docker Engine](https://docs.docker.com/engine/installation/), [Compose](https://docs.docker.com/compose/install/), [Swarm](https://docs.docker.com/swarm/install-manual/))
 2. Download [Example of compose descriptor](https://github.com/reportportal/reportportal/blob/master/docker-compose.yml) to any folder
-3. Deploy ReportPortal using `docker-compose` within the same folder with downloaded compose file
+  ```Shell
+  wget https://raw.githubusercontent.com/reportportal/reportportal/master/docker-compose.yml
+  ```
+3. Deploy ReportPortal using `docker-compose` within the same folder
 
   ```Shell
   docker-compose up 
