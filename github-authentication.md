@@ -6,7 +6,8 @@ Here is example configuration. Just replace 'YOUR_HOST' and 'YOUR_PORT' with app
 <img src="public/rp_github_app.png" width="450x">
 
 Once new application is created, you will have client ID and client secret.
-![GitHub App](public/rp_github_client_id.png)
+<img src="public/rp_github_client_id.png" width="450x">
+
 
 This two values should be provided to authorization service of ReportPortal. The best option to do that is to use environment variables. Thus, docker-compose block for authorization service will like that:
 
