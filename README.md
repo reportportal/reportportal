@@ -25,46 +25,47 @@ ReportPortal consists of the following services:
 - [`service-rally`](https://github.com/reportportal/service-rally) Rally Service. Interaction with Rally
 
 Other repositories stored according to next rules
-- `service-*` - micro-services which is a part of Application
-- `commons-*` - common libraries, models, etc., used by micro-services
+- [`service-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=service-) - micro-services which is a part of Application
+- [`commons-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=commons-) - common libraries, models, etc., used by micro-services
 
 Addapters (client side code) related repositories:
 
-- `client-*` - API integrations. Http clients, which process HTTP request sending. For Java (`client-java-*`), .Net (`client-net-*`), Ruby (`client-ruby-*`)
-- `agent-*` - Frameworks integration. Custom reporters (mostly Listeners), which monitor test events and trigger event sending via `client-*`
-- `logger-*` - Logging integration. logger appenders, which helps to collect logs, wire it with test case via `agent-*` and send to server via `client-*`
+- [`client-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=client-) - API integrations. Http clients, which process HTTP request sending. E.g. for Java ([`client-java-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=client-java-))
+- [`agent-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=agent-) - Frameworks integration. Custom reporters/listeners, which monitor test events and trigger event sending via `client-*`
+- [`logger-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=logger-) - Logging integration. Logger appenders, which helps to collect logs, bind it with test-case via `agent-*` and send to server via `client-*`
 
 
 ## Installation steps
 
 #### Simple set with Docker
-Best for demo purposes and small teams
+Best for demo purposes and small teams. MongoDB database included into the compose.
 
 1. Install [Docker](http://docs-stage.docker.com/engine/installation/) ([Docker Engine](https://docs.docker.com/engine/installation/), [Compose](https://docs.docker.com/compose/install/))
 2. Download [Example of compose descriptor](https://github.com/reportportal/reportportal/blob/master/docker-compose.yml) to any folder
 
   ```Shell
-  wget https://raw.githubusercontent.com/reportportal/reportportal/master/docker-compose.yml
+  $ wget https://raw.githubusercontent.com/reportportal/reportportal/master/docker-compose.yml
   ```
 3. Deploy ReportPortal using `docker-compose` within the same folder
 
   ```Shell
-  docker-compose up 
+  $ docker-compose up 
   ```
   
->Mentioned compose file deploy MongoDB within the same enviroment witn App.
-
 >Mentioned compose file deploy all available Bug Tracking System integrations, which not always needed, but use resources
-
->Note: Docker Compose is optional. It's possible to run containers using plain `docker run` mechanism and link it to each other
 
 #### Production-ready set and Custom deployment with Docker
 
 For production usage we recommend to:
 - deploy MongoDB database at separate enviroment, and link it with the App
-- chose only required Bug Tracking System integration. Exclude the rest
+- choose only required Bug Tracking System integration service. Exclude the rest
 
-To customize deployment and make it production-ready please follow [customization steps and details](https://github.com/reportportal/reportportal/blob/master/deploy_customization.md)
+To customize deployment and make it production-ready please follow [customization steps and details](https://github.com/reportportal/reportportal/wiki/Production-Ready-set-and-Deployment-Customization)
+
+
+## Integration. How to get log data in
+
+//TODO
 
 ## Contribution
 
