@@ -80,6 +80,8 @@ There are many different ways to contribute to Report Portal's development, just
 
 Big features are also welcome but if you want to see your contributions included in Report Portal codebase we strongly recommend you start by initiating a chat though our Team.
 
+[Contribution details](https://github.com/reportportal/reportportal/wiki/Contribution)
+
 ## Documentation
 
 * [User Manual](http://reportportal.io/#documentation)
