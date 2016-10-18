@@ -15,7 +15,7 @@ Application Core based on micro-services architecture and includes mandatory ser
 
 ## Repositories structure
 
-ReportPortal consists of the following services:
+ReportPortal **server side** consists of the following services:
 - [`service-registry`](https://github.com/reportportal/service-registry) Redis. Used for distributed cache.
 - [`service-authorization`](https://github.com/reportportal/service-authorization) Authorization Service. In charge of access tokens distribution
 - [`service-gateway`](https://github.com/reportportal/service-gateway) Gateway Service. Main entry point to application. Port used by gateway should be opened and accessible from outside network.
@@ -24,15 +24,15 @@ ReportPortal consists of the following services:
 - [`service-jira`](https://github.com/reportportal/service-jira) JIRA Service. Interaction with JIRA
 - [`service-rally`](https://github.com/reportportal/service-rally) Rally Service. Interaction with Rally
 
-Other repositories stored according to next rules
-- [`service-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=service-) - micro-services which is a part of Application
-- [`commons-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=commons-) - common libraries, models, etc., used by micro-services
-
-Addapters (client side code) related repositories:
+**Client side** addapters related repositories:
 
 - [`client-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=client-) - API integrations. Http clients, which process HTTP request sending. E.g. for Java ([`client-java-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=client-java-))
 - [`agent-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=agent-) - Frameworks integration. Custom reporters/listeners, which monitor test events and trigger event sending via `client-*`
 - [`logger-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=logger-) - Logging integration. Logger appenders, which helps to collect logs, bind it with test-case via `agent-*` and send to server via `client-*`
+
+**Other repositories** stored according to next rules
+- [`service-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=service-) - micro-services which is a part of Application
+- [`commons-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=commons-) - common libraries, models, etc., used by micro-services
 
 
 ## Installation steps
