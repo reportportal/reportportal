@@ -3,7 +3,7 @@ ReportPortal allows logging in via GitHub OAuth Web Application Flow.
 To enable this feature you need to [register new application in Github](https://github.com/settings/applications/new)
 
 Here is example configuration. Just replace 'YOUR_HOST' and 'YOUR_PORT' with appropriate values:
-![GitHub config](public/rp_github_app.png =250x)
+<img src="public/rp_github_app.png" width="450x">
 
 Once new application is created, you will have client ID and client secret.
 ![GitHub App](public/rp_github_client_id.png)
