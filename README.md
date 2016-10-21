@@ -10,7 +10,7 @@
 
 Report Portal organized into multiple repositories.
 
-Application Core based on micro-services architecture and includes mandatory services.
+Application Core based on micro-services architecture and includes next mandatory services:
 ![structure](https://github.com/reportportal/reportportal/blob/master/public/rp_repo_structure.png)
 
 ## Repositories structure
@@ -27,7 +27,7 @@ ReportPortal **server side** consists of the following services:
 **Client side** addapters related repositories:
 
 - [`client-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=client-) - API integrations. Http clients, which process HTTP request sending. E.g. for Java ([`client-java-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=client-java-))
-- [`agent-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=agent-) - Frameworks integration. Custom reporters/listeners, which monitor test events and trigger event sending via `client-*`
+- [`agent-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=agent-) - Frameworks integration. Custom reporters/listeners, which monitor test events and trigger event sending via [`client-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=client-)
 - [`logger-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=logger-) - Logging integration. Logger appenders, which helps to collect logs, bind it with test-case via `agent-*` and send to server via `client-*`
 
 **Other repositories** stored according to next rules
@@ -51,7 +51,14 @@ Best for demo purposes and small teams. MongoDB database included into the compo
   ```Shell
   $ docker-compose up 
   ```
+4. Open in your browser IP address of deployed enviroment at port `8080`
+
+  ```
+  $ http://IP_ADDRESS:8080
+  ```
+5. User next login\pass for access: `default\1q2w3e` and  `admin\erebus`. `*`Please change admin password for security.
   
+
 >Mentioned compose file deploy all available Bug Tracking System integrations, which not always needed, but use resources
 
 #### Production-ready set and Custom deployment with Docker
