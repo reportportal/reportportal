@@ -56,15 +56,16 @@ Best for demo purposes and small teams. MongoDB database included into the compo
   ```
   $ http://IP_ADDRESS:8080
   ```
-5. User next login\pass for access: `default\1q2w3e` and  `admin\erebus`. `*`Please change admin password for security.
-  
+5. User next login\pass for access: `default\1q2w3e` and  `admin\erebus`. 
+
+>Please change admin password for security.
 
 >Mentioned compose file deploy all available Bug Tracking System integrations, which not always needed, but use resources
 
 #### Production-ready set and Custom deployment with Docker
 
 For production usage we recommend to:
-- deploy MongoDB database at separate enviroment, and link it with the App
+- deploy MongoDB database at separate enviroment, and connect App to this server. MongoDB is mandatory part.
 - choose only required Bug Tracking System integration service. Exclude the rest
 
 To customize deployment and make it production-ready please follow [customization steps and details](https://github.com/reportportal/reportportal/wiki/Production-Ready-set-and-Deployment-Customization)
