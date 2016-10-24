@@ -26,9 +26,9 @@ ReportPortal **server side** consists of the following services:
 
 **Client side** addapters related repositories:
 
-- [`client-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=client-) - API integrations. Http clients, which process HTTP request sending. E.g. for Java ([`client-java-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=client-java-))
+- [`client-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=client-) - API integrations. Http clients, which process HTTP request sending.
 - [`agent-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=agent-) - Frameworks integration. Custom reporters/listeners, which monitor test events and trigger event sending via [`client-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=client-)
-- [`logger-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=logger-) - Logging integration. Logger appenders, which helps to collect logs, bind it with test-case via `agent-*` and send to server via `client-*`
+- [`logger-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=logger-) - Logging integration. Logger appenders, which helps to collect logs, bind it with test-case item via `agent-*` and send to server via `client-*`
 
 **Other repositories** stored according to next rules
 - [`service-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=service-) - micro-services which is a part of Application
@@ -73,7 +73,13 @@ To customize deployment and make it production-ready please follow [customizatio
 
 ## Integration. How to get log data in
 
-//TODO
+You should add **Client Side** code inside your test automation. It consits of:
+
+- [`client-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=client-) - API integrations. Http clients, which process HTTP request sending. E.g. for Java ([`client-java-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=client-java-))
+- [`agent-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=agent-) - Frameworks integration. Custom reporters/listeners, which monitor test events and trigger event sending via [`client-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=client-)
+- [`logger-*`](https://github.com/reportportal?utf8=%E2%9C%93&query=logger-) - Logging integration. Logger appenders, which helps to collect logs, bind it with test-case via `agent-*` and send to server via `client-*`
+
+[Integration steps and documentation](http://reportportal.io/#documentation/%EF%BB%BFTest-framework-integration)
 
 ## Contribution
 
@@ -86,7 +92,7 @@ There are many different ways to contribute to Report Portal's development, just
 - **Patch reviews**
 - **UI enhancements**
 
-Big features are also welcome but if you want to see your contributions included in Report Portal codebase we strongly recommend you start by initiating a chat though our Team.
+Big features are also welcome but if you want to see your contributions included in Report Portal codebase we strongly recommend you start by initiating a [chat though our Team in Slack](https://reportporal-slack-auto.herokuapp.com).
 
 [Contribution details](https://github.com/reportportal/reportportal/wiki/Contribution)
 
