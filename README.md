@@ -56,7 +56,7 @@ Best for demo purposes and small teams. MongoDB database included into the compo
   ```
   $ http://IP_ADDRESS:8080
   ```
-5. User next login\pass for access: `default\1q2w3e` and  `admin\erebus`. 
+5. User next login\pass for access: `default\1q2w3e` and  `superadmin\erebus`. 
 
 >Please change admin password for security.
 
