@@ -18,7 +18,7 @@ volumes:
 
 services:
   redis:
-    image: redis:3.2-alpine
+    image: redis:3.2
     ## Uncomment if needed
     # ports:
     #   - "6379:6379"
