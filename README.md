@@ -49,8 +49,12 @@ Best for demo purposes and small teams. MongoDB database included into the compo
 3. Deploy ReportPortal using `docker-compose` within the same folder
 
   ```Shell
-  $ docker-compose up 
+  $ docker-compose up
   ```
+To start ReportPortal in daemon mode, add '-d' argument:
+  ```Shell
+  $ docker-compose up -d
+  ```  
 4. Open in your browser IP address of deployed enviroment at port `8080`
 
   ```
