@@ -96,7 +96,7 @@ There are many different ways to contribute to Report Portal's development, just
 - **Patch reviews**
 - **UI enhancements**
 
-Big features are also welcome but if you want to see your contributions included in Report Portal codebase we strongly recommend you start by initiating a [chat though our Team in Slack](https://reportporal-slack-auto.herokuapp.com).
+Big features are also welcome but if you want to see your contributions included in Report Portal codebase we strongly recommend you start by initiating a [chat though our Team in Slack](https://reportportal-slack-auto.herokuapp.com).
 
 [Contribution details](https://github.com/reportportal/reportportal/wiki/Contribution)
 
