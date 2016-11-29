@@ -116,9 +116,7 @@ Big features are also welcome but if you want to see your contributions included
 * [Twitter](http://twitter.com/ReportPortal_io)
 * [Facebook](https://www.facebook.com/ReportPortal.io)
 * [VK](https://vk.com/reportportal_io)
-
-
-#Slack chat: https://reportportal-slack-auto.herokuapp.com/
+* [#Slack chat] https://reportportal-slack-auto.herokuapp.com/
 
 ## License
 
