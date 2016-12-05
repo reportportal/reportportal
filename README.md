@@ -1,4 +1,4 @@
-# EPAM Report Portal
+# EPAM Report Portal - http://ReportPortal.io
 [![Join Slack chat!](https://reportportal-slack-auto.herokuapp.com/badge.svg)](https://reportportal-slack-auto.herokuapp.com)
 [![stackoverflow](https://img.shields.io/badge/reportportal-stackoverflow-orange.svg?style=flat)](http://stackoverflow.com/questions/tagged/reportportal)
 [![UserVoice](https://img.shields.io/badge/uservoice-vote%20ideas-orange.svg?style=flat)](https://rpp.uservoice.com/forums/247117-report-portal)
@@ -116,6 +116,7 @@ Big features are also welcome but if you want to see your contributions included
 * [Twitter](http://twitter.com/ReportPortal_io)
 * [Facebook](https://www.facebook.com/ReportPortal.io)
 * [VK](https://vk.com/reportportal_io)
+* [YouTube Channel](https://www.youtube.com/channel/UCsZxrHqLHPJcrkcgIGRG-cQ)
 
 ## License
 
