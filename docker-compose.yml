@@ -57,6 +57,13 @@ services:
     environment:
       - reportportal.config.server.host=registry
       - SPRING_PROFILES_ACTIVE=docker
+    # - github.client.clientId=YOUR_CLIENT_ID
+    # - github.client.clientSecret=YOUR_CLIENT_SECRECT      
+    # - rp.mongo.host=XXX
+    # - rp.mongo.port=27017
+    # - rp.mongo.dbName=reportportal
+    # - rp.mongo.user=XXX
+    # - rp.mongo.password=XXX
     restart: always
 
   gateway:
@@ -82,6 +89,11 @@ services:
     environment:
       - reportportal.config.server.host=registry
       - SPRING_PROFILES_ACTIVE=docker
+    # - rp.mongo.host=XXX
+    # - rp.mongo.port=27017
+    # - rp.mongo.dbName=reportportal
+    # - rp.mongo.user=XXX
+    # - rp.mongo.password=XXX      
     restart: always
 
   ui:
@@ -100,6 +112,11 @@ services:
     environment:
       - reportportal.config.server.host=registry
       - SPRING_PROFILES_ACTIVE=docker
+    # - rp.mongo.host=XXX
+    # - rp.mongo.port=27017
+    # - rp.mongo.dbName=reportportal
+    # - rp.mongo.user=XXX
+    # - rp.mongo.password=XXX      
     restart: always
 
   rally:
@@ -109,4 +126,9 @@ services:
     environment:
       - reportportal.config.server.host=registry
       - SPRING_PROFILES_ACTIVE=docker
+    # - rp.mongo.host=XXX
+    # - rp.mongo.port=27017
+    # - rp.mongo.dbName=reportportal
+    # - rp.mongo.user=XXX
+    # - rp.mongo.password=XXX      
     restart: always
