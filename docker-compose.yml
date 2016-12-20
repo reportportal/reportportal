@@ -57,6 +57,7 @@ services:
     environment:
       - reportportal.config.server.host=registry
       - SPRING_PROFILES_ACTIVE=docker
+      - rp.session.live=86400
     # - github.client.clientId=YOUR_CLIENT_ID
     # - github.client.clientSecret=YOUR_CLIENT_SECRECT      
     # - rp.mongo.host=XXX
