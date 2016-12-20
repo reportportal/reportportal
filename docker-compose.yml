@@ -38,7 +38,7 @@ services:
     command: --smallfiles
 
   registry:
-    image: reportportal/service-registry:2.6.0
+    image: reportportal/service-registry:2.7.0
     # ports:
     #   - "8761:8761"
     environment:
@@ -47,7 +47,7 @@ services:
     restart: always
 
   uat:
-    image: reportportal/service-authorization:2.6.0
+    image: reportportal/service-authorization:2.7.0
     # ports:
     #   - "9999:9999"
     depends_on:
@@ -58,7 +58,7 @@ services:
       - reportportal.config.server.host=registry
       - SPRING_PROFILES_ACTIVE=docker
     # - github.client.clientId=YOUR_CLIENT_ID
-    # - github.client.clientSecret=YOUR_CLIENT_SECRECT      
+    # - github.client.clientSecret=YOUR_CLIENT_SECRECT
     # - rp.mongo.host=XXX
     # - rp.mongo.port=27017
     # - rp.mongo.dbName=reportportal
@@ -67,7 +67,7 @@ services:
     restart: always
 
   gateway:
-    image: reportportal/service-gateway:2.6.0
+    image: reportportal/service-gateway:2.7.1
     ports:
       - "8080:8080"
       - "8443:8443"
@@ -81,7 +81,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:2.6.0
+    image: reportportal/service-api:2.7.0
     depends_on:
       - redis
       - mongodb
@@ -93,11 +93,11 @@ services:
     # - rp.mongo.port=27017
     # - rp.mongo.dbName=reportportal
     # - rp.mongo.user=XXX
-    # - rp.mongo.password=XXX      
+    # - rp.mongo.password=XXX
     restart: always
 
   ui:
-    image: reportportal/service-ui:2.6.0
+    image: reportportal/service-ui:2.7.0
     depends_on:
       - registry
     environment:
@@ -106,7 +106,7 @@ services:
     restart: always
 
   jira:
-    image: reportportal/service-jira:2.6.0
+    image: reportportal/service-jira:2.7.1
     depends_on:
       - registry
     environment:
@@ -116,11 +116,11 @@ services:
     # - rp.mongo.port=27017
     # - rp.mongo.dbName=reportportal
     # - rp.mongo.user=XXX
-    # - rp.mongo.password=XXX      
+    # - rp.mongo.password=XXX
     restart: always
 
   rally:
-    image: reportportal/service-rally:2.6.0
+    image: reportportal/service-rally:2.7.1
     depends_on:
       - registry
     environment:
@@ -130,5 +130,5 @@ services:
     # - rp.mongo.port=27017
     # - rp.mongo.dbName=reportportal
     # - rp.mongo.user=XXX
-    # - rp.mongo.password=XXX      
+    # - rp.mongo.password=XXX
     restart: always
