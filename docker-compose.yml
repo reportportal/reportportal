@@ -82,7 +82,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:2.7.1
+    image: reportportal/service-api:2.7.2
     depends_on:
       - redis
       - mongodb
