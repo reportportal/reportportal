@@ -122,4 +122,3 @@ Big features are also welcome but if you want to see your contributions included
 
 Report Portal is [GNU General Public License v3.0](http://www.gnu.org/licenses/gpl-3.0.html).
 
-[![HitCount](https://hitt.herokuapp.com/reportportal/reportportal.svg)](https://github.com/reportportal/reportportal)
