@@ -1,6 +1,6 @@
 # EPAM Report Portal - http://ReportPortal.io
 
-[![Join Slack chat!](https://rp.epam.com/invite/badge.svg)](https://rp.epam.com/invite)
+[![Join Slack chat!](https://reportportal-slack-auto.herokuapp.com/badge.svg)](https://reportportal-slack-auto.herokuapp.com)
 [![stackoverflow](https://img.shields.io/badge/reportportal-stackoverflow-orange.svg?style=flat)](http://stackoverflow.com/questions/tagged/reportportal)
 [![UserVoice](https://img.shields.io/badge/uservoice-vote%20ideas-orange.svg?style=flat)](https://rpp.uservoice.com/forums/247117-report-portal)
 [![GitHub contributors](https://img.shields.io/github/contributors/reportportal/reportportal.svg?maxAge=259200)](https://github.com/reportportal/reportportal)
