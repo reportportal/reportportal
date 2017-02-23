@@ -45,7 +45,7 @@ Best for demo purposes and small teams. MongoDB database included into the compo
 2. Download [Example of compose descriptor](https://github.com/reportportal/reportportal/blob/master/docker-compose.yml) to any folder
 
   ```Shell
-  $ wget https://raw.githubusercontent.com/reportportal/reportportal/master/docker-compose.yml
+  $ curl https://raw.githubusercontent.com/reportportal/reportportal/master/docker-compose.yml -o docker-compose.yml
   ```
 3. Deploy ReportPortal using `docker-compose` within the same folder
 
