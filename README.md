@@ -25,14 +25,14 @@ ReportPortal **server side** consists of the following services:
 - [`service-jira`](https://github.com/reportportal/service-jira) JIRA Service. Interaction with JIRA
 - [`service-rally`](https://github.com/reportportal/service-rally) Rally Service. Interaction with Rally
 
-**Client side** addapters related repositories:
+**Client side** adapters related repositories:
 
 - [`client-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=client-) - API integrations. Http clients, which process HTTP request sending.
 - [`agent-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=agent-) - Frameworks integration. Custom reporters/listeners, which monitor test events and trigger event sending via [`client-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=client-)
-- [`logger-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=logger-) - Logging integration. Logger appenders, which helps to collect logs, bind it with test-case item via `agent-*` and send to server via `client-*`
+- [`logger-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=logger-) - Logging integration. Logger appenders, which help to collect logs, bind it with test-case item via `agent-*` and send to server via `client-*`
 
 **Other repositories** stored according to next rules
-- [`service-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=service-) - micro-services which is a part of Application
+- [`service-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=service-) - micro-services which are a part of Application
 - [`commons-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=commons-) - common libraries, models, etc., used by micro-services
 
 
@@ -61,7 +61,7 @@ To start ReportPortal in daemon mode, add '-d' argument:
   ```
   $ http://IP_ADDRESS:8080
   ```
-5. User next login\pass for access: `default\1q2w3e` and  `superadmin\erebus`. 
+5.  t next login\pass for access: `default\1q2w3e` and  `superadmin\erebus`. 
 
 >Please change admin password for security.
 
@@ -97,7 +97,7 @@ There are many different ways to contribute to Report Portal's development, just
 - **Patch reviews**
 - **UI enhancements**
 
-Big features are also welcome but if you want to see your contributions included in Report Portal codebase we strongly recommend you start by initiating a [chat though our Team in Slack](https://reportportal-slack-auto.herokuapp.com).
+Big features are also welcome but if you want to see your contributions included in Report Portal codebase we strongly recommend you start by initiating a [chat through our Team in Slack](https://reportportal-slack-auto.herokuapp.com).
 
 [Contribution details](https://github.com/reportportal/reportportal/wiki/Contribution)
 
@@ -111,7 +111,7 @@ Big features are also welcome but if you want to see your contributions included
 
 * [**Slack chat**](https://rp.epam.com/invite)
 * [UserVoice forum](https://rpp.uservoice.com/forums/247117-report-portal) Please share and vote for ideas
-* Report Portal Google Group (comming soon)
+* Report Portal Google Group (coming soon)
 * [GitHub Issues](https://github.com/reportportal/reportportal/issues)
 * [Stackoverflow Questions](http://stackoverflow.com/questions/tagged/reportportal)
 * [Twitter](http://twitter.com/ReportPortal_io)
