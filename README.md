@@ -1,4 +1,4 @@
-# EPAM Report Portal - http://ReportPortal.io
+# Report Portal - http://ReportPortal.io
 
 [![Join Slack chat!](https://reportportal-slack-auto.herokuapp.com/badge.svg)](https://reportportal-slack-auto.herokuapp.com)
 [![stackoverflow](https://img.shields.io/badge/reportportal-stackoverflow-orange.svg?style=flat)](http://stackoverflow.com/questions/tagged/reportportal)
