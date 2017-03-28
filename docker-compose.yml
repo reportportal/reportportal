@@ -44,7 +44,7 @@ services:
     restart: always
 
   uat:
-    image: reportportal/service-authorization:3.0.0-BETA-2
+    image: reportportal/service-authorization:3.0.0-BETA-3
     # ports:
     #   - "9999:8080"
     depends_on:
@@ -54,8 +54,6 @@ services:
     environment:
       - rp.profiles=docker
       - rp.session.live=86400
-      - github.client.clientId=f4cec43d4541283879c4
-      - github.client.clientSecret=a31aa6de3e27c11d90762cad11936727d6b0759e
     # - rp.mongo.host=XXX
     # - rp.mongo.port=27017
     # - rp.mongo.dbName=reportportal
@@ -92,7 +90,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:3.0.0-BETA-1
+    image: reportportal/service-ui:3.0.0-BETA-2
     depends_on:
       - registry
     environment:
