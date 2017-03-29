@@ -75,7 +75,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:3.0.0-BETA-3
+    image: reportportal/service-api:3.0.0-BETA-4
     depends_on:
       - redis
       - mongodb
