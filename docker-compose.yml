@@ -90,7 +90,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:3.0.0-BETA-2
+    image: reportportal/service-ui:3.0.0-BETA-3
     depends_on:
       - registry
     environment:
