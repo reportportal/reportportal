@@ -38,13 +38,13 @@ services:
     command: --smallfiles
 
   registry:
-    image: reportportal/service-registry:3.0.0-BETA-1
+    image: reportportal/service-registry:3.0.0-BETA-2
     ports:
        - "8761:8761"
     restart: always
 
   uat:
-    image: reportportal/service-authorization:3.0.0-BETA-4
+    image: reportportal/service-authorization:3.0.0-BETA-5
     # ports:
     #   - "9999:8080"
     depends_on:
@@ -62,7 +62,7 @@ services:
     restart: always
 
   gateway:
-    image: reportportal/service-gateway:3.0.0-BETA-2
+    image: reportportal/service-gateway:3.0.0-BETA-3
     ports:
       - "8080:8080"
       - "8443:8443"
@@ -75,7 +75,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:3.0.0-BETA-5
+    image: reportportal/service-api:3.0.0-BETA-6
     depends_on:
       - redis
       - mongodb
@@ -90,7 +90,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:3.0.0-BETA-3
+    image: reportportal/service-ui:3.0.0-BETA-4
     depends_on:
       - registry
     environment:
@@ -98,7 +98,7 @@ services:
     restart: always
 
   jira:
-    image: reportportal/service-jira:3.0.0-BETA-2
+    image: reportportal/service-jira:3.0.0-BETA-3
     depends_on:
       - registry
     environment:
@@ -111,7 +111,7 @@ services:
     restart: always
 
   rally:
-    image: reportportal/service-rally:3.0.0-BETA-2
+    image: reportportal/service-rally:3.0.0-BETA-3
     depends_on:
       - registry
     environment:
