@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+
+export SERVICE_GATEWAY_PORT=8080
+export SERVICE_GATEWAY_JAVA_OPTS="-Xmx256m"
+
+export SERVICE_API_PORT=8081
+export SERVICE_API_JAVA_OPTS="-Xmx2g"
+
+export SERVICE_JIRA_PORT=8083
+export SERVICE_JIRA_JAVA_OPTS="-Xmx256m"
+
+export SERVICE_RALLY_PORT=8084
+export SERVICE_RALLY_JAVA_OPTS="-Xmx256m"
+
+export SERVICE_AUTHORIZATION_PORT=9999
+export SERVICE_AUTHORIZATION_JAVA_OPTS="-Xmx512m"
+
+export SERVICE_UI_PORT=8082
+export SERVICE_UI_JAVA_OPTS="-Xmx256m"
+
+export SERVICE_REGISTRY_PORT=8761
+export SERVICE_REGISTRY_JAVA_OPTS="-Xmx256m"
+
+export JIRA_ENABLED=true
+export RALLY_ENABLED=false
+
+export SPRING_REDIS_HOST=localhost
+export RP_MONGO_HOST=localhost
+
+supervisord --nodaemon --configuration supervisor-default.conf
