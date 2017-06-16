@@ -41,7 +41,7 @@ ReportPortal **server side** consists of the following services:
 #### Simple set with Docker
 Best for demo purposes and small teams. MongoDB database included into the compose.
 
-1. Install [Docker](http://docs-stage.docker.com/engine/installation/) ([Engine](https://docs.docker.com/engine/installation/), [Compose](https://docs.docker.com/compose/install/))
+1. Install [Docker](https://docs.docker.com/engine/installation/) ([Engine](https://docs.docker.com/engine/installation/), [Compose](https://docs.docker.com/compose/install/))
 2. Download [Example of compose descriptor](https://github.com/reportportal/reportportal/blob/master/docker-compose.yml) to any folder
 
   ```Shell
