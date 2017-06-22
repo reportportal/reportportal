@@ -52,13 +52,13 @@ services:
       - mongodb
       - registry
     environment:
-      - rp.profiles=docker
-      - rp.session.live=86400
-    # - rp.mongo.host=XXX
-    # - rp.mongo.port=27017
-    # - rp.mongo.dbName=reportportal
-    # - rp.mongo.user=XXX
-    # - rp.mongo.password=XXX
+      - RP_PROFILES=docker
+      - RP_SESSION_LIVE=86400
+    # - RP_MONGO_HOST=XXX
+    # - RP_MONGO_PORT=27017
+    # - RP_MONGO_DB_NAME=reportportal
+    # - RP_MONGO_USER=XXX
+    # - RP_MONGO_PASSWORD=XXX
     restart: always
 
   gateway:
@@ -71,7 +71,7 @@ services:
       - mongodb
       - registry
     environment:
-      - rp.profiles=docker
+      - RP_PROFILES=docker
     restart: always
 
   api:
@@ -81,12 +81,12 @@ services:
       - mongodb
       - registry
     environment:
-      - rp.profiles=docker
-    # - rp.mongo.host=XXX
-    # - rp.mongo.port=27017
-    # - rp.mongo.dbName=reportportal
-    # - rp.mongo.user=XXX
-    # - rp.mongo.password=XXX
+      - RP_PROFILES=docker
+    # - RP_MONGO_HOST=XXX
+    # - RP_MONGO_PORT=27017
+    # - RP_MONGO_DB_NAME=reportportal
+    # - RP_MONGO_USER=XXX
+    # - RP_MONGO_PASSWORD=XXX
     restart: always
 
   ui:
@@ -94,7 +94,7 @@ services:
     depends_on:
       - registry
     environment:
-      - rp.profiles=docker
+      - RP_PROFILES=docker
     restart: always
 
   jira:
@@ -102,12 +102,12 @@ services:
     depends_on:
       - registry
     environment:
-      - rp.profiles=docker
-    # - rp.mongo.host=XXX
-    # - rp.mongo.port=27017
-    # - rp.mongo.dbName=reportportal
-    # - rp.mongo.user=XXX
-    # - rp.mongo.password=XXX
+      - RP_PROFILES=docker
+    # - RP_MONGO_HOST=XXX
+    # - RP_MONGO_PORT=27017
+    # - RP_MONGO_DB_NAME=reportportal
+    # - RP_MONGO_USER=XXX
+    # - RP_MONGO_PASSWORD=XXX
     restart: always
 
   rally:
@@ -115,10 +115,10 @@ services:
     depends_on:
       - registry
     environment:
-      - rp.profiles=docker
-    # - rp.mongo.host=XXX
-    # - rp.mongo.port=27017
-    # - rp.mongo.dbName=reportportal
-    # - rp.mongo.user=XXX
-    # - rp.mongo.password=XXX
+      - RP_PROFILES=docker
+    # - RP_MONGO_HOST=XXX
+    # - RP_MONGO_PORT=27017
+    # - RP_MONGO_DB_NAME=reportportal
+    # - RP_MONGO_USER=XXX
+    # - RP_MONGO_PASSWORD=XXX
     restart: always
