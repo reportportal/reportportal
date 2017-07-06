@@ -44,7 +44,7 @@ services:
     restart: always
 
   uat:
-    image: reportportal/service-authorization:3.0.0
+    image: reportportal/service-authorization:3.0.2
     # ports:
     #   - "9999:8080"
     depends_on:
@@ -75,7 +75,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:3.0.0
+    image: reportportal/service-api:3.0.1
     depends_on:
       - redis
       - mongodb
@@ -90,7 +90,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:3.0.2
+    image: reportportal/service-ui:3.0.5
     depends_on:
       - registry
     environment:
