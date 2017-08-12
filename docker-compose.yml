@@ -90,9 +90,6 @@ services:
       - RP_PROFILES=docker
       - RP_ISSUE_ANALYZER_DEPTH=4
       - JAVA_OPTS=-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp
-    ports:
-      - "9010:9010"
-      - "12349:12349"
     restart: always
 
   ui:
