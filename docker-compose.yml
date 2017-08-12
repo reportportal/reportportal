@@ -49,7 +49,7 @@ services:
 
 
   uat:
-    image: reportportal/service-authorization:3.1.0-BETA-1
+    image: reportportal/service-authorization:3.1.1
     #ports:
     #  - "9999:9999"
     depends_on:
@@ -82,7 +82,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:3.1.0-BETA-2
+    image: reportportal/service-api:3.1.1
     depends_on:
       - redis
       - mongodb
@@ -96,7 +96,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:3.1.0
+    image: reportportal/service-ui:3.1.3
     environment:
       - RP_SERVER.PORT=8080
       - RP_CONSUL.TAGS=urlprefix-/ui opts strip=/ui
@@ -104,13 +104,13 @@ services:
     restart: always
 
   jira:
-    image: reportportal/service-jira:3.1.0-BETA-1
+    image: reportportal/service-jira:3.1.1
     environment:
       - RP_PROFILES=docker
     restart: always
 
   rally:
-    image: reportportal/service-rally:3.1.0-BETA-1
+    image: reportportal/service-rally:3.1.1
     environment:
       - RP_PROFILES=docker
     restart: always
