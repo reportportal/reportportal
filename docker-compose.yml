@@ -22,8 +22,8 @@ services:
 
   mongodb:
     image: mongo:3.4
-    ports:
-        - "27017:27017"
+#    ports:
+#        - "27017:27017"
     volumes:
       - ./data/mongo:/data/db
     restart: always
@@ -32,10 +32,10 @@ services:
     image: consul:0.9.0
     volumes:
       - ./data/consul:/consul/data
-    ports:
-        - "8500:8500"
-        - "8300:8300"
-        - "53:8600/udp"
+#    ports:
+#        - "8500:8500"
+#        - "8300:8300"
+#        - "53:8600/udp"
     command: "agent -server -bootstrap-expect=1 -ui -client 0.0.0.0  -raft-protocol=3"
     environment:
         - 'CONSUL_LOCAL_CONFIG={"leave_on_terminate": true}'
