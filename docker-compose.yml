@@ -10,12 +10,6 @@
 
 version: '2'
 
-## Create separate volume for Redis and MongoDB data
-## See https://docs.docker.com/compose/compose-file/#/volume-configuration-reference
-#volumes:
-#  reportportal-data:
-#    # external: true
-
 services:
   redis:
     image: redis:3.2
