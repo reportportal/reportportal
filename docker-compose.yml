@@ -10,12 +10,6 @@
 
 version: '2'
 
-## Create separate volume for Redis and MongoDB data
-## See https://docs.docker.com/compose/compose-file/#/volume-configuration-reference
-volumes:
-  reportportal-data:
-    # external: true
-
 services:
   redis:
     image: redis:3.2
@@ -23,102 +17,91 @@ services:
     # ports:
     #   - "6379:6379"
     volumes:
-      - reportportal-data:/data
+      - ./data/redis:/data
     restart: always
 
   mongodb:
     image: mongo:3.4
-    ## Uncomment if needed
-    # ports:
-    #     - "27017:27017"
+#    ports:
+#        - "27017:27017"
     volumes:
-      - reportportal-data:/data/db
+      - ./data/mongo:/data/db
     restart: always
-    ## Consider disabling smallfiles for production usage
-    command: --smallfiles
 
   registry:
-    image: reportportal/service-registry:3.0.0
-    ports:
-       - "8761:8761"
+    image: consul:0.9.0
+    volumes:
+      - ./data/consul:/consul/data
+#    ports:
+#        - "8500:8500"
+#        - "8300:8300"
+#        - "53:8600/udp"
+    command: "agent -server -bootstrap-expect=1 -ui -client 0.0.0.0  -raft-protocol=3"
+    environment:
+        - 'CONSUL_LOCAL_CONFIG={"leave_on_terminate": true}'
     restart: always
 
+
   uat:
-    image: reportportal/service-authorization:3.0.2
-    # ports:
-    #   - "9999:8080"
+    image: reportportal/service-authorization:3.1.1
+    #ports:
+    #  - "9999:9999"
     depends_on:
       - redis
       - mongodb
-      - registry
     environment:
-      - RP_PROFILES=docker
-      - RP_SESSION_LIVE=86400
-    # - RP_MONGO_HOST=XXX
-    # - RP_MONGO_PORT=27017
-    # - RP_MONGO_DB_NAME=reportportal
-    # - RP_MONGO_USER=XXX
-    # - RP_MONGO_PASSWORD=XXX
+      - RP_PROFILES=docker,6293
+      - RP_SESSION_LIVE=3600 #in seconds
     restart: always
 
   gateway:
-    image: reportportal/service-gateway:3.0.0
+    image: fabiolb/fabio:1.5.2-go1.8.3
     ports:
-      - "8080:8080"
-      - "8443:8443"
-    depends_on:
-      - redis
-      - mongodb
-      - registry
+      - "9998:9998" # GUI/management
+      - "8080:9999" # HTTP exposed
     environment:
-      - RP_PROFILES=docker
+      - FABIO_REGISTRY_CONSUL_ADDR=registry:8500
+      - FABIO_REGISTRY_CONSUL_REGISTER_NAME=gateway
+      - FABIO_PROXY_ADDR=:9999;rt=300s;wt=300s
+
+  index:
+    image: reportportal/service-index:3.1.0
+    environment:
+      - RP_SERVER.PORT=8080
+      - RP_CONSUL.TAGS=urlprefix-/
+      - RP_CONSUL.ADDRESS=registry:8500
+    depends_on:
+       - registry
+       - gateway
     restart: always
 
   api:
-    image: reportportal/service-api:3.0.1
+    image: reportportal/service-api:3.1.1
     depends_on:
       - redis
       - mongodb
-      - registry
     environment:
       - RP_PROFILES=docker
-    # - RP_MONGO_HOST=XXX
-    # - RP_MONGO_PORT=27017
-    # - RP_MONGO_DB_NAME=reportportal
-    # - RP_MONGO_USER=XXX
-    # - RP_MONGO_PASSWORD=XXX
+      - RP_ISSUE_ANALYZER_DEPTH=4
+      - JAVA_OPTS=-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp
     restart: always
 
   ui:
-    image: reportportal/service-ui:3.0.5
-    depends_on:
-      - registry
+    image: reportportal/service-ui:3.1.4
     environment:
-      - RP_PROFILES=docker
+      - RP_SERVER.PORT=8080
+      - RP_CONSUL.TAGS=urlprefix-/ui opts strip=/ui
+      - RP_CONSUL.ADDRESS=registry:8500
     restart: always
 
-  jira:
-    image: reportportal/service-jira:3.0.0
-    depends_on:
-      - registry
-    environment:
-      - RP_PROFILES=docker
-    # - RP_MONGO_HOST=XXX
-    # - RP_MONGO_PORT=27017
-    # - RP_MONGO_DB_NAME=reportportal
-    # - RP_MONGO_USER=XXX
-    # - RP_MONGO_PASSWORD=XXX
-    restart: always
-
-  rally:
-    image: reportportal/service-rally:3.0.0
-    depends_on:
-      - registry
-    environment:
-      - RP_PROFILES=docker
-    # - RP_MONGO_HOST=XXX
-    # - RP_MONGO_PORT=27017
-    # - RP_MONGO_DB_NAME=reportportal
-    # - RP_MONGO_USER=XXX
-    # - RP_MONGO_PASSWORD=XXX
-    restart: always
+#  jira:
+#    image: reportportal/service-jira:3.1.1
+#    environment:
+#      - RP_PROFILES=docker
+#    restart: always
+#
+#  rally:
+#    image: reportportal/service-rally:3.1.1
+#    environment:
+#      - RP_PROFILES=docker
+#    restart: always
