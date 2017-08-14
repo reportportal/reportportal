@@ -100,14 +100,14 @@ services:
       - RP_CONSUL.ADDRESS=registry:8500
     restart: always
 
-  jira:
-    image: reportportal/service-jira:3.1.1
-    environment:
-      - RP_PROFILES=docker
-    restart: always
-
-  rally:
-    image: reportportal/service-rally:3.1.1
-    environment:
-      - RP_PROFILES=docker
-    restart: always
+#  jira:
+#    image: reportportal/service-jira:3.1.1
+#    environment:
+#      - RP_PROFILES=docker
+#    restart: always
+#
+#  rally:
+#    image: reportportal/service-rally:3.1.1
+#    environment:
+#      - RP_PROFILES=docker
+#    restart: always
