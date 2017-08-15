@@ -95,13 +95,13 @@ services:
     restart: always
 
 #  jira:
-#    image: reportportal/service-jira:3.1.1
+#    image: reportportal/service-jira:3.1.0
 #    environment:
 #      - RP_PROFILES=docker
 #    restart: always
 #
 #  rally:
-#    image: reportportal/service-rally:3.1.1
+#    image: reportportal/service-rally:3.1.0
 #    environment:
 #      - RP_PROFILES=docker
 #    restart: always
