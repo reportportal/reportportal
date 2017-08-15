@@ -51,7 +51,7 @@ services:
       - mongodb
     environment:
       - RP_PROFILES=docker,6293
-      - RP_SESSION_LIVE=3600 #in seconds
+      - RP_SESSION_LIVE=86400 #in seconds
     restart: always
 
   gateway:
