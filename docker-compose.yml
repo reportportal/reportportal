@@ -52,6 +52,11 @@ services:
     environment:
       - RP_PROFILES=docker,6293
       - RP_SESSION_LIVE=86400 #in seconds
+#     - RP_MONGO_HOST=XXX
+#     - RP_MONGO_PORT=27017
+#     - RP_MONGO_DB_NAME=reportportal
+#     - RP_MONGO_USER=XXX
+#     - RP_MONGO_PASSWORD=XXX    
     restart: always
 
   gateway:
@@ -84,7 +89,12 @@ services:
       - RP_PROFILES=docker
       - RP_ISSUE_ANALYZER_DEPTH=4
       - JAVA_OPTS=-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp
-    restart: always
+    # - RP_MONGO_HOST=XXX
+    # - RP_MONGO_PORT=27017
+    # - RP_MONGO_DB_NAME=reportportal
+    # - RP_MONGO_USER=XXX
+    # - RP_MONGO_PASSWORD=XXX
+restart: always
 
   ui:
     image: reportportal/service-ui:3.1.5
@@ -98,10 +108,20 @@ services:
 #    image: reportportal/service-jira:3.1.0
 #    environment:
 #      - RP_PROFILES=docker
+#      - RP_MONGO_HOST=XXX
+#      - RP_MONGO_PORT=27017
+#      - RP_MONGO_DB_NAME=reportportal
+#      - RP_MONGO_USER=XXX
+#      - RP_MONGO_PASSWORD=XXX
 #    restart: always
 #
 #  rally:
 #    image: reportportal/service-rally:3.1.0
 #    environment:
 #      - RP_PROFILES=docker
+#      - RP_MONGO_HOST=XXX
+#      - RP_MONGO_PORT=27017
+#      - RP_MONGO_DB_NAME=reportportal
+#      - RP_MONGO_USER=XXX
+#      - RP_MONGO_PASSWORD=XXX
 #    restart: always
