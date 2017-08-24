@@ -43,7 +43,7 @@ services:
 
 
   uat:
-    image: reportportal/service-authorization:3.2.0-RC-1
+    image: reportportal/service-authorization:3.2.0-RC-2
     #ports:
     #  - "9999:9999"
     depends_on:
@@ -81,7 +81,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:3.2.0-RC-1
+    image: reportportal/service-api:3.2.0-RC-2
     depends_on:
       - redis
       - mongodb
@@ -97,7 +97,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:3.2.0
+    image: reportportal/service-ui:3.2.3
     environment:
       - RP_SERVER.PORT=8080
       - RP_CONSUL.TAGS=urlprefix-/ui opts strip=/ui
