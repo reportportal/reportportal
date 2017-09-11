@@ -68,6 +68,7 @@ services:
       - FABIO_REGISTRY_CONSUL_ADDR=registry:8500
       - FABIO_REGISTRY_CONSUL_REGISTER_NAME=gateway
       - FABIO_PROXY_ADDR=:9999;rt=300s;wt=300s
+    restart: always
 
   index:
     image: reportportal/service-index:3.1.1
