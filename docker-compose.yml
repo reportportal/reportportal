@@ -88,7 +88,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:3.3.0-BETA-1
+    image: reportportal/service-ui:3.3.0-BETA-2
     environment:
       - RP_SERVER.PORT=8080
       - RP_CONSUL.TAGS=urlprefix-/ui opts strip=/ui
