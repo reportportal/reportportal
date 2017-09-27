@@ -35,7 +35,7 @@ services:
 
 
   uat:
-    image: reportportal/service-authorization:3.3.0-BETA-3
+    image: reportportal/service-authorization:3.3.0-BETA-4
     #ports:
     #  - "9999:9999"
     depends_on:
@@ -73,7 +73,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:3.3.0-BETA-1
+    image: reportportal/service-api:3.3.0-BETA-2
     depends_on:
       - mongodb
     environment:
@@ -96,7 +96,7 @@ services:
     restart: always
 
   jira:
-    image: reportportal/service-jira:3.3.0-BETA-1
+    image: reportportal/service-jira:3.3.0-BETA-2
     environment:
       - RP_PROFILES=docker
 #      - RP_MONGO_HOST=XXX
@@ -107,7 +107,7 @@ services:
     restart: always
 
   rally:
-    image: reportportal/service-rally:3.3.0-BETA-1
+    image: reportportal/service-rally:3.3.0-BETA-2
     environment:
       - RP_PROFILES=docker
 #      - RP_MONGO_HOST=XXX
