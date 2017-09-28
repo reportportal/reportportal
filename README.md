@@ -61,7 +61,7 @@ To start ReportPortal in daemon mode, add '-d' argument:
   ```
   $ http://IP_ADDRESS:8080
   ```
-5.  t next login\pass for access: `default\1q2w3e` and  `superadmin\erebus`. 
+5. Use next login\pass for access: `default\1q2w3e` and  `superadmin\erebus`. 
 
 >Please change admin password for security.
 
