@@ -21,7 +21,7 @@ services:
     restart: always
 
   registry:
-    image: consul:0.9.2
+    image: consul:0.9.3
     volumes:
       - ./data/consul:/consul/data
 #    ports:
@@ -35,7 +35,7 @@ services:
 
 
   uat:
-    image: reportportal/service-authorization:3.3.0-BETA-4
+    image: reportportal/service-authorization:3.3.0
     #ports:
     #  - "9999:9999"
     depends_on:
@@ -73,7 +73,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:3.3.0-BETA-6
+    image: reportportal/service-api:3.3.0
     depends_on:
       - mongodb
     environment:
@@ -88,7 +88,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:3.3.0-BETA-2
+    image: reportportal/service-ui:3.3.0
     environment:
       - RP_SERVER.PORT=8080
       - RP_CONSUL.TAGS=urlprefix-/ui opts strip=/ui
@@ -96,7 +96,7 @@ services:
     restart: always
 
   jira:
-    image: reportportal/service-jira:3.3.0-BETA-2
+    image: reportportal/service-jira:3.3.0
     environment:
       - RP_PROFILES=docker
 #      - RP_MONGO_HOST=XXX
@@ -107,7 +107,7 @@ services:
     restart: always
 
   rally:
-    image: reportportal/service-rally:3.3.0-BETA-2
+    image: reportportal/service-rally:3.3.0
     environment:
       - RP_PROFILES=docker
 #      - RP_MONGO_HOST=XXX
