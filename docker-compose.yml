@@ -95,24 +95,24 @@ services:
       - RP_CONSUL.ADDRESS=registry:8500
     restart: always
 
-  jira:
-    image: reportportal/service-jira:3.3.0
-    environment:
-      - RP_PROFILES=docker
-#      - RP_MONGO_HOST=XXX
-#      - RP_MONGO_PORT=27017
-#      - RP_MONGO_DB_NAME=reportportal
-#      - RP_MONGO_USER=XXX
-#      - RP_MONGO_PASSWORD=XXX
-    restart: always
+#  jira:
+#    image: reportportal/service-jira:3.3.0
+#    environment:
+#      - RP_PROFILES=docker
+##      - RP_MONGO_HOST=XXX
+##      - RP_MONGO_PORT=27017
+##      - RP_MONGO_DB_NAME=reportportal
+##      - RP_MONGO_USER=XXX
+##      - RP_MONGO_PASSWORD=XXX
+#    restart: always
 
-  rally:
-    image: reportportal/service-rally:3.3.0
-    environment:
-      - RP_PROFILES=docker
-#      - RP_MONGO_HOST=XXX
-#      - RP_MONGO_PORT=27017
-#      - RP_MONGO_DB_NAME=reportportal
-#      - RP_MONGO_USER=XXX
-#      - RP_MONGO_PASSWORD=XXX
-    restart: always
+#  rally:
+#    image: reportportal/service-rally:3.3.0
+#    environment:
+#      - RP_PROFILES=docker
+##      - RP_MONGO_HOST=XXX
+##      - RP_MONGO_PORT=27017
+##      - RP_MONGO_DB_NAME=reportportal
+##      - RP_MONGO_USER=XXX
+##      - RP_MONGO_PASSWORD=XXX
+#    restart: always
