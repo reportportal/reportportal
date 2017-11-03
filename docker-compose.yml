@@ -11,14 +11,6 @@
 version: '2'
 
 services:
-  redis:
-    image: redis:3.2
-    ## Uncomment if needed
-    # ports:
-    #   - "6379:6379"
-    volumes:
-      - ./data/redis:/data
-    restart: always
 
   mongodb:
     image: mongo:3.4
@@ -29,7 +21,7 @@ services:
     restart: always
 
   registry:
-    image: consul:0.9.0
+    image: consul:0.9.3
     volumes:
       - ./data/consul:/consul/data
 #    ports:
@@ -43,11 +35,10 @@ services:
 
 
   uat:
-    image: reportportal/service-authorization:3.2.1
+    image: reportportal/service-authorization:3.3.0
     #ports:
     #  - "9999:9999"
     depends_on:
-      - redis
       - mongodb
     environment:
       - RP_PROFILES=docker
@@ -60,7 +51,7 @@ services:
     restart: always
 
   gateway:
-    image: fabiolb/fabio:1.5.2-go1.8.3
+    image: fabiolb/fabio:1.5.2-go1.9
     ports:
       - "9998:9998" # GUI/management
       - "8080:9999" # HTTP exposed
@@ -82,9 +73,8 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:3.2.1
+    image: reportportal/service-api:3.3.0
     depends_on:
-      - redis
       - mongodb
     environment:
       - RP_PROFILES=docker
@@ -98,7 +88,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:3.2.4
+    image: reportportal/service-ui:3.3.0
     environment:
       - RP_SERVER.PORT=8080
       - RP_CONSUL.TAGS=urlprefix-/ui opts strip=/ui
@@ -106,23 +96,23 @@ services:
     restart: always
 
 #  jira:
-#    image: reportportal/service-jira:3.2.0
+#    image: reportportal/service-jira:3.3.0
 #    environment:
 #      - RP_PROFILES=docker
-#      - RP_MONGO_HOST=XXX
-#      - RP_MONGO_PORT=27017
-#      - RP_MONGO_DB_NAME=reportportal
-#      - RP_MONGO_USER=XXX
-#      - RP_MONGO_PASSWORD=XXX
+##      - RP_MONGO_HOST=XXX
+##      - RP_MONGO_PORT=27017
+##      - RP_MONGO_DB_NAME=reportportal
+##      - RP_MONGO_USER=XXX
+##      - RP_MONGO_PASSWORD=XXX
 #    restart: always
-#
+
 #  rally:
-#    image: reportportal/service-rally:3.2.0
+#    image: reportportal/service-rally:3.3.0
 #    environment:
 #      - RP_PROFILES=docker
-#      - RP_MONGO_HOST=XXX
-#      - RP_MONGO_PORT=27017
-#      - RP_MONGO_DB_NAME=reportportal
-#      - RP_MONGO_USER=XXX
-#      - RP_MONGO_PASSWORD=XXX
+##      - RP_MONGO_HOST=XXX
+##      - RP_MONGO_PORT=27017
+##      - RP_MONGO_DB_NAME=reportportal
+##      - RP_MONGO_USER=XXX
+##      - RP_MONGO_PASSWORD=XXX
 #    restart: always
