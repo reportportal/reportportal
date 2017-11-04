@@ -73,7 +73,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:3.3.0
+    image: reportportal/service-api:3.3.1
     depends_on:
       - mongodb
     environment:
