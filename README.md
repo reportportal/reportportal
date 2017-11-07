@@ -16,7 +16,6 @@ Application Core based on micro-services architecture and includes next mandator
 ## Repositories structure
 
 ReportPortal **server side** consists of the following services:
-- [`service-registry`](https://github.com/reportportal/service-registry) Redis. Used for distributed cache.
 - [`service-authorization`](https://github.com/reportportal/service-authorization) Authorization Service. In charge of access tokens distribution
 - [`service-gateway`](https://github.com/reportportal/service-gateway) Gateway Service. Main entry point to application. Port used by gateway should be opened and accessible from outside network.
 - [`service-api`](https://github.com/reportportal/service-api) API Service. Application Backend
