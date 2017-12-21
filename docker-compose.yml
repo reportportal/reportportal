@@ -48,7 +48,7 @@ services:
     restart: always
 
   gateway:
-    image: fabiolb/fabio:1.5.4-go1.9.2
+    image: fabiolb/fabio:1.5.5-go1.9.2
     ports:
       - "9998:9998" # GUI/management
       - "8080:9999" # HTTP exposed
