@@ -43,7 +43,6 @@ services:
     environment:
       - RP_PROFILES=docker
       - RP_SESSION_LIVE=86400 #in seconds
-#      - RP_PROFILES=docker
 #      - RP_MONGO_URI=mongodb://localhost:27017
     restart: always
 
@@ -74,9 +73,7 @@ services:
       - mongodb
     environment:
       - RP_PROFILES=docker
-      - RP_ISSUE_ANALYZER_DEPTH=4
       - JAVA_OPTS=-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp
-#      - RP_PROFILES=docker
 #      - RP_MONGO_URI=mongodb://localhost:27017
     restart: always
 
