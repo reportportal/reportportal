@@ -35,7 +35,7 @@ services:
 
 
   uat:
-    image: reportportal/service-authorization:4.0.0-BETA-1
+    image: reportportal/service-authorization:4.0.0-BETA-2
     #ports:
     #  - "9999:9999"
     depends_on:
