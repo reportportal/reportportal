@@ -24,8 +24,8 @@ services:
     image: consul:1.0.2
     volumes:
       - ./data/consul:/consul/data
-#    ports:
-#        - "8500:8500"
+    ports:
+        - "8500:8500"
 #        - "8300:8300"
 #        - "53:8600/udp"
     command: "agent -server -bootstrap-expect=1 -ui -client 0.0.0.0"
@@ -35,7 +35,7 @@ services:
 
 
   uat:
-    image: reportportal/service-authorization:4.0.0-BETA-3
+    image: reportportal/service-authorization:4.0.0-BETA-4
     #ports:
     #  - "9999:9999"
     depends_on:
@@ -47,7 +47,7 @@ services:
     restart: always
 
   gateway:
-    image: fabiolb/fabio:1.5.5-go1.9.2
+    image: fabiolb/fabio:1.5.6-go1.9.2
     ports:
       - "9998:9998" # GUI/management
       - "8080:9999" # HTTP exposed
@@ -56,6 +56,23 @@ services:
       - FABIO_REGISTRY_CONSUL_REGISTER_NAME=gateway
       - FABIO_PROXY_ADDR=:9999;rt=300s;wt=300s
     restart: always
+
+
+### Another option for gateway
+### Can be used instead of fabio
+#  gateway:
+#    image: traefik:1.5
+#    ports:
+#      - "8080:8080" # HTTP exposed
+#      - "8081:8081" # HTTP Administration exposed
+#    command:
+#      - --consulcatalog.endpoint=registry:8500
+#      - --defaultEntryPoints=http
+#      - --entryPoints=Name:http Address::8080
+#      - --logLevel=DEBUG
+#      - --web
+#      - --web.address=:8081
+#    restart: always
 
   index:
     image: reportportal/service-index:4.0.0
@@ -68,7 +85,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:4.0.0-BETA-1
+    image: reportportal/service-api:4.0.0-BETA-3
     depends_on:
       - mongodb
     environment:
@@ -78,7 +95,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:4.0.0-BETA-1
+    image: reportportal/service-ui:4.0.0-BETA-2
     environment:
       - RP_SERVER.PORT=8080
       - RP_CONSUL.TAGS=urlprefix-/ui opts strip=/ui
@@ -86,7 +103,7 @@ services:
     restart: always
 
   analyzer:
-    image: reportportal/service-analyzer:4.0.0-BETA-1
+    image: reportportal/service-analyzer:4.0.0-BETA-2
     depends_on:
        - registry
        - gateway
@@ -107,16 +124,16 @@ services:
 #    ports:
 #        - "9200:9200"
 
-#  jira:
-#    image: reportportal/service-jira:4.0.0-BETA-3
-#    environment:
-#      - RP_PROFILES=docker
-#      - RP_MONGO_URI=mongodb://localhost:27017
-#    restart: always
+  jira:
+    image: reportportal/service-jira:4.0.0-BETA-4
+    environment:
+      - RP_PROFILES=docker
+      - RP_MONGO_URI=mongodb://localhost:27017
+    restart: always
 
-#  rally:
-#    image: reportportal/service-rally:4.0.0-BETA-2
-#    environment:
-#      - RP_PROFILES=docker
-#      - RP_MONGO_URI=mongodb://localhost:27017
-#    restart: always
+  rally:
+    image: reportportal/service-rally:4.0.0-BETA-3
+    environment:
+      - RP_PROFILES=docker
+      - RP_MONGO_URI=mongodb://localhost:27017
+    restart: always
