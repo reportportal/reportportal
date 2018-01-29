@@ -128,12 +128,12 @@ services:
     image: reportportal/service-jira:4.0.0-BETA-4
     environment:
       - RP_PROFILES=docker
-      - RP_MONGO_URI=mongodb://localhost:27017
+#     - RP_MONGO_URI=mongodb://localhost:27017
     restart: always
 
   rally:
     image: reportportal/service-rally:4.0.0-BETA-3
     environment:
       - RP_PROFILES=docker
-      - RP_MONGO_URI=mongodb://localhost:27017
+#     - RP_MONGO_URI=mongodb://localhost:27017
     restart: always
