@@ -17,13 +17,13 @@ services:
 #    ports:
 #        - "27017:27017"
     volumes:
-      - ./data/mongo:/data/db
+      - ./data/mongo:/data/db:z
     restart: always
 
   registry:
     image: consul:0.9.3
     volumes:
-      - ./data/consul:/consul/data
+      - ./data/consul:/consul/data:z
 #    ports:
 #        - "8500:8500"
 #        - "8300:8300"
