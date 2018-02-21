@@ -23,7 +23,7 @@ services:
     restart: always
 
   registry:
-    image: consul:1.0.3
+    image: consul:1.0.6
     volumes:
       - ./data/consul:/consul/data
     ports:
@@ -37,7 +37,7 @@ services:
 
 
   uat:
-    image: reportportal/service-authorization:4.0.0-BETA-5
+    image: reportportal/service-authorization:4.0.0
     #ports:
     #  - "9999:9999"
     depends_on:
@@ -49,7 +49,7 @@ services:
     restart: always
 
   gateway:
-    image: fabiolb/fabio:1.5.6-go1.9.2
+    image: fabiolb/fabio:1.5.8-go1.10
     ports:
       - "9998:9998" # GUI/management
       - "8080:9999" # HTTP exposed
@@ -87,7 +87,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:4.0.0-BETA-6
+    image: reportportal/service-api:4.0.0
     depends_on:
       - mongodb
     environment:
@@ -97,7 +97,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:4.0.0-BETA-3
+    image: reportportal/service-ui:4.0.0
     environment:
       - RP_SERVER.PORT=8080
       - RP_CONSUL.TAGS=urlprefix-/ui opts strip=/ui
@@ -105,7 +105,7 @@ services:
     restart: always
 
   analyzer:
-    image: reportportal/service-analyzer:4.0.0-BETA-4
+    image: reportportal/service-analyzer:4.0.0
     depends_on:
        - registry
        - gateway
@@ -127,14 +127,14 @@ services:
 #        - "9200:9200"
 
   jira:
-    image: reportportal/service-jira:4.0.0-BETA-5
+    image: reportportal/service-jira:4.0.0
     environment:
       - RP_PROFILES=docker
 #     - RP_MONGO_URI=mongodb://localhost:27017
     restart: always
 
   rally:
-    image: reportportal/service-rally:4.0.0-BETA-4
+    image: reportportal/service-rally:4.0.0
     environment:
       - RP_PROFILES=docker
 #     - RP_MONGO_URI=mongodb://localhost:27017
