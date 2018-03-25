@@ -87,7 +87,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:4.0.0
+    image: reportportal/service-api:4.1.0-BETA-1
     depends_on:
       - mongodb
     environment:
@@ -105,7 +105,7 @@ services:
     restart: always
 
   analyzer:
-    image: reportportal/service-analyzer:4.0.0
+    image: reportportal/service-analyzer:4.1.0-BETA-1
     depends_on:
        - registry
        - gateway
