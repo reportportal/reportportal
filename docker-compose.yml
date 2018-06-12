@@ -64,7 +64,7 @@ services:
 
 
   gateway:
-    image: traefik:1.6.2
+    image: traefik:1.6.3
     ports:
       - "8080:8080" # HTTP exposed
 #      - "8081:8081" # HTTP Administration exposed
@@ -87,7 +87,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:4.2.0
+    image: reportportal/service-api:4.2.1
     depends_on:
       - mongodb
     environment:
@@ -97,7 +97,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:4.2.0
+    image: reportportal/service-ui:4.2.2
     environment:
       - RP_SERVER.PORT=8080
       - RP_CONSUL.TAGS=urlprefix-/ui opts strip=/ui
