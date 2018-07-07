@@ -19,7 +19,7 @@ services:
 #    ports:
 #        - "27017:27017"
     volumes:
-      - mongodb:/data/db
+      - ./data/mongo:/data/db
     restart: always
 
   registry:
@@ -153,6 +153,3 @@ services:
       - RP_PROFILES=docker
 #     - RP_MONGO_URI=mongodb://localhost:27017
     restart: always
-
-volumes:
-    mongodb:
