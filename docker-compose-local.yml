@@ -18,8 +18,8 @@ services:
 
   mongodb:
     image: mongo:3.4
-#    ports:
-#        - "27017:27017"
+    ports:
+        - "27017:27017"
     volumes:
       - ./data/mongo:/data/db
     restart: always
@@ -41,7 +41,7 @@ services:
   uat:
     build:
       context: ./service-authorization
-      dockerfile: ./docker/Dockerfile-build
+      dockerfile: ./docker/Dockerfile-develop
     #ports:
     #  - "9999:9999"
     depends_on:
@@ -83,7 +83,7 @@ services:
   index:
     build:
       context: ./service-index
-      dockerfile: Dockerfile-build
+      dockerfile: Dockerfile-develop
     environment:
       - RP_SERVER_PORT=8080
       - RP_PROXY_CONSUL=true
@@ -95,7 +95,7 @@ services:
   api:
     build:
       context: ./service-api
-      dockerfile: docker/Dockerfile-build
+      dockerfile: docker/Dockerfile-develop
     depends_on:
       - mongodb
     environment:
@@ -141,7 +141,7 @@ services:
   jira:
     build:
       context: ./service-jira
-      dockerfile: docker/Dockerfile-build
+      dockerfile: docker/Dockerfile-develop
     environment:
       - RP_PROFILES=docker
 #     - RP_MONGO_URI=mongodb://localhost:27017
@@ -150,7 +150,7 @@ services:
   rally:
     build:
       context: ./service-rally
-      dockerfile: docker/Dockerfile-build
+      dockerfile: docker/Dockerfile-develop
     environment:
       - RP_PROFILES=docker
 #     - RP_MONGO_URI=mongodb://localhost:27017
