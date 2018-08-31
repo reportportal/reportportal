@@ -36,7 +36,7 @@ ReportPortal **server side** consists of the following services:
 
 ## Installation steps
 
-#### Simple set with Docker
+#### Simple setup with Docker
 Best for demo purposes and small teams. MongoDB database included into the compose.
 
 1. Install [Docker](https://docs.docker.com/engine/installation/) ([Engine](https://docs.docker.com/engine/installation/), [Compose](https://docs.docker.com/compose/install/))
@@ -76,7 +76,7 @@ To customize deployment and make it production-ready please follow [customizatio
 
 ## Integration. How to get log data in
 
-You should add **Client Side** code inside your test automation. It consits of:
+You should add **Client Side** code inside your test automation. It consists of:
 
 - [`client-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=client-) - API integrations. Http clients, which process HTTP request sending. E.g. for Java ([`client-java-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=client-java-))
 - [`agent-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=agent-) - Frameworks integration. Custom reporters/listeners, which monitor test events and trigger event sending via [`client-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=client-)
