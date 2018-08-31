@@ -1,0 +1,157 @@
+## You can generate a custom docker compose file automatically on http://reportportal.io/download (Step 2)
+
+## This is example of Docker Compose for ReportPortal
+## Do not forget to configure data volumes for production usage
+
+## Execute 'docker-compose -f docker-compose-local.yml -p reportportal up -d --force-recreate' --build
+## to start all containers in daemon mode
+## Where:
+##      '-f docker-compose-local.yml' -- specifies this compose file
+##      '-p reportportal' -- specifies container's prefix (project name)
+##      '-d' -- enables daemon mode
+##      '--force-recreate' -- forces re-recreating of all containers
+##      '--build' -- build images before starting containers.
+
+version: '2'
+
+services:
+
+  mongodb:
+    image: mongo:3.4
+    ports:
+        - "27017:27017"
+    volumes:
+      - ./data/mongo:/data/db
+    restart: always
+
+  registry:
+    image: consul:1.0.6
+    volumes:
+      - ./data/consul:/consul/data
+    ports:
+        - "8500:8500"
+#        - "8300:8300"
+#        - "53:8600/udp"
+    command: "agent -server -bootstrap-expect=1 -ui -client 0.0.0.0"
+    environment:
+        - 'CONSUL_LOCAL_CONFIG={"leave_on_terminate": true}'
+    restart: always
+
+
+  uat:
+    build:
+      context: ./service-authorization
+      dockerfile: ./docker/Dockerfile-develop
+    #ports:
+    #  - "9999:9999"
+    depends_on:
+      - mongodb
+    environment:
+      - RP_PROFILES=docker
+      - RP_SESSION_LIVE=86400 #in seconds
+#      - RP_MONGO_URI=mongodb://localhost:27017
+    restart: always
+
+### Another option for gateway
+### Can be used instead of traefik
+#  gateway:
+#    image: fabiolb/fabio:1.5.8-go1.10
+#    ports:
+#      - "9998:9998" # GUI/management
+#      - "8080:9999" # HTTP exposed
+#    environment:
+#      - FABIO_REGISTRY_CONSUL_ADDR=registry:8500
+#      - FABIO_REGISTRY_CONSUL_REGISTER_NAME=gateway
+#      - FABIO_PROXY_ADDR=:9999;rt=300s;wt=300s
+#    restart: always
+
+
+
+  gateway:
+    image: traefik:1.6.3
+    ports:
+      - "8080:8080" # HTTP exposed
+#      - "8081:8081" # HTTP Administration exposed
+    command:
+      - --consulcatalog.endpoint=registry:8500
+      - --defaultEntryPoints=http
+      - --entryPoints=Name:http Address::8080
+      - --web
+      - --web.address=:8081
+    restart: always
+
+  index:
+    build:
+      context: ./service-index
+      dockerfile: Dockerfile-develop
+    environment:
+      - RP_SERVER_PORT=8080
+      - RP_PROXY_CONSUL=true
+    depends_on:
+       - registry
+       - gateway
+    restart: always
+
+  api:
+    build:
+      context: ./service-api
+      dockerfile: docker/Dockerfile-develop
+    depends_on:
+      - mongodb
+    environment:
+      - RP_PROFILES=docker
+      - JAVA_OPTS=-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp
+#      - RP_MONGO_URI=mongodb://localhost:27017
+    restart: always
+
+  ui:
+    build:
+      context: ./service-ui
+      dockerfile: Dockerfile-full
+    environment:
+      - RP_SERVER.PORT=8080
+      - RP_CONSUL.TAGS=urlprefix-/ui opts strip=/ui
+      - RP_CONSUL.ADDRESS=registry:8500
+    restart: always
+
+  analyzer:
+    build:
+      context: ./service-analyzer
+      dockerfile: DockerfileDev
+    depends_on:
+       - registry
+       - gateway
+       - elasticsearch
+    restart: always
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
+    restart: always
+    volumes:
+        - ./data/elasticsearch:/usr/share/elasticsearch/data
+    environment:
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+#    ports:
+#        - "9200:9200"
+
+  jira:
+    build:
+      context: ./service-jira
+      dockerfile: docker/Dockerfile-develop
+    environment:
+      - RP_PROFILES=docker
+#     - RP_MONGO_URI=mongodb://localhost:27017
+    restart: always
+
+  rally:
+    build:
+      context: ./service-rally
+      dockerfile: docker/Dockerfile-develop
+    environment:
+      - RP_PROFILES=docker
+#     - RP_MONGO_URI=mongodb://localhost:27017
+    restart: always
