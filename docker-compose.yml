@@ -134,7 +134,7 @@ services:
     restart: always
 
   rally:
-    image: reportportal/service-rally:4.2.0
+    image: reportportal/service-rally:4.3.0-BETA1
     environment:
       - RP_PROFILES=docker
 #     - RP_MONGO_URI=mongodb://localhost:27017
