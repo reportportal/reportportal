@@ -50,70 +50,70 @@ fi
 
 #service-index
 if [ -d "$PWD/service-index" ]; then
-  cd ./service-index
-    git checkout "$branchServiceIndex"
-    git pull
-  cd ..
+    cd ./service-index
+        git checkout "$branchServiceIndex"
+        git pull
+    cd ..
 else
-  git clone https://github.com/reportportal/service-index.git
-  cd ./service-index
-    git checkout "$branchServiceIndex"
-  cd ..
+    git clone https://github.com/reportportal/service-index.git
+    cd ./service-index
+        git checkout "$branchServiceIndex"
+    cd ..
 fi
 
 #service-analyzer
 if [ -d "$PWD/service-analyzer" ]; then
-  cd ./service-analyzer
-    git pull
-  cd ..
+    cd ./service-analyzer
+        git pull
+    cd ..
 else
-  git clone https://github.com/reportportal/service-analyzer.git
+    git clone https://github.com/reportportal/service-analyzer.git
 fi
 
 #service-ui
 if [ -d "$PWD/service-ui" ]; then
-  cd ./service-ui
-    git pull
-  cd ..
+    cd ./service-ui
+        git pull
+    cd ..
 else
-  git clone https://github.com/reportportal/service-ui.git
+    git clone https://github.com/reportportal/service-ui.git
 fi
 
-# #service-jira
-# if [ -d "$PWD/service-jira" ]; then
-#   cd ./service-jira
-#     git checkout "$branchServiceJira"
-#     git pull
-#   cd ..
-# else
-#   git clone https://github.com/reportportal/service-jira.git
-#   cd ./service-jira
-#     git checkout "$branchServiceJira"
-#   cd ..
-# fi
+#service-jira
+if [ -d "$PWD/service-jira" ]; then
+    cd ./service-jira
+        git checkout "$branchServiceJira"
+        git pull
+    cd ..
+else
+    git clone https://github.com/reportportal/service-jira.git
+    cd ./service-jira
+      git checkout "$branchServiceJira"
+    cd ..
+fi
 
-# #service-rally
-# if [ -d "$PWD/service-rally" ]; then
-#   cd ./service-rally
-#     git checkout "branchServiceRally"
-#     git pull
-#   cd ..
-# else
-#   git clone https://github.com/reportportal/service-rally.git
-#   cd ./service-rally
-#     git checkout "branchServiceRally"
-#   cd ..
-# fi
+#service-rally
+if [ -d "$PWD/service-rally" ]; then
+    cd ./service-rally
+        git checkout "branchServiceRally"
+        git pull
+    cd ..
+else
+    git clone https://github.com/reportportal/service-rally.git
+    cd ./service-rally
+        git checkout "branchServiceRally"
+    cd ..
+fi
 
 #setting folder for elasticsearch
 if [ -d "$PWD/data" ]; then
     rm -rf data
-else
-  mkdir data
-  mkdir data/elasticsearch
-  chmod g+rwx data/elasticsearch
-  chgrp 1000 data/elasticsearch
 fi
+
+mkdir data
+mkdir data/elasticsearch
+chmod g+rwx data/elasticsearch
+chgrp 1000 data/elasticsearch
 
 #create docker-compose.yml
 cat <<EOF >$PWD/docker-compose.yml
@@ -279,23 +279,23 @@ services:
     - elasticsearch
     restart: always
 
-  # jira:
-  #   build:
-  #     context: ./service-jira
-  #     dockerfile: ./docker/Dockerfile-develop
-  #   image: reportportal/service-jira
-  #   environment:
-  #     - RP_PROFILES=docker
-  #   restart: always
+   jira:
+     build:
+       context: ./service-jira
+       dockerfile: ./docker/Dockerfile-develop
+     #image: reportportal/service-jira:4.2 #if have problem with build image via 'build' config(thereat commit 'build') use image from docker-hub
+     environment:
+       - RP_PROFILES=docker
+     restart: always
 
-  # rally:
-  #   build:
-  #     context: ./service-rally
-  #     dockerfile: ./docker/Dockerfile-develop
-  #   image: reportportal/service-rally
-  #   environment:
-  #     - RP_PROFILES=docker
-  #   restart: always
+   rally:
+     build:
+       context: ./service-rally
+       dockerfile: ./docker/Dockerfile-develop
+     #image: reportportal/service-rally:4.2 #if have problem with build image via 'build' config(thereat commit 'build') use image from docker-hub
+     environment:
+       - RP_PROFILES=docker
+     restart: always
 
 volumes:
   reportportal-database:
