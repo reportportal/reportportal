@@ -12,6 +12,7 @@ branchServiceAuthorization="spb4"
 branchServiceIndex="v5"
 branchServiceJira="v5"
 branchServiceRally="v5"
+branchServiceUi="develop"
 
 #migrations
 if [ -d "$PWD/migrations" ]; then
@@ -73,10 +74,14 @@ fi
 #service-ui
 if [ -d "$PWD/service-ui" ]; then
     cd ./service-ui
+        git checkout "$branchServiceUi"
         git pull
     cd ..
 else
     git clone https://github.com/reportportal/service-ui.git
+    cd ./service-ui
+        git checkout "$branchServiceUi"
+    cd ..
 fi
 
 #service-jira
@@ -104,16 +109,6 @@ else
         git checkout "branchServiceRally"
     cd ..
 fi
-
-#setting folder for elasticsearch
-if [ -d "$PWD/data" ]; then
-    rm -rf data
-fi
-
-mkdir data
-mkdir data/elasticsearch
-chmod g+rwx data/elasticsearch
-chgrp 1000 data/elasticsearch
 
 #create docker-compose.yml
 cat <<EOF >$PWD/docker-compose.yml
@@ -166,7 +161,7 @@ services:
       POSTGRES_PASSWORD: rppass
       POSTGRES_DB: reportportal
     volumes:
-    - reportportal-database:/var/lib/postgresql/data
+    - ./data/postgres:/var/lib/postgresql/data
     restart: on-failure
     # If you need to access the DB locally. Could be a security risk to expose DB.
     ports:
@@ -279,26 +274,23 @@ services:
     - elasticsearch
     restart: always
 
-   jira:
-     build:
-       context: ./service-jira
-       dockerfile: ./docker/Dockerfile-develop
-     #image: reportportal/service-jira:4.2 #if have problem with build image via 'build' config(thereat commit 'build') use image from docker-hub
-     environment:
-       - RP_PROFILES=docker
-     restart: always
+  jira:
+    #build:
+    #  context: ./service-jira
+    #  dockerfile: ./docker/Dockerfile-develop
+    image: reportportal/service-jira:4.2.0 #if have problem with build image via 'build' config(thereat commit 'build') use image from docker-hub
+    environment:
+      - RP_PROFILES=docker
+    restart: always
 
-   rally:
-     build:
-       context: ./service-rally
-       dockerfile: ./docker/Dockerfile-develop
-     #image: reportportal/service-rally:4.2 #if have problem with build image via 'build' config(thereat commit 'build') use image from docker-hub
-     environment:
-       - RP_PROFILES=docker
-     restart: always
-
-volumes:
-  reportportal-database:
+  rally:
+    #build:
+    #  context: ./service-rally
+    #  dockerfile: ./docker/Dockerfile-develop
+    image: reportportal/service-rally:4.2.0 #if have problem with build image via 'build' config(thereat commit 'build') use image from docker-hub
+    environment:
+      - RP_PROFILES=docker
+    restart: always
 EOF
 
 #stop container and remove them with images
@@ -306,5 +298,17 @@ if [ $(docker ps --filter="name=api" --format="{{.Names}}" | sed 's/\(.*\)_api_[
   docker-compose -p reportportal down --rmi all
 fi
 
+
+#setting folder for elasticsearch
+if [ -d "$PWD/data" ]; then
+    rm -rf data
+fi
+
+mkdir data
+mkdir data/elasticsearch
+chmod g+rwx data/elasticsearch
+chgrp 1000 data/elasticsearch
+
 #create docker images, containers and start them
+docker-compose -p reportportal build
 docker-compose -p reportportal up -d
