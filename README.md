@@ -54,7 +54,7 @@ To start ReportPortal in daemon mode, add '-d' argument:
   ```Shell
   $ docker-compose up -d
   ```  
-4. Open in your browser IP address of deployed enviroment at port `8080`
+4. Open in your browser IP address of deployed environment at port `8080`
 
   ```
   $ http://IP_ADDRESS:8080
@@ -68,7 +68,7 @@ To start ReportPortal in daemon mode, add '-d' argument:
 #### Production-ready set and Custom deployment with Docker
 
 For production usage we recommend to:
-- deploy MongoDB database at separate enviroment, and connect App to this server. MongoDB is mandatory part.
+- deploy MongoDB database at separate environment, and connect App to this server. MongoDB is mandatory part.
 - choose only required Bug Tracking System integration service. Exclude the rest
 
 To customize deployment and make it production-ready please follow [customization steps and details](https://github.com/reportportal/reportportal/wiki/Production-Ready-set-and-Deployment-Customization)
