@@ -1,10 +1,8 @@
-#Pre-installed applications:
-#git
-#docker
-#docker-compose
-
-#Important settings for elasticsearch
-#https://www.elastic.co/guide/en/elasticsearch/reference/6.4/docker.html#docker-cli-run-prod-mode
+#Required pre-installed software:
+# 1) Git,
+# 2) docker,
+# 3) docker-compose.
+#Important settings for Elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/6.4/docker.html#docker-cli-run-prod-mode
 
 #branch args
 branchServiceApi="ps-migrations"
@@ -275,19 +273,17 @@ services:
     restart: always
 
   jira:
-    #build:
-    #  context: ./service-jira
-    #  dockerfile: ./docker/Dockerfile-develop
-    image: reportportal/service-jira:4.2.0 #if have problem with build image via 'build' config(thereat commit 'build') use image from docker-hub
+    build:
+      context: ./service-jira
+      dockerfile: ./docker/Dockerfile-develop
     environment:
       - RP_PROFILES=docker
     restart: always
 
   rally:
-    #build:
-    #  context: ./service-rally
-    #  dockerfile: ./docker/Dockerfile-develop
-    image: reportportal/service-rally:4.2.0 #if have problem with build image via 'build' config(thereat commit 'build') use image from docker-hub
+    build:
+      context: ./service-rally
+      dockerfile: ./docker/Dockerfile-develop
     environment:
       - RP_PROFILES=docker
     restart: always
