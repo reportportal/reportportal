@@ -87,7 +87,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:4.3.0-BETA1
+    image: reportportal/service-api:4.3.0
     depends_on:
       - mongodb
     environment:
@@ -97,7 +97,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:4.3.0-BETA1
+    image: reportportal/service-ui:4.3.0
     environment:
       - RP_SERVER.PORT=8080
       - RP_CONSUL.TAGS=urlprefix-/ui opts strip=/ui
@@ -105,7 +105,7 @@ services:
     restart: always
 
   analyzer:
-    image: reportportal/service-analyzer:4.3.0-BETA1
+    image: reportportal/service-analyzer:4.3.0
     depends_on:
        - registry
        - gateway
@@ -127,14 +127,14 @@ services:
 #        - "9200:9200"
 
   jira:
-    image: reportportal/service-jira:4.3.0-BETA1
+    image: reportportal/service-jira:4.3.0
     environment:
       - RP_PROFILES=docker
 #     - RP_MONGO_URI=mongodb://localhost:27017
     restart: always
 
   rally:
-    image: reportportal/service-rally:4.3.0-BETA1
+    image: reportportal/service-rally:4.3.0
     environment:
       - RP_PROFILES=docker
 #     - RP_MONGO_URI=mongodb://localhost:27017
