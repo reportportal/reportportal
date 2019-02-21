@@ -111,6 +111,20 @@ services:
        - gateway
        - elasticsearch
     restart: always
+  
+### Another option for analyzer. Used only for full stacktrace full match
+### Can be used instead of analyzer
+#  analyzer-equals:
+#    image: reportportal/service-analyzer-equals:4.0.1
+#    environment:
+#      - RP_SERVER.PORT=8080
+#      - RP_CONSUL.TAGS=urlprefix-/analyzer-equals strip=/analyzer-equals analyzer=equals analyzer_priority=1 analyzer_index=true
+#      - RP_CONSUL.ADDRESS=registry:8500
+#      - RP_REGISTRY=consul
+#    depends_on:
+#       - registry
+#       - elasticsearch
+#    restart: always
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
