@@ -187,7 +187,6 @@ services:
       dockerfile: Dockerfile-develop
     environment:
       - RP_SERVER_PORT=8080
-      - RP_PROXY_CONSUL=true
     depends_on:
       - gateway
     restart: always
@@ -198,8 +197,6 @@ services:
       dockerfile: Dockerfile-full
     environment:
       - RP_SERVER.PORT=8080
-      - RP_CONSUL.TAGS=urlprefix-/ui opts strip=/ui
-      - RP_CONSUL.ADDRESS=registry:8500
     restart: always
     labels:
       - "traefik.backend=ui"
@@ -231,7 +228,6 @@ services:
       context: ./service-analyzer
       dockerfile: DockerfileDev
     depends_on:
-    - registry
     - gateway
     - elasticsearch
     restart: always
