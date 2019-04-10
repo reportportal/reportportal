@@ -80,32 +80,6 @@ else
     cd ..
 fi
 
-#service-jira
-if [ -d "$PWD/service-jira" ]; then
-    cd ./service-jira
-        git checkout "$branchServiceJira"
-        git pull
-    cd ..
-else
-    git clone https://github.com/reportportal/service-jira.git
-    cd ./service-jira
-      git checkout "$branchServiceJira"
-    cd ..
-fi
-
-#service-rally
-if [ -d "$PWD/service-rally" ]; then
-    cd ./service-rally
-        git checkout "branchServiceRally"
-        git pull
-    cd ..
-else
-    git clone https://github.com/reportportal/service-rally.git
-    cd ./service-rally
-        git checkout "branchServiceRally"
-    cd ..
-fi
-
 #create docker-compose.yml
 cat <<EOF >$PWD/docker-compose.yml
 version: '2'
@@ -113,21 +87,13 @@ version: '2'
 services:
 
   rabbitmq:
-    image: rabbitmq:3
+    image: rabbitmq:3.7.8-management
     ports:
-      - "5672:5672"
-    hostname: redis-host
-
-  registry:
-    image: consul:1.0.6
-    volumes:
-      - ./data/consul:/consul/data
-    ports:
-      - "8500:8500"
-    command: "agent -server -bootstrap-expect=1 -ui -client 0.0.0.0"
+       - "5672:5672"
+       - "15672:15672"
     environment:
-      - 'CONSUL_LOCAL_CONFIG={"leave_on_terminate": true}'
-    restart: always
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: "rabbitmq"
 
   gateway:
     image: traefik:1.6.3
@@ -142,7 +108,7 @@ services:
       - --docker.constraints=tag==v5
       - --defaultEntryPoints=http
       - --entryPoints=Name:http Address::8080
-      - --logLevel=DEBUG
+      - --logLevel=INFO
       #- --consulcatalog.endpoint=registry:8500
       - --web
       - --web.address=:8081
@@ -257,8 +223,9 @@ services:
       nofile:
         soft: 65536
         hard: 65536
+    command: ["elasticsearch", "-Elogger.level=INFO"]
     ports:
-      - 9200:9200
+      - "9200:9200"
 
   analyzer:
     build:
@@ -268,22 +235,6 @@ services:
     - registry
     - gateway
     - elasticsearch
-    restart: always
-
-  jira:
-    build:
-      context: ./service-jira
-      dockerfile: ./docker/Dockerfile-develop
-    environment:
-      - RP_PROFILES=docker
-    restart: always
-
-  rally:
-    build:
-      context: ./service-rally
-      dockerfile: ./docker/Dockerfile-develop
-    environment:
-      - RP_PROFILES=docker
     restart: always
 EOF
 
