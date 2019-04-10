@@ -8,8 +8,6 @@
 branchServiceApi="ps-migrations"
 branchServiceAuthorization="spb4"
 branchServiceIndex="v5"
-branchServiceJira="v5"
-branchServiceRally="v5"
 branchServiceUi="develop"
 
 #migrations
