@@ -189,7 +189,6 @@ services:
       - RP_SERVER_PORT=8080
       - RP_PROXY_CONSUL=true
     depends_on:
-      - registry
       - gateway
     restart: always
 
