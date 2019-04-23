@@ -8,7 +8,7 @@
 branchServiceApi="ps-migrations"
 branchServiceAuthorization="spb4"
 branchServiceIndex="v5"
-branchServiceUi="develop"
+branchServiceUi="v5"
 
 #migrations
 if [ -d "$PWD/migrations" ]; then
@@ -16,7 +16,7 @@ if [ -d "$PWD/migrations" ]; then
         git pull
     cd ..
 else
-    git clone https://gitlab.com/avarabyeu/migrations.git
+    git clone https://github.com/reportportal/migrations
 fi
 
 #service-api
