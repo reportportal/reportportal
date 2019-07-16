@@ -14,6 +14,26 @@
 version: '2.4'
 services:
 
+  gateway:
+    image: traefik:1.7.12
+    ports:
+      - "8080:8080" # HTTP exposed
+      - "8081:8081" # HTTP Administration exposed
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - --docker
+      - --docker.watch
+      - --docker.constraints=tag==reportportal
+      - --defaultEntryPoints=http
+      - --entryPoints=Name:http Address::8080
+      - --logLevel=ERROR
+      - --web
+      - --web.address=:8081
+      - --web.metrics=true
+      - --web.metrics.prometheus=true
+    restart: always
+
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
     restart: always
@@ -75,7 +95,7 @@ services:
       retries: 10
 
   rabbitmq:
-    image: rabbitmq:3.7.8-management
+    image: rabbitmq:3.7.16-management
     ports:
     - "5672:5672"
     - "15672:15672"
@@ -85,26 +105,6 @@ services:
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
       retries: 5
-
-  gateway:
-    image: traefik:1.6
-    ports:
-    - "9090:8080" # HTTP exposed
-    - "9091:8081" # HTTP Administration exposed
-    volumes:
-    - /var/run/docker.sock:/var/run/docker.sock
-    command:
-    - --docker
-    - --docker.watch
-    - --docker.constraints=tag==v5
-    - --defaultEntryPoints=http
-    - --entryPoints=Name:http Address::8080
-    - --logLevel=ERROR
-    - --web
-    - --web.address=:8081
-    - --web.metrics=true
-    - --web.metrics.prometheus=true
-    restart: always
 
   uat:
     image: reportportal/service-authorization:5.0.0-BETA-6
@@ -118,7 +118,7 @@ services:
     - "traefik.frontend.rule=PathPrefixStrip:/uat"
     - "traefik.enable=true"
     - "traefik.port=9999"
-    - "traefik.tags=v5"
+    - "traefik.tags=reportportal"
 
   index:
     image: reportportal/service-index:5.0.1
@@ -132,7 +132,7 @@ services:
     - "traefik.frontend.rule=PathPrefix:/"
     - "traefik.enable=true"
     - "traefik.port=8080"
-    - "traefik.tags=v5"
+    - "traefik.tags=reportportal"
 
   api:
     image: reportportal/service-api:5.0.0-BETA-6
@@ -156,7 +156,7 @@ services:
     - "traefik.frontend.rule=PathPrefix:/api/v1"
     - "traefik.enable=true"
     - "traefik.port=8585"
-    - "traefik.tags=v5"
+    - "traefik.tags=reportportal"
 
   ui:
     image: reportportal/service-ui:5.0.0-BETA-7
@@ -168,7 +168,7 @@ services:
     - "traefik.frontend.rule=PathPrefixStrip:/ui/"
     - "traefik.enable=true"
     - "traefik.port=8080"
-    - "traefik.tags=v5"
+    - "traefik.tags=reportportal"
 
 
   # uncomment to start seaweedfs master for file storing
