@@ -35,7 +35,7 @@ services:
     restart: always
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.2.0
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
     restart: always
     volumes:
       - ./data/elasticsearch:/usr/share/elasticsearch/data
