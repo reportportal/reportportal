@@ -1,6 +1,13 @@
-<code_scheme name="Report Portal Profile">
+<code_scheme name="Report Portal Profile" version="173">
   <option name="RIGHT_MARGIN" value="140" />
   <option name="FORMATTER_TAGS_ENABLED" value="true" />
+  <SqlCodeStyleSettings version="1">
+    <option name="ALIAS_CASE" value="1" />
+    <option name="KEYWORD_CASE" value="0" />
+    <option name="TYPE_CASE" value="0" />
+    <option name="IDENTIFIER_CASE" value="1" />
+    <option name="QUOTE_IDENTIFIER" value="1" />
+  </SqlCodeStyleSettings>
   <XML>
     <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
   </XML>
