@@ -84,6 +84,9 @@ services:
       POSTGRES_PASSWORD: rppass
       POSTGRES_DB: reportportal
     volumes:
+      # For windows host
+      # - postgres:/var/lib/postgresql/data
+      # For unix host
       - ./data/postgres:/var/lib/postgresql/data
     restart: on-failure
     # If you need to access the DB locally. Could be a security risk to expose DB.
@@ -171,7 +174,6 @@ services:
       - "traefik.port=8080"
       - "traefik.tags=reportportal"
 
-
   # uncomment to start seaweedfs master for file storing
   # seaweed-master:
   #   image: chrislusf/seaweedfs
@@ -189,3 +191,7 @@ services:
   #   command: volume -max=5 -mserver="seaweed-master:9333" -port=7001
   #   links:
   #     - seaweed-master
+
+# For windows host
+#volumes:
+#  postgres:
