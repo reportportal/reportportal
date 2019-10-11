@@ -92,6 +92,12 @@ services:
     # If you need to access the DB locally. Could be a security risk to expose DB.
     ports:
       - "5432:5432"
+    command:
+      -c checkpoint_completion_target=0.9 
+      -c work_mem=96MB 
+      -c wal_writer_delay=20ms
+      -c synchronous_commit=off 
+      -c wal_buffers=32MB 
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
