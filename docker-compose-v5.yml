@@ -56,7 +56,7 @@ services:
       test: ["CMD", "curl","-s" ,"-f", "http://localhost:9200/_cat/health"]
 
   analyzer:
-    image: reportportal/service-analyzer:5.0.0-BETA-4
+    image: reportportal/service-analyzer:5.0.0-RC-1
     depends_on:
       - rabbitmq
       - elasticsearch
@@ -64,7 +64,7 @@ services:
 
 
   migrations:
-    image: reportportal/migrations:5.0.0-BETA-9
+    image: reportportal/migrations:5.0.0-RC-1
     restart: on-failure
     depends_on:
       - postgres
@@ -90,8 +90,8 @@ services:
       - ./data/postgres:/var/lib/postgresql/data
     restart: on-failure
     # If you need to access the DB locally. Could be a security risk to expose DB.
-    ports:
-      - "5432:5432"
+#    ports:
+#      - "5432:5432"
     command:
       -c checkpoint_completion_target=0.9 
       -c work_mem=96MB 
@@ -117,7 +117,7 @@ services:
       retries: 5
 
   uat:
-    image: reportportal/service-authorization:5.0.0-BETA-12
+    image: reportportal/service-authorization:5.0.0-RC-1
     #ports:
     #  - "9999:9999"
     environment:
@@ -131,7 +131,7 @@ services:
       - "traefik.tags=reportportal"
 
   index:
-    image: reportportal/service-index:5.0.3
+    image: reportportal/service-index:5.0.4
     depends_on:
       - gateway
     restart: always
@@ -145,7 +145,7 @@ services:
       - "traefik.tags=reportportal"
 
   api:
-    image: reportportal/service-api:5.0.0-BETA-12
+    image: reportportal/service-api:5.0.0-RC-1
     volumes:
       - ./data/storage:/data/storage
     depends_on:
@@ -169,7 +169,7 @@ services:
       - "traefik.tags=reportportal"
 
   ui:
-    image: reportportal/service-ui:5.0.0-BETA-12
+    image: reportportal/service-ui:5.0.0-RC-1
     environment:
       - RP_SERVER_PORT=8080
     restart: always
