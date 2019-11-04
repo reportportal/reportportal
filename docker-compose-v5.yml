@@ -3,7 +3,7 @@
 ## This is example of Docker Compose for ReportPortal
 ## Do not forget to configure data volumes for production usage
 
-## Execute 'docker-compose -f docker-compose-local.yml -p reportportal up -d --force-recreate' --build
+## Execute 'docker-compose -f docker-compose-v5.yml -p reportportal up -d --force-recreate' --build
 ## to start all containers in daemon mode
 ## Where:
 ##      '-f docker-compose-local.yml' -- specifies this compose file
