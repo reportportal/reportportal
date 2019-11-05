@@ -56,7 +56,7 @@ services:
       test: ["CMD", "curl","-s" ,"-f", "http://localhost:9200/_cat/health"]
 
   analyzer:
-    image: reportportal/service-analyzer:5.0.0-RC-1
+    image: reportportal/service-analyzer:5.0.0-RC-2
     depends_on:
       - rabbitmq
       - elasticsearch
@@ -64,7 +64,7 @@ services:
 
 
   migrations:
-    image: reportportal/migrations:5.0.0-RC-1
+    image: reportportal/migrations:5.0.0-RC-2
     restart: on-failure
     depends_on:
       - postgres
@@ -117,7 +117,7 @@ services:
       retries: 5
 
   uat:
-    image: reportportal/service-authorization:5.0.0-RC-1
+    image: reportportal/service-authorization:5.0.0-RC-2
     #ports:
     #  - "9999:9999"
     environment:
@@ -145,7 +145,7 @@ services:
       - "traefik.tags=reportportal"
 
   api:
-    image: reportportal/service-api:5.0.0-RC-1
+    image: reportportal/service-api:5.0.0-RC-2
     volumes:
       - ./data/storage:/data/storage
     depends_on:
@@ -169,7 +169,7 @@ services:
       - "traefik.tags=reportportal"
 
   ui:
-    image: reportportal/service-ui:5.0.0-RC-1
+    image: reportportal/service-ui:5.0.0-RC-3
     environment:
       - RP_SERVER_PORT=8080
     restart: always
