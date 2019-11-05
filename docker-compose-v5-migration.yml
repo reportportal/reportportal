@@ -1,9 +1,8 @@
-## You can generate a custom docker compose file automatically on http://reportportal.io/download (Step 2)
-
-## This is example of Docker Compose for ReportPortal
+## This is example of Docker Compose for ReportPortal version 5 with data migration from MongoDB
+## to PostgreSQL.
 ## Do not forget to configure data volumes for production usage
 
-## Execute 'docker-compose -f docker-compose-local.yml -p reportportal up -d --force-recreate' --build
+## Execute 'docker-compose -f docker-compose-v5-migration.yml -p reportportal up -d --force-recreate' --build
 ## to start all containers in daemon mode
 ## Where:
 ##      '-f docker-compose-local.yml' -- specifies this compose file
@@ -62,20 +61,18 @@ services:
       - elasticsearch
     restart: always
 
-
   migrations:
-    image: reportportal/migrations:5.0.0-RC-1
+    image: reportportal/migrations-for-5:latest
     restart: on-failure
     depends_on:
-      - postgres
-    #     condition: service_healthy
+      postgres:
+        condition: service_healthy
     environment:
       POSTGRES_USER: rpuser
       POSTGRES_PORT: 5432
       POSTGRES_PASSWORD: rppass
       POSTGRES_SERVER: postgres
       POSTGRES_DB: reportportal
-
 
   postgres:
     image: postgres:12-alpine
@@ -90,8 +87,8 @@ services:
       - ./data/postgres:/var/lib/postgresql/data
     restart: on-failure
     # If you need to access the DB locally. Could be a security risk to expose DB.
-    #    ports:
-    #      - "5432:5432"
+    # ports:
+    #  - "5432:5432"
     command:
       -c checkpoint_completion_target=0.9
       -c work_mem=96MB
@@ -99,10 +96,42 @@ services:
       -c synchronous_commit=off
       -c wal_buffers=32MB
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U rpuser"]
       interval: 10s
       timeout: 120s
       retries: 10
+
+
+  settings-migration:
+    image: reportportal/settings-migration:latest
+    ## for storing binary data at filesystem
+    ## - RP_BINARYSTORE_CONTAINER_PATH:/data/storage
+    #    volumes:
+    #      - ./data/storage:/data/storage
+    depends_on:
+      migrations:
+        condition: service_started
+      minio:
+        condition: service_healthy
+    environment:
+      # Postgres params
+      RP_DB_HOST: postgres
+      # RP_DB_PORT: 5432
+      # RP_DB_NAME: reportportal
+
+      RP_BINARYSTORE_TYPE: minio
+      #      RP_BINARYSTORE_TYPE: filesystem
+      #      RP_BINARYSTORE_CONTAINER_PATH : /data/storage ## where to store at filesystem
+      RP_BINARYSTORE_MINIO_ENDPOINT: http://minio:9000
+      RP_BINARYSTORE_MINIO_ACCESSKEY: minio
+      RP_BINARYSTORE_MINIO_SECRETKEY: minio123
+
+      ## Leep users from last login date in ISO_LOCAL_DATE (yyyy-MM-dd)
+      RP_USER_KEEPFROM: '2019-03-30'
+      # Mongodb params
+      RP_MONGODB_DATABASE: reportportal
+      RP_MONGODB_URI: mongodb://user:password@host:port
+
 
   rabbitmq:
     image: rabbitmq:3.7.16-management
@@ -153,9 +182,14 @@ services:
     volumes:
       - ./data/storage:/data/storage
     depends_on:
-      - postgres
-      - rabbitmq
-      - gateway
+      rabbitmq:
+        condition: service_healthy
+      gateway:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    # uncomment to use seaweedfs for file storing
+    # - seaweed-volume
     environment:
       - RP_BINARYSTORE_TYPE=minio
       - RP_BINARYSTORE_MINIO_ENDPOINT=http://minio:9000
@@ -185,8 +219,8 @@ services:
 
   minio:
     image: 'bitnami/minio:latest'
-    ports:
-      - '9000:9000'
+    #ports:
+    #  - '9000:9000'
     environment:
       MINIO_ACCESS_KEY: minio
       MINIO_SECRET_KEY: minio123
