@@ -3,7 +3,7 @@
 ## This is example of Docker Compose for ReportPortal
 ## Do not forget to configure data volumes for production usage
 
-## Execute 'docker-compose -f docker-compose-local.yml -p reportportal up -d --force-recreate' --build
+## Execute 'docker-compose -f docker-compose-v5.yml -p reportportal up -d --force-recreate' --build
 ## to start all containers in daemon mode
 ## Where:
 ##      '-f docker-compose-local.yml' -- specifies this compose file
@@ -56,7 +56,7 @@ services:
       test: ["CMD", "curl","-s" ,"-f", "http://localhost:9200/_cat/health"]
 
   analyzer:
-    image: reportportal/service-analyzer:5.0.0-RC-1
+    image: reportportal/service-analyzer:5.0.0-RC-2
     depends_on:
       - rabbitmq
       - elasticsearch
@@ -64,7 +64,7 @@ services:
 
 
   migrations:
-    image: reportportal/migrations:5.0.0-RC-1
+    image: reportportal/migrations:5.0.0-RC-2
     restart: on-failure
     depends_on:
       - postgres
