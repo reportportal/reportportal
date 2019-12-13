@@ -51,7 +51,7 @@ services:
         soft: 65536
         hard: 65536
     ports:
-      - "9200:9200"
+     # - "9200:9200"
     healthcheck:
       test: ["CMD", "curl","-s" ,"-f", "http://localhost:9200/_cat/health"]
 
@@ -79,6 +79,7 @@ services:
 
   postgres:
     image: postgres:12-alpine
+    shm_size: '512m'
     environment:
       POSTGRES_USER: rpuser
       POSTGRES_PASSWORD: rppass
@@ -107,7 +108,7 @@ services:
   rabbitmq:
     image: rabbitmq:3.7.16-management
     ports:
-      - "5672:5672"
+      # - "5672:5672"
       - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: "rabbitmq"
@@ -184,12 +185,15 @@ services:
       - "traefik.tags=reportportal"
 
   minio:
-    image: 'bitnami/minio:latest'
+    image: minio/minio:latest
     ports:
       - '9000:9000'
+    volumes:
+      - ./data/storage:/data
     environment:
       MINIO_ACCESS_KEY: minio
       MINIO_SECRET_KEY: minio123
+    command: server /data
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
