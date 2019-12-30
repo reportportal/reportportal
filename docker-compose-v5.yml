@@ -153,7 +153,7 @@ services:
       - "traefik.tags=reportportal"
 
   api:
-    image: reportportal/service-api:5.0.0-RC-5
+    image: reportportal/service-api:5.0.0-RC-6
     volumes:
       - ./data/storage:/data/storage
     depends_on:
@@ -179,7 +179,7 @@ services:
       - "traefik.tags=reportportal"
 
   ui:
-    image: reportportal/service-ui:5.0.0-RC-5
+    image: reportportal/service-ui:5.0.0-RC-6
     environment:
       - RP_SERVER_PORT=8080
     restart: always
