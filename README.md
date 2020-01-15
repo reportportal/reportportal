@@ -117,5 +117,5 @@ Big features are also welcome but if you want to see your contributions included
 
 ## License
 
-Report Portal is [GNU General Public License v3.0](http://www.gnu.org/licenses/gpl-3.0.html).
+Report Portal is [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0).
 
