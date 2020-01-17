@@ -108,8 +108,6 @@ Big features are also welcome but if you want to see your contributions included
 ## Community / Support
 
 * [**Slack chat**](https://reportportal-slack-auto.herokuapp.com)
-* [UserVoice forum](https://rpp.uservoice.com/forums/247117-report-portal) Please share and vote for ideas
-* Report Portal Google Group (coming soon)
 * [GitHub Issues](https://github.com/reportportal/reportportal/issues)
 * [Stackoverflow Questions](http://stackoverflow.com/questions/tagged/reportportal)
 * [Twitter](http://twitter.com/ReportPortal_io)
@@ -119,5 +117,5 @@ Big features are also welcome but if you want to see your contributions included
 
 ## License
 
-Report Portal is [GNU General Public License v3.0](http://www.gnu.org/licenses/gpl-3.0.html).
+Report Portal is [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0).
 
