@@ -64,7 +64,7 @@ services:
 
 
   migrations:
-    image: reportportal/migrations:5.0.0-RC-5
+    image: reportportal/migrations:5.0.0-RC-6
     restart: on-failure
     depends_on:
       - postgres
@@ -118,7 +118,7 @@ services:
       retries: 5
 
   uat:
-    image: reportportal/service-authorization:5.0.0-RC-5
+    image: reportportal/service-authorization:5.0.0-RC-7
     #ports:
     #  - "9999:9999"
     environment:
@@ -153,7 +153,7 @@ services:
       - "traefik.tags=reportportal"
 
   api:
-    image: reportportal/service-api:5.0.0-RC-6
+    image: reportportal/service-api:5.0.0-RC-7
     volumes:
       - ./data/storage:/data/storage
     depends_on:
