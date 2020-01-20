@@ -63,7 +63,7 @@ services:
     restart: always
 
 
-  migrations:
+  db-scripts:
     image: reportportal/migrations:5.0.0-RC-6
     restart: on-failure
     depends_on:
