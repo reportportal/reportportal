@@ -1,8 +1,8 @@
 ---
-name: Bug report - V5 beta
-about: Create a report related to v5 beta
-title: "[v5bug]"
-labels: v5beta
+name: Bug report - V5
+about: Create a report related to v5
+title: "[v5]"
+labels: v5
 assignees: ''
 
 ---
