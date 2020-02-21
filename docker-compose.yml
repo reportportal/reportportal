@@ -99,6 +99,19 @@ services:
       -c wal_writer_delay=20ms
       -c synchronous_commit=off
       -c wal_buffers=32MB
+      -c min_wal_size=2GB
+      -c max_wal_size=4GB
+    # Optional, for SSD Data Storage. If you are using the HDD, set up this command to '2'
+    #  -c effective_io_concurrency=200
+    # Optional, for SSD Data Storage. If you are using the HDD, set up this command to '4'
+    #  -c random_page_cost = 1.1
+    # Optional, can be scaled. Example for 4 CPU, 16GB RAM instance, where only the database is deployed
+    #  -c max_worker_processes=4
+    #  -c max_parallel_workers_per_gather=2
+    #  -c max_parallel_workers=4
+    #  -c shared_buffers=4GB
+    #  -c effective_cache_size=12GB
+    #  -c maintenance_work_mem=1GB
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"]
       interval: 10s
