@@ -5,10 +5,11 @@
 #Important settings for Elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/6.4/docker.html#docker-cli-run-prod-mode
 
 #branch args
-branchServiceApi="ps-migrations"
-branchServiceAuthorization="spb4"
-branchServiceIndex="v5"
-branchServiceUi="v5"
+branchServiceApi="5.0.0"
+branchServiceAuthorization="5.0.0"
+branchServiceIndex="5.0.5"
+branchServiceUi="5.0.0"
+branchServiceAnalyzer="5.0.0"
 
 #migrations
 if [ -d "$PWD/migrations" ]; then
@@ -65,6 +66,9 @@ if [ -d "$PWD/service-analyzer" ]; then
     cd ..
 else
     git clone https://github.com/reportportal/service-analyzer.git
+    cd ./service-analyzer
+        git checkout "$branchServiceAnalyzer"
+    cd ..
 fi
 
 #service-ui
@@ -96,7 +100,7 @@ services:
       RABBITMQ_DEFAULT_PASS: "rabbitmq"
 
   gateway:
-    image: traefik:1.6.3
+    image: traefik:1.7.12
     ports:
       - "9080:8080" # HTTP exposed
       - "9081:8081" # HTTP Administration exposed
@@ -109,7 +113,6 @@ services:
       - --defaultEntryPoints=http
       - --entryPoints=Name:http Address::8080
       - --logLevel=INFO
-      #- --consulcatalog.endpoint=registry:8500
       - --web
       - --web.address=:8081
       - --web.metrics=true
@@ -117,7 +120,7 @@ services:
     restart: always
 
   postgres:
-    image: postgres:10.1-alpine
+    image: postgres:12-alpine
     environment:
       POSTGRES_USER: rpuser
       POSTGRES_PASSWORD: rppass
@@ -136,11 +139,11 @@ services:
     depends_on:
       - postgres
     environment:
-      POSTGRES_USER: rpuser
-      POSTGRES_PORT: 5432
-      POSTGRES_PASSWORD: rppass
       POSTGRES_SERVER: postgres
+      POSTGRES_PORT: 5432
       POSTGRES_DB: reportportal
+      POSTGRES_USER: rpuser
+      POSTGRES_PASSWORD: rppass
 
   uat:
     build:
@@ -206,12 +209,14 @@ services:
       - "traefik.tags=v5"
 
   elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:6.1.1
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.3.0
     restart: always
     volumes:
       - ./data/elasticsearch:/usr/share/elasticsearch/data
     environment:
       - bootstrap.memory_lock=true
+      - discovery.type=single-node
+      - logger.level=INFO
     ulimits:
       memlock:
         soft: -1
@@ -219,9 +224,10 @@ services:
       nofile:
         soft: 65536
         hard: 65536
-    command: ["elasticsearch", "-Elogger.level=INFO"]
     ports:
       - "9200:9200"
+    healthcheck:
+      test: ["CMD", "curl","-s" ,"-f", "http://localhost:9200/_cat/health"]
 
   analyzer:
     build:
