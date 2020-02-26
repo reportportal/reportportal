@@ -168,6 +168,8 @@ services:
     build:
       context: ./service-api
       dockerfile: ./docker/Dockerfile-develop
+      args:
+        sealightsSession:
     depends_on:
       - postgres
       - rabbitmq
