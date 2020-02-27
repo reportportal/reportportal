@@ -155,8 +155,14 @@ services:
     ports:
       - "9999:9999"
     environment:
-    #- RP_PROFILES=docker #TODO
-      - RP_SESSION_LIVE=86400
+      - RP_DB_USER=rpuser
+      - RP_DB_PASS=rppass
+      - RP_DB_NAME=reportportal
+      - RP_BINARYSTORE_TYPE=minio
+      - RP_BINARYSTORE_MINIO_ENDPOINT=http://minio:9000
+      - RP_BINARYSTORE_MINIO_ACCESSKEY=minio
+      - RP_BINARYSTORE_MINIO_SECRETKEY=minio123
+      - RP_SESSION_LIVE=86400 #in seconds
     labels:
       - "traefik.backend=uat"
       - "traefik.frontend.rule=PathPrefixStrip:/uat"
@@ -178,7 +184,14 @@ services:
     ports:
       - "8585:8585"
     environment:
-    #- RP_PROFILES=docker //TODO
+      - RP_DB_USER=rpuser
+      - RP_DB_PASS=rppass
+      - RP_DB_NAME=reportportal
+      - RP_BINARYSTORE_TYPE=minio
+      - RP_BINARYSTORE_MINIO_ENDPOINT=http://minio:9000
+      - RP_BINARYSTORE_MINIO_ACCESSKEY=minio
+      - RP_BINARYSTORE_MINIO_SECRETKEY=minio123
+      - LOGGING_LEVEL_ORG_HIBERNATE_SQL=info
       - JAVA_OPTS=-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp
     labels:
       - "traefik.backend=api"
