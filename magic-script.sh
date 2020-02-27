@@ -86,7 +86,7 @@ fi
 
 #create docker-compose.yml
 cat <<EOF >$PWD/docker-compose.yml
-version: '3.0'
+version: '3'
 
 services:
 
@@ -169,7 +169,8 @@ services:
       context: ./service-api
       dockerfile: ./docker/Dockerfile-develop
       args:
-        sealightsSession:
+        sealightsSession: ""
+        sealightsToken: ""
     depends_on:
       - postgres
       - rabbitmq
