@@ -10,6 +10,7 @@ branchServiceAuthorization="5.0.0"
 branchServiceIndex="5.0.5"
 branchServiceUi="5.0.0"
 branchServiceAnalyzer="5.0.0"
+branchServiceMigration="5.0.0"
 
 #migrations
 if [ -d "$PWD/migrations" ]; then
@@ -18,6 +19,9 @@ if [ -d "$PWD/migrations" ]; then
     cd ..
 else
     git clone https://github.com/reportportal/migrations
+    cd ./migrations
+        git checkout "$branchServiceMigration"
+    cd ..
 fi
 
 #service-api
