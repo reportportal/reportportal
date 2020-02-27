@@ -111,7 +111,7 @@ services:
       retries: 3
 
   rabbitmq:
-    image: rabbitmq:rabbitmq:3.7.16-management
+    image: rabbitmq:3.7.16-management
     ports:
        - "5672:5672"
        - "15672:15672"
