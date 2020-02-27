@@ -219,7 +219,7 @@ services:
       - JAVA_OPTS=-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp
     labels:
       - "traefik.backend=api"
-      - "traefik.frontend.rule=PathPrefix:/api"
+      - "traefik.frontend.rule=PathPrefixStrip:/api"
       - "traefik.enable=true"
       - "traefik.port=8585"
       - "traefik.tags=v5"
