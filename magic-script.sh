@@ -15,6 +15,7 @@ branchServiceMigration="5.0.0"
 #migrations
 if [ -d "$PWD/migrations" ]; then
     cd ./migrations
+        git checkout "$branchServiceMigration"
         git pull
     cd ..
 else
