@@ -95,13 +95,16 @@ version: '3'
 services:
 
   rabbitmq:
-    image: rabbitmq:3.7.8-management
+    image: rabbitmq:rabbitmq:3.7.16-management
     ports:
        - "5672:5672"
        - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: "rabbitmq"
       RABBITMQ_DEFAULT_PASS: "rabbitmq"
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      retries: 5
 
   gateway:
     image: traefik:1.7.12
