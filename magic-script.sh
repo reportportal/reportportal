@@ -86,7 +86,7 @@ fi
 
 #create docker-compose.yml
 cat <<EOF >$PWD/docker-compose.yml
-version: '2'
+version: '3.0'
 
 services:
 
