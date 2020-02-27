@@ -94,6 +94,22 @@ version: '3'
 
 services:
 
+  minio:
+    image: minio/minio:latest
+    ports:
+      - '9000:9000'
+    volumes:
+      - ./data/storage:/data
+    environment:
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+    command: server /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
   rabbitmq:
     image: rabbitmq:rabbitmq:3.7.16-management
     ports:
