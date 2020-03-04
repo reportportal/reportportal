@@ -110,6 +110,7 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
+    restart: always
 
   rabbitmq:
     image: rabbitmq:3.7.16-management
@@ -122,6 +123,7 @@ services:
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
       retries: 5
+    restart: always
 
   gateway:
     image: traefik:1.7.12
@@ -199,9 +201,6 @@ services:
     build:
       context: ./service-api
       dockerfile: ./docker/Dockerfile-develop
-      args:
-        sealightsSession: ""
-        sealightsToken: ""
     depends_on:
       - postgres
       - rabbitmq
