@@ -115,7 +115,7 @@ services:
       interval: 10s
       timeout: 120s
       retries: 10
-    restart: on-failure
+    restart: always
 
   rabbitmq:
     image: rabbitmq:3.7.16-management
