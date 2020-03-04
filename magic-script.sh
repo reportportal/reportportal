@@ -155,6 +155,7 @@ services:
     # If you need to access the DB locally. Could be a security risk to expose DB.
     ports:
       - "5432:5432"
+    restart: always
 
   migrations:
     build:
