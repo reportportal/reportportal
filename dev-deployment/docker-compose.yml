@@ -27,23 +27,19 @@ services:
       RABBITMQ_DEFAULT_PASS: "rabbitmq"
 
   gateway:
-    image: traefik:1.7.12
+    image: traefik:v2.0.5
     ports:
-      - "9090:8080" # HTTP exposed
-      - "9091:8081" # HTTP Administration exposed
+      - "8080:8080" # HTTP exposed
+      - "8081:8081" # HTTP Administration exposed
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command:
-      - --docker
-      - --docker.watch
-      - --docker.constraints=tag==reportportal-dev
-      - --defaultEntryPoints=http
-      - --entryPoints=Name:http Address::8080
-      - --logLevel=DEBUG
-      - --web
-      - --web.address=:8081
-      - --web.metrics=true
-      - --web.metrics.prometheus=true
+      - --providers.docker=true
+      - --providers.docker.constraints=Label(`traefik.expose`, `true`)
+      - --entrypoints.web.address=:8080
+      - --entrypoints.traefik.address=:8081
+      - --api.dashboard=true
+      - --api.insecure=true
     restart: always
 
   migrations:
@@ -63,8 +59,8 @@ services:
     # ports:
     #   - "9999:9999"
     build:
-      context: service-authorization
-      dockerfile: docker/Dockerfile-develop
+      context: service-authorization/build/libs
+      dockerfile: Dockerfile
     environment:
       - RP_DB_USER=rpuser
       - RP_DB_PASS=rppass
@@ -76,11 +72,13 @@ services:
       - RP_SESSION_LIVE=3600 #in seconds
     restart: always
     labels:
-      - "traefik.backend=uat"
-      - "traefik.frontend.rule=PathPrefixStrip:/uat"
-      - "traefik.enable=true"
-      - "traefik.port=9999"
-      - "traefik.tags=reportportal-dev"
+      - "traefik.http.middlewares.uat-strip-prefix.stripprefix.prefixes=/uat"
+      - "traefik.http.routers.uat.middlewares=uat-strip-prefix@docker"
+      - "traefik.http.routers.uat.rule=PathPrefix(`/uat`)"
+      - "traefik.http.routers.uat.service=uat"
+      - "traefik.http.services.uat.loadbalancer.server.port=9999"
+      - "traefik.http.services.uat.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
 
   index:
     build:
@@ -92,18 +90,18 @@ services:
     environment:
       - LB_URL=http://gateway:8081
     labels:
-      - "traefik.backend=index"
-      - "traefik.frontend.rule=PathPrefix:/"
-      - "traefik.enable=true"
-      - "traefik.port=8080"
-      - "traefik.tags=reportportal-dev"
+      - "traefik.http.routers.index.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.index.service=index"
+      - "traefik.http.services.index.loadbalancer.server.port=8080"
+      - "traefik.http.services.index.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
 
   api:
     ports:
       - "5005:5005"
     build:
-      context: service-api
-      dockerfile: docker/Dockerfile-develop
+      context: service-api/build/libs
+      dockerfile: Dockerfile
     volumes:
       - ./data/storage:/data/storage
     depends_on:
@@ -122,11 +120,13 @@ services:
       - JAVA_OPTS=-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp  -Dcom.sun.management.jmxremote.rmi.port=12349 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false  -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=10.6.128.241
     restart: always
     labels:
-      - "traefik.backend=api"
-      - "traefik.frontend.rule=PathPrefix:/api"
-      - "traefik.enable=true"
-      - "traefik.port=8585"
-      - "traefik.tags=reportportal-dev"
+      - "traefik.http.middlewares.api-strip-prefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.api.middlewares=api-strip-prefix@docker"
+      - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.api.service=api"
+      - "traefik.http.services.api.loadbalancer.server.port=8585"
+      - "traefik.http.services.api.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
 
   ui:
     build:
@@ -136,11 +136,13 @@ services:
       - RP_SERVER_PORT=8080
     restart: always
     labels:
-      - "traefik.backend=ui"
-      - "traefik.frontend.rule=PathPrefixStrip:/ui/"
-      - "traefik.enable=true"
-      - "traefik.port=8080"
-      - "traefik.tags=reportportal-dev"
+      - "traefik.http.middlewares.ui-strip-prefix.stripprefix.prefixes=/ui"
+      - "traefik.http.routers.ui.middlewares=ui-strip-prefix@docker"
+      - "traefik.http.routers.ui.rule=PathPrefix(`/ui`)"
+      - "traefik.http.routers.ui.service=ui"
+      - "traefik.http.services.ui.loadbalancer.server.port=8080"
+      - "traefik.http.services.ui.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
 
   minio:
     image: minio/minio:latest
@@ -162,7 +164,7 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.3.0
     restart: always
     volumes:
-      - ./data/elasticsearch:/usr/share/elasticsearch/data
+      - elasticsearch:/usr/share/elasticsearch/data
     environment:
       - "bootstrap.memory_lock=true"
       - "discovery.type=single-node"
@@ -176,5 +178,22 @@ services:
         hard: 65536
       # ports:
       # - "9200:9200"
-    healthcheck:
-      test: ["CMD", "curl","-s" ,"-f", "http://localhost:9200/_cat/health"]
+  #    healthcheck:
+  #      test: ["CMD", "curl","-s" ,"-f", "http://localhost:9200/_cat/health"]
+
+  analyzer:
+    build:
+      context: service-auto-analyzer
+      dockerfile: Dockerfile
+      args:
+        version: 5.1.0
+        prod: "false"
+    depends_on:
+      - rabbitmq
+      - elasticsearch
+    environment:
+      ES_HOSTS: http://elasticsearch:9200
+      AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+
+volumes:
+  elasticsearch:

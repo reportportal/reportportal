@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 function prepareSourceCode() {
     if [ -d "$PWD/$1" ]; then
@@ -14,14 +14,22 @@ function prepareSourceCode() {
     fi
 }
 
-prepareSourceCode "migrations" "master"
-prepareSourceCode "service-authorization" "develop"
+function prepareBackEnd() {
+    prepareSourceCode $1 $2
+    cd $1
+    ./gradlew createDockerfileDev
+    cd ..
+}
+
+prepareBackEnd "service-api" "develop"
+prepareBackEnd "service-authorization" "develop"
+prepareSourceCode "migrations" "develop"
 prepareSourceCode "service-index" "master"
-prepareSourceCode "service-api" "develop"
 prepareSourceCode "service-ui" "develop"
+prepareSourceCode "service-auto-analyzer" "develop"
 
 if [ "$1" = "rebuild" ]; then
-    docker-compose up -d --no-deps --build
+    docker-compose -p reportportal-dev up -d --no-deps --build
 else
-    docker-compose up -d
+    docker-compose -p reportportal-dev up -d
 fi

@@ -11,28 +11,28 @@ Script starts [ReportPortal](https://github.com/reportportal) v5 locally inside 
 
 ## Installation
 - Execute `start.sh` script:
+```bash
+    sh start.sh
 ```
-    ./start.sh
-```
-ReportPortal will be deployed on `localhost:9090`
+ReportPortal will be deployed on `localhost:8080`
 
 - To rebuild and recreate existed containers from source code, execute:
-```
-    ./start.sh "rebuild"
+```bash
+    sh start.sh "rebuild"
 ```
 - Steps to rebuild separate component (for example service-api):
 
 Stop container:
-```
+```bash
     docker-compose stop api
 ```
 Go to source code directory and checkout desired branch:
-```
+```bash
     cd service-api
     git checkout branch_name
     git pull
 ``` 
 Rebuild and deploy container:
-```
-    docker-compose up -d --no-deps --build api
+```bash
+    docker-compose -p reportportal-dev up -d --no-deps --build api
 ```
