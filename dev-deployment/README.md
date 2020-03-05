@@ -4,6 +4,7 @@ Script starts [ReportPortal](https://github.com/reportportal) v5 locally inside 
 - [Service Index](https://github.com/reportportal/service-index/)
 - [Service Api](https://github.com/reportportal/service-api/)
 - [Service Ui](https://github.com/reportportal/service-ui/)
+- [Service Analyzer](https://github.com/reportportal/service-auto-analyzer)
 
 ## Requirements
 - [Docker Compose](https://docs.docker.com/compose/install/)
