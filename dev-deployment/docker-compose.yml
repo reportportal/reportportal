@@ -54,6 +54,7 @@ services:
       POSTGRES_PASSWORD: rppass
       POSTGRES_SERVER: postgres
       POSTGRES_DB: reportportal
+    restart: on-failure
 
   uat:
     # ports:
