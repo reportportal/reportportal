@@ -118,7 +118,7 @@ services:
       - RP_BINARYSTORE_MINIO_ACCESSKEY=minio
       - RP_BINARYSTORE_MINIO_SECRETKEY=minio123
       - LOGGING_LEVEL_ORG_HIBERNATE_SQL=info
-      - JAVA_OPTS=-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp  -Dcom.sun.management.jmxremote.rmi.port=12349 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false  -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=10.6.128.241
+      - JAVA_OPTS=-Xmx1g -XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent=70 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp  -Dcom.sun.management.jmxremote.rmi.port=12349 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false  -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=10.6.128.241
     restart: always
     labels:
       - "traefik.http.middlewares.api-strip-prefix.stripprefix.prefixes=/api"
