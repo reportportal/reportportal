@@ -3,6 +3,7 @@
 function prepareSourceCode() {
     if [ -d "$PWD/$1" ]; then
         cd ./$1
+        git fetch
         git checkout $2
         git pull
         cd ..

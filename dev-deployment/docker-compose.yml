@@ -177,8 +177,8 @@ services:
       nofile:
         soft: 65536
         hard: 65536
-      # ports:
-      # - "9200:9200"
+    ports:
+      - "9200:9200"
   #    healthcheck:
   #      test: ["CMD", "curl","-s" ,"-f", "http://localhost:9200/_cat/health"]
 
