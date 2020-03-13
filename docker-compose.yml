@@ -57,6 +57,8 @@ services:
 
   analyzer:
     image: reportportal/service-analyzer:5.0.0
+    environment:
+      LOGGING_LEVEL: info
     depends_on:
       - rabbitmq
       - elasticsearch
