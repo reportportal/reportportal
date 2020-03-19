@@ -1,0 +1,201 @@
+# This file is prepared only for dev purposes
+# It does not contain depends statement for registry microservice
+# Do not use it as compose descriptor on the production.
+version: '2.4'
+services:
+
+  postgres:
+    image: postgres:12-alpine
+    environment:
+      POSTGRES_USER: rpuser
+      POSTGRES_PASSWORD: rppass
+      POSTGRES_DB: reportportal
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+    restart: on-failure
+    # If you need to access the DB locally. Could be a security risk to expose DB.
+    ports:
+      - "5432:5432"
+
+  rabbitmq:
+    image: rabbitmq:3.7.16-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: "rabbitmq"
+
+  gateway:
+    image: traefik:v2.0.5
+    ports:
+      - "8080:8080" # HTTP exposed
+      - "8081:8081" # HTTP Administration exposed
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - --providers.docker=true
+      - --providers.docker.constraints=Label(`traefik.expose`, `true`)
+      - --entrypoints.web.address=:8080
+      - --entrypoints.traefik.address=:8081
+      - --api.dashboard=true
+      - --api.insecure=true
+    restart: always
+
+  migrations:
+    build:
+      context: migrations
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    environment:
+      POSTGRES_USER: rpuser
+      POSTGRES_PORT: 5432
+      POSTGRES_PASSWORD: rppass
+      POSTGRES_SERVER: postgres
+      POSTGRES_DB: reportportal
+    restart: on-failure
+
+  uat:
+    # ports:
+    #   - "9999:9999"
+    build:
+      context: service-authorization/build/libs
+      dockerfile: Dockerfile
+    environment:
+      - RP_DB_USER=rpuser
+      - RP_DB_PASS=rppass
+      - RP_DB_NAME=reportportal
+      - RP_BINARYSTORE_TYPE=minio
+      - RP_BINARYSTORE_MINIO_ENDPOINT=http://minio:9000
+      - RP_BINARYSTORE_MINIO_ACCESSKEY=minio
+      - RP_BINARYSTORE_MINIO_SECRETKEY=minio123
+      - RP_SESSION_LIVE=3600 #in seconds
+    restart: always
+    labels:
+      - "traefik.http.middlewares.uat-strip-prefix.stripprefix.prefixes=/uat"
+      - "traefik.http.routers.uat.middlewares=uat-strip-prefix@docker"
+      - "traefik.http.routers.uat.rule=PathPrefix(`/uat`)"
+      - "traefik.http.routers.uat.service=uat"
+      - "traefik.http.services.uat.loadbalancer.server.port=9999"
+      - "traefik.http.services.uat.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
+
+  index:
+    build:
+      context: service-index
+      dockerfile: Dockerfile-develop
+    depends_on:
+      - gateway
+    restart: always
+    environment:
+      - LB_URL=http://gateway:8081
+    labels:
+      - "traefik.http.routers.index.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.index.service=index"
+      - "traefik.http.services.index.loadbalancer.server.port=8080"
+      - "traefik.http.services.index.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
+
+  api:
+    ports:
+      - "5005:5005"
+    build:
+      context: service-api/build/libs
+      dockerfile: Dockerfile
+    volumes:
+      - ./data/storage:/data/storage
+    depends_on:
+      - postgres
+      - rabbitmq
+      - gateway
+    environment:
+      - RP_DB_USER=rpuser
+      - RP_DB_PASS=rppass
+      - RP_DB_NAME=reportportal
+      - RP_BINARYSTORE_TYPE=minio
+      - RP_BINARYSTORE_MINIO_ENDPOINT=http://minio:9000
+      - RP_BINARYSTORE_MINIO_ACCESSKEY=minio
+      - RP_BINARYSTORE_MINIO_SECRETKEY=minio123
+      - LOGGING_LEVEL_ORG_HIBERNATE_SQL=info
+      - JAVA_OPTS=-Xmx1g -XX:+UseG1GC -XX:InitiatingHeapOccupancyPercent=70 -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp  -Dcom.sun.management.jmxremote.rmi.port=12349 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false  -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=10.6.128.241
+    restart: always
+    labels:
+      - "traefik.http.middlewares.api-strip-prefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.api.middlewares=api-strip-prefix@docker"
+      - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.api.service=api"
+      - "traefik.http.services.api.loadbalancer.server.port=8585"
+      - "traefik.http.services.api.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
+
+  ui:
+    build:
+      context: service-ui
+      dockerfile: Dockerfile-full
+    environment:
+      - RP_SERVER_PORT=8080
+    restart: always
+    labels:
+      - "traefik.http.middlewares.ui-strip-prefix.stripprefix.prefixes=/ui"
+      - "traefik.http.routers.ui.middlewares=ui-strip-prefix@docker"
+      - "traefik.http.routers.ui.rule=PathPrefix(`/ui`)"
+      - "traefik.http.routers.ui.service=ui"
+      - "traefik.http.services.ui.loadbalancer.server.port=8080"
+      - "traefik.http.services.ui.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
+
+  minio:
+    image: minio/minio:latest
+    ports:
+      - '9000:9000'
+    volumes:
+      - ./data/storage:/data
+    environment:
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+    command: server /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.3.0
+    restart: always
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+    environment:
+      - "bootstrap.memory_lock=true"
+      - "discovery.type=single-node"
+      - "logger.level=INFO"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    ports:
+      - "9200:9200"
+  #    healthcheck:
+  #      test: ["CMD", "curl","-s" ,"-f", "http://localhost:9200/_cat/health"]
+
+  analyzer:
+    build:
+      context: service-auto-analyzer
+      dockerfile: Dockerfile
+      args:
+        version: 5.1.0
+        prod: "false"
+    depends_on:
+      - rabbitmq
+      - elasticsearch
+    environment:
+      ES_HOSTS: http://elasticsearch:9200
+      AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+      LOGGING_LEVEL: info
+
+volumes:
+  elasticsearch:
