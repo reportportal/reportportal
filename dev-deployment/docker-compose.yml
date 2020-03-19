@@ -195,6 +195,7 @@ services:
     environment:
       ES_HOSTS: http://elasticsearch:9200
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+      LOGGING_LEVEL: info
 
 volumes:
   elasticsearch:
