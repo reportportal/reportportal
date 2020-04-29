@@ -137,6 +137,7 @@ services:
     #ports:
     #  - "9999:9999"
     environment:
+      - RP_DB_HOST=postgres
       - RP_DB_USER=rpuser
       - RP_DB_PASS=rppass
       - RP_DB_NAME=reportportal
@@ -178,6 +179,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
+      - RP_DB_HOST=postgres
       - RP_DB_USER=rpuser
       - RP_DB_PASS=rppass
       - RP_DB_NAME=reportportal
