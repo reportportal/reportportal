@@ -19,7 +19,7 @@ We advise our users install the latest releases we built specifically to address
 * RP v5: docker pull reportportal/service-api:5.1.1
 
 ### Acknowledgement
-The issue was reported to ReportPortal Team by an external security researcher.
+The issue was reported to Report Portal Team by an external security researcher.
 Our Team thanks Julien M. for reporting the issue.
 
 ### Contact
