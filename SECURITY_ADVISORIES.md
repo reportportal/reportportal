@@ -3,7 +3,7 @@
 
 | Release Date | Affected Projects | Affected Versions | CVE ID(s) | Access Vector| Security Risk |
 |--------------|-------------------|-------------------|-----------|--------------|---------------|
-| Monday, May 4, 2020| [service-api](https://github.com/reportportal/service-api) | Every version, starting from 3.1.0 | TBD | Remote | Medium |
+| Monday, May 4, 2020| [service-api](https://github.com/reportportal/service-api) | Every version, starting from 3.1.0 | [CVE-2020-12642](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2020-12642) | Remote | Medium |
 
 ### Summary
 Starting from version 3.1.0 we introduced a new feature of JUnit XML launch import.
