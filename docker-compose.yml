@@ -15,23 +15,19 @@ version: '2.4'
 services:
 
   gateway:
-    image: traefik:1.7.12
+    image: traefik:v2.0.5
     ports:
       - "8080:8080" # HTTP exposed
       - "8081:8081" # HTTP Administration exposed
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command:
-      - --docker
-      - --docker.watch
-      - --docker.constraints=tag==reportportal
-      - --defaultEntryPoints=http
-      - --entryPoints=Name:http Address::8080
-      - --logLevel=ERROR
-      - --web
-      - --web.address=:8081
-      - --web.metrics=true
-      - --web.metrics.prometheus=true
+      - --providers.docker=true
+      - --providers.docker.constraints=Label(`traefik.expose`, `true`)
+      - --entrypoints.web.address=:8080
+      - --entrypoints.traefik.address=:8081
+      - --api.dashboard=true
+      - --api.insecure=true
     restart: always
 
   elasticsearch:
@@ -60,7 +56,6 @@ services:
     environment:
       LOGGING_LEVEL: info
     depends_on:
-      - rabbitmq
       - elasticsearch
     restart: always
 
@@ -147,11 +142,13 @@ services:
       - RP_BINARYSTORE_MINIO_SECRETKEY=minio123
       - RP_SESSION_LIVE=86400 #in seconds
     labels:
-      - "traefik.backend=uat"
-      - "traefik.frontend.rule=PathPrefixStrip:/uat"
-      - "traefik.enable=true"
-      - "traefik.port=9999"
-      - "traefik.tags=reportportal"
+      - "traefik.http.middlewares.uat-strip-prefix.stripprefix.prefixes=/uat"
+      - "traefik.http.routers.uat.middlewares=uat-strip-prefix@docker"
+      - "traefik.http.routers.uat.rule=PathPrefix(`/uat`)"
+      - "traefik.http.routers.uat.service=uat"
+      - "traefik.http.services.uat.loadbalancer.server.port=9999"
+      - "traefik.http.services.uat.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
     restart: always
 
   index:
@@ -161,12 +158,13 @@ services:
         condition: service_started
     environment:
       - LB_URL=http://gateway:8081
+      - TRAEFIK_V2_MODE=true
     labels:
-      - "traefik.backend=index"
-      - "traefik.frontend.rule=PathPrefix:/"
-      - "traefik.enable=true"
-      - "traefik.port=8080"
-      - "traefik.tags=reportportal"
+        - "traefik.http.routers.index.rule=PathPrefix(`/`)"
+        - "traefik.http.routers.index.service=index"
+        - "traefik.http.services.index.loadbalancer.server.port=8080"
+        - "traefik.http.services.index.loadbalancer.server.scheme=http"
+        - "traefik.expose=true"
     restart: always
 
   api:
@@ -190,11 +188,13 @@ services:
       - LOGGING_LEVEL_ORG_HIBERNATE_SQL=info
       - JAVA_OPTS=-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp  -Dcom.sun.management.jmxremote.rmi.port=12349 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false  -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=10.6.128.241
     labels:
-      - "traefik.backend=api"
-      - "traefik.frontend.rule=PathPrefixStrip:/api"
-      - "traefik.enable=true"
-      - "traefik.port=8585"
-      - "traefik.tags=reportportal"
+      - "traefik.http.middlewares.api-strip-prefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.api.middlewares=api-strip-prefix@docker"
+      - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.api.service=api"
+      - "traefik.http.services.api.loadbalancer.server.port=8585"
+      - "traefik.http.services.api.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
     restart: always
 
   ui:
@@ -202,11 +202,13 @@ services:
     environment:
       - RP_SERVER_PORT=8080
     labels:
-      - "traefik.backend=ui"
-      - "traefik.frontend.rule=PathPrefixStrip:/ui/"
-      - "traefik.enable=true"
-      - "traefik.port=8080"
-      - "traefik.tags=reportportal"
+      - "traefik.http.middlewares.ui-strip-prefix.stripprefix.prefixes=/ui"
+      - "traefik.http.routers.ui.middlewares=ui-strip-prefix@docker"
+      - "traefik.http.routers.ui.rule=PathPrefix(`/ui`)"
+      - "traefik.http.routers.ui.service=ui"
+      - "traefik.http.services.ui.loadbalancer.server.port=8080"
+      - "traefik.http.services.ui.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
     restart: always
 
   minio:
