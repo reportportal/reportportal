@@ -11,7 +11,7 @@
 Report Portal organized into multiple repositories.
 
 Application Core based on micro-services architecture and includes next mandatory services:
-![structure](https://github.com/reportportal/reportportal/blob/master/public/rp_repo_structure.png)
+![structure](https://github.com/reportportal/reportportal/blob/readme-upd/public/rp_repo_structure.png)
 
 ## Repositories structure
 
