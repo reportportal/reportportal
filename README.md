@@ -11,17 +11,25 @@
 Report Portal organized into multiple repositories.
 
 Application Core based on micro-services architecture and includes next mandatory services:
-![structure](https://github.com/reportportal/reportportal/blob/master/public/rp_repo_structure.png)
+![structure](https://github.com/reportportal/reportportal/blob/readme-upd/public/rp_repo_structure.png)
 
 ## Repositories structure
 
 ReportPortal **server side** consists of the following services:
 - [`service-authorization`](https://github.com/reportportal/service-authorization) Authorization Service. In charge of access tokens distribution
-- [`service-gateway`](https://github.com/reportportal/service-gateway) Gateway Service. Main entry point to application. Port used by gateway should be opened and accessible from outside network.
 - [`service-api`](https://github.com/reportportal/service-api) API Service. Application Backend
 - [`service-ui`](https://github.com/reportportal/service-ui) UI Service. Application Frontend
-- [`service-jira`](https://github.com/reportportal/service-jira) JIRA Service. Interaction with JIRA
-- [`service-rally`](https://github.com/reportportal/service-rally) Rally Service. Interaction with Rally
+- [`service-index`](https://github.com/reportportal/service-index) Index Service. Info and health checks per service.
+- [`service-analyzer`](https://github.com/reportportal/service-analyzer) Analyzer Service. Finds most relevant test fail problem.
+- [`gateway`](https://github.com/containous/traefik) Traefik Gateway Service. Main entry point to application. Port used by gateway should be opened and accessible from outside network.
+- [`rabbitmq`](https://github.com/rabbitmq) Load balancer for client requests. Bus for messages between servers.
+- [`minio`](https://github.com/minio/minio) Attachments storage.
+
+Available plugins developed by ReportPortal team:
+
+- [`plugin-bts-jira`](https://github.com/reportportal/plugin-bts-jira) JIRA Plugin. Interaction with JIRA. [Link to download](https://bintray.com/beta/#/epam/reportportal/plugin-bts-jira?tab=files)
+- [`plugin-bts-rally`](https://github.com/reportportal/plugin-bts-rally) Rally Plugin. Interaction with Rally. [Link to download](https://bintray.com/beta/#/epam/reportportal/plugin-bts-rally?tab=files) 
+- [`plugin-saucelabs`](https://github.com/reportportal/plugin-saucelabs) Rally Plugin. Interaction with Rally. [Link to download](https://bintray.com/beta/#/epam/reportportal/plugin-saucelabs?tab=files)
 
 **Client side** adapters related repositories:
 
@@ -48,11 +56,11 @@ Best for demo purposes and small teams. MongoDB database included into the compo
 3. Deploy ReportPortal using `docker-compose` within the same folder
 
   ```Shell
-  $ docker-compose up
+  $ docker-compose -p reportportal up
   ```
 To start ReportPortal in daemon mode, add '-d' argument:
   ```Shell
-  $ docker-compose up -d
+  $ docker-compose -p reportportal up -d
   ```  
 4. Open in your browser IP address of deployed environment at port `8080`
 
