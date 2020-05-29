@@ -29,7 +29,7 @@ Available plugins developed by ReportPortal team:
 
 - [`plugin-bts-jira`](https://github.com/reportportal/plugin-bts-jira) JIRA Plugin. Interaction with JIRA. [Link to download](https://bintray.com/beta/#/epam/reportportal/plugin-bts-jira?tab=files)
 - [`plugin-bts-rally`](https://github.com/reportportal/plugin-bts-rally) Rally Plugin. Interaction with Rally. [Link to download](https://bintray.com/beta/#/epam/reportportal/plugin-bts-rally?tab=files) 
-- [`plugin-saucelabs`](https://github.com/reportportal/plugin-saucelabs) Rally Plugin. Interaction with Rally. [Link to download](https://bintray.com/beta/#/epam/reportportal/plugin-saucelabs?tab=files)
+- [`plugin-saucelabs`](https://github.com/reportportal/plugin-saucelabs) Sauce Labs Plugin. Interaction with Sauce Labs. [Link to download](https://bintray.com/beta/#/epam/reportportal/plugin-saucelabs?tab=files)
 
 **Client side** adapters related repositories:
 
