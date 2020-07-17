@@ -181,6 +181,10 @@ services:
       - RP_DB_USER=rpuser
       - RP_DB_PASS=rppass
       - RP_DB_NAME=reportportal
+      - RP_AMQP_USER=rabbitmq
+      - RP_AMQP_PASS=rabbitmq
+      - RP_AMQP_APIUSER=rabbitmq
+      - RP_AMQP_APIPASS=rabbitmq
       - RP_BINARYSTORE_TYPE=minio
       - RP_BINARYSTORE_MINIO_ENDPOINT=http://minio:9000
       - RP_BINARYSTORE_MINIO_ACCESSKEY=minio
