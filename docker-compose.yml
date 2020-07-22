@@ -55,6 +55,7 @@ services:
     image: reportportal/service-auto-analyzer:5.2.3
     environment:
       LOGGING_LEVEL: info
+      AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
     depends_on:
       - elasticsearch
     restart: always
