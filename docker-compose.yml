@@ -221,7 +221,10 @@ services:
     #ports:
     #  - '9000:9000'
     volumes:
-      - ./data/storage:/data
+     # For unix host
+      - ./data/storage:/data 
+     # For windows host
+     # - minio:/data
     environment:
       MINIO_ACCESS_KEY: minio
       MINIO_SECRET_KEY: minio123
@@ -236,3 +239,4 @@ services:
   # Docker volume for Windows host
 #volumes:
 #  postgres:
+#  minio:
