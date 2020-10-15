@@ -50,7 +50,7 @@ services:
       # ports:
       # - "9200:9200"
     healthcheck:
-      test: ["CMD", "curl","-s" ,"-f", "http://localhost:9200/_cat/health"]
+      test: ["CMD", "curl","-s" ,"-f", "http://elastic:elastic1q2w3e@localhost:9200/_cat/health"]
     restart: always
 
   analyzer:
