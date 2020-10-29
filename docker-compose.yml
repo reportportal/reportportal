@@ -59,6 +59,9 @@ services:
       LOGGING_LEVEL: info
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
       ES_HOSTS: http://elastic:elastic1q2w3e@elasticsearch:9200
+      MINIO_SHORT_HOST: minio:9000
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
     depends_on:
       - elasticsearch
     restart: always
