@@ -20,7 +20,7 @@ ReportPortal **server side** consists of the following services:
 - [`service-api`](https://github.com/reportportal/service-api) API Service. Application Backend
 - [`service-ui`](https://github.com/reportportal/service-ui) UI Service. Application Frontend
 - [`service-index`](https://github.com/reportportal/service-index) Index Service. Info and health checks per service.
-- [`service-analyzer`](https://github.com/reportportal/service-analyzer) Analyzer Service. Finds most relevant test fail problem.
+- [`service-analyzer`](https://github.com/reportportal/service-auto-analyzer) Analyzer Service. Finds most relevant test fail problem.
 - [`gateway`](https://github.com/containous/traefik) Traefik Gateway Service. Main entry point to application. Port used by gateway should be opened and accessible from outside network.
 - [`rabbitmq`](https://github.com/rabbitmq) Load balancer for client requests. Bus for messages between servers.
 - [`minio`](https://github.com/minio/minio) Attachments storage.
