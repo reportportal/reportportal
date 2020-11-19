@@ -54,7 +54,7 @@ services:
     restart: always
 
   analyzer:
-    image: reportportal/service-auto-analyzer:5.3.2
+    image: reportportal/service-auto-analyzer:5.3.3
     environment:
       LOGGING_LEVEL: info
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
@@ -68,7 +68,7 @@ services:
 
   ### Initial reportportal db schema. Run once.
   db-scripts:
-    image: reportportal/migrations:5.3.2
+    image: reportportal/migrations:5.3.3
     depends_on:
       postgres:
         condition: service_healthy
@@ -135,7 +135,7 @@ services:
     restart: always
 
   uat:
-    image: reportportal/service-authorization:5.3.2
+    image: reportportal/service-authorization:5.3.3
     #ports:
     #  - "9999:9999"
     environment:
@@ -175,7 +175,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:5.3.2
+    image: reportportal/service-api:5.3.3
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -209,7 +209,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:5.3.2
+    image: reportportal/service-ui:5.3.3
     environment:
       - RP_SERVER_PORT=8080
     labels:
