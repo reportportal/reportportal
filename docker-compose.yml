@@ -207,6 +207,24 @@ services:
       - "traefik.http.services.api.loadbalancer.server.scheme=http"
       - "traefik.expose=true"
     restart: always
+    
+  jobs:
+    image: reportportal/service-jobs:5.4.0
+    environment:
+      RP_ENVIRONMENT_VARIABLE_CLEAN_ATTACHMENT_CRON: 0 */2 * * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_LOG_CRON: 0 */5 * * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_LAUNCH_CRON: 0 */10 * * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CRON: '*/30 * * * * *'
+      RP_ENVIRONMENT_VARIABLE_STORAGE_PROJECT_CRON: 0 */1 * * * *
+    labels:
+    - traefik.http.middlewares.jobs-strip-prefix.stripprefix.prefixes=/jobs
+    - traefik.http.routers.jobs.middlewares=jobs-strip-prefix@docker
+    - traefik.http.routers.jobs.rule=PathPrefix(`/jobs`)
+    - traefik.http.routers.jobs.service=jobs
+    - traefik.http.services.jobs.loadbalancer.server.port=8686
+    - traefik.http.services.jobs.loadbalancer.server.scheme=http
+    - traefik.expose=true
+
 
   ui:
     image: reportportal/service-ui:5.4.0
