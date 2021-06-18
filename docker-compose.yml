@@ -53,7 +53,7 @@ services:
       test: ["CMD", "curl","-s" ,"-f", "http://elastic:elastic1q2w3e@localhost:9200/_cat/health"]
     restart: always
 
-  analyzer:
+  analyzer: #an analyzer instance for main functionality, don't forget to use the same storage settings(either minio, or filesystem) for analyzer_train
     image: reportportal/service-auto-analyzer:5.4.0
     environment:
       LOGGING_LEVEL: info
@@ -62,6 +62,21 @@ services:
       MINIO_SHORT_HOST: minio:9000
       MINIO_ACCESS_KEY: minio
       MINIO_SECRET_KEY: minio123
+    depends_on:
+      - elasticsearch
+    restart: always
+  
+  analyzer_train: #an analyzer instance for training, don't forget to setup the same storage(either minio, or filesystem) as for main analyzer
+    image: reportportal/service-auto-analyzer:5.4.0
+    environment:
+      LOGGING_LEVEL: info
+      AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+      ES_HOSTS: http://elastic:elastic1q2w3e@elasticsearch:9200
+      MINIO_SHORT_HOST: minio:9000
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+      INSTANCE_TASK_TYPE: train
+      UWSGI_WORKERS: 1
     depends_on:
       - elasticsearch
     restart: always
