@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -e
 
-REPO_URL="https://dl.bintray.com/epam/reportportal/com/epam/reportportal"
+REPO_URL="https://repo1.maven.org/maven2/com/epam/reportportal"
 SERVICE_API_VERSION="3.0.0"
 SERVICE_UI_VERSION="3.0.1"
 SERVICE_JIRA_VERSION="3.0.0"
