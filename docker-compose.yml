@@ -230,7 +230,7 @@ services:
       RP_ENVIRONMENT_VARIABLE_CLEAN_LOG_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_LAUNCH_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CRON: 0 0 */24 * * *
-      RP_ENVIRONMENT_VARIABLE_STORAGE_PROJECT_CRON: 0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_STORAGE_PROJECT_CRON: 0 */5 * * * *
     labels:
     - traefik.http.middlewares.jobs-strip-prefix.stripprefix.prefixes=/jobs
     - traefik.http.routers.jobs.middlewares=jobs-strip-prefix@docker
