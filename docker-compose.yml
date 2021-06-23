@@ -226,6 +226,14 @@ services:
   jobs:
     image: reportportal/service-jobs:5.4.0
     environment:
+      RP_DB_HOST: postgres
+      RP_DB_USER: rpuser
+      RP_DB_PASS: rppass
+      RP_DB_NAME: reportportal
+      DATASTORE_TYPE: minio
+      DATASTORE_MINIO_ENDPOINT: http://minio:9000
+      DATASTORE_MINIO_ACCESSKEY: minio
+      DATASTORE_MINIO_SECRETKEY: minio123
       RP_ENVIRONMENT_VARIABLE_CLEAN_ATTACHMENT_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_LOG_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_LAUNCH_CRON: 0 0 */24 * * *
