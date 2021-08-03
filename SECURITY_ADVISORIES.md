@@ -1,5 +1,5 @@
 # Security Advisories
-## 2021-06-28 XXE vulnerability on Launch import with externally-defined DTD file
+## 2021-06-28 - XXE vulnerability on Launch import with externally-defined DTD file
 | Release Date | Affected Projects | Affected Versions | CVE ID(s) | Access Vector| Security Risk |
 |--------------|-------------------|-------------------|-----------|--------------|---------------|
 | Monday, Jun 28, 2021| [service-api](https://github.com/reportportal/service-api) | Every version, starting from 3.1.0 | [CVE-2021-29620](https://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2021-29620) | Remote | High |
@@ -16,7 +16,7 @@ We advise our users install the latest releases we built specifically to address
 ### Contact
 [support@reportportal.io](mailto:support@reportportal.io)
 
-## 2020-05-04 XXE vulnerability in Launch import
+## 2020-05-04 - XXE vulnerability in Launch import
 
 | Release Date | Affected Projects | Affected Versions | CVE ID(s) | Access Vector| Security Risk |
 |--------------|-------------------|-------------------|-----------|--------------|---------------|
