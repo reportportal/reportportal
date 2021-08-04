@@ -80,6 +80,26 @@ services:
     depends_on:
       - elasticsearch
     restart: always
+  
+  metrics-gatherer: # metrics service for analyzing how analyzer is working and manage retrained models
+    image: reportportal/service-metrics-gatherer:1.1.14
+    environment:
+      LOGGING_LEVEL: info
+      ES_HOST: http://elasticsearch:9200
+      ES_USER: elastic
+      ES_PASSWORD: elastic1q2w3e
+      POSTGRES_USER: "rpuser"
+      POSTGRES_PASSWORD: "rppass"
+      POSTGRES_DB: "reportportal"
+      POSTGRES_HOST: "postgres"
+      POSTGRES_PORT: 5432
+      ALLOWED_START_TIME: "22:00"
+      ALLOWED_END_TIME: "08:00"
+      TZ: Europe/Minsk
+      AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+    depends_on:
+      - elasticsearch
+    restart: always
 
   ### Initial reportportal db schema. Run once.
   db-scripts:
