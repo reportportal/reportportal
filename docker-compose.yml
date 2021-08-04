@@ -95,7 +95,7 @@ services:
       POSTGRES_PORT: 5432
       ALLOWED_START_TIME: "22:00"
       ALLOWED_END_TIME: "08:00"
-      TZ: Europe/Minsk
+      #TZ: Europe/Minsk you can change a timezone like this to specify when metrics are gathered
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
     depends_on:
       - elasticsearch
