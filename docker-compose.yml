@@ -250,6 +250,10 @@ services:
       RP_DB_USER: rpuser
       RP_DB_PASS: rppass
       RP_DB_NAME: reportportal
+      RP_AMQP_USER: rabbitmq
+      RP_AMQP_PASS: rabbitmq
+      RP_AMQP_APIUSER: rabbitmq
+      RP_AMQP_APIPASS: rabbitmq
       DATASTORE_TYPE: minio
       DATASTORE_MINIO_ENDPOINT: http://minio:9000
       DATASTORE_MINIO_ACCESSKEY: minio
