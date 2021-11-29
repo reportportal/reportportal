@@ -245,6 +245,13 @@ services:
     
   jobs:
     image: reportportal/service-jobs:5.6.0
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      gateway:
+        condition: service_started
+      postgres:
+        condition: service_healthy
     environment:
       RP_DB_HOST: postgres
       RP_DB_USER: rpuser
@@ -263,6 +270,7 @@ services:
       RP_ENVIRONMENT_VARIABLE_CLEAN_LAUNCH_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_STORAGE_PROJECT_CRON: 0 */5 * * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE: 1000
     labels:
     - traefik.http.middlewares.jobs-strip-prefix.stripprefix.prefixes=/jobs
     - traefik.http.routers.jobs.middlewares=jobs-strip-prefix@docker
@@ -271,7 +279,7 @@ services:
     - traefik.http.services.jobs.loadbalancer.server.port=8686
     - traefik.http.services.jobs.loadbalancer.server.scheme=http
     - traefik.expose=true
-
+    restart: always
 
   ui:
     image: reportportal/service-ui:5.6.0
