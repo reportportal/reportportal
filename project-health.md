@@ -47,6 +47,5 @@
 
 
 ## For reference
-* [`RP on Travis-CI`](https://travis-ci.org/reportportal/)
 * N/A - that health metric is not applicable for this component
 * TBD - to be done
