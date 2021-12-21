@@ -35,6 +35,7 @@ services:
     volumes:
       - ./data/elasticsearch:/usr/share/elasticsearch/data
     environment:
+      - "ES_JAVA_OPTS=-Dlog4j2.formatMsgNoLookups=true"
       - "bootstrap.memory_lock=true"
       - "discovery.type=single-node"
       - "logger.level=INFO"
@@ -170,7 +171,7 @@ services:
     restart: always
 
   uat:
-    image: reportportal/service-authorization:5.6.0
+    image: reportportal/service-authorization:5.6.1
     #ports:
     #  - "9999:9999"
     environment:
@@ -210,7 +211,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:5.6.0
+    image: reportportal/service-api:5.6.1
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -244,7 +245,7 @@ services:
     restart: always
     
   jobs:
-    image: reportportal/service-jobs:5.6.0
+    image: reportportal/service-jobs:5.6.1
     depends_on:
       rabbitmq:
         condition: service_healthy
