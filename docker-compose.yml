@@ -171,7 +171,7 @@ services:
     restart: always
 
   uat:
-    image: reportportal/service-authorization:5.6.2
+    image: reportportal/service-authorization:5.6.3
     #ports:
     #  - "9999:9999"
     environment:
