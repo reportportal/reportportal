@@ -171,7 +171,7 @@ services:
     restart: always
 
   uat:
-    image: reportportal/service-authorization:5.6.2
+    image: reportportal/service-authorization:5.6.3
     #ports:
     #  - "9999:9999"
     environment:
@@ -211,7 +211,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:5.6.2
+    image: reportportal/service-api:5.6.3
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -245,7 +245,7 @@ services:
     restart: always
     
   jobs:
-    image: reportportal/service-jobs:5.6.2
+    image: reportportal/service-jobs:5.6.3
     depends_on:
       rabbitmq:
         condition: service_healthy
