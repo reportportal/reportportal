@@ -58,6 +58,7 @@ services:
     image: reportportal/service-auto-analyzer:5.6.0
     environment:
       LOGGING_LEVEL: info
+      AMQP_EXCHANGE_NAME: analyzer-default
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
       ES_HOSTS: http://elastic:elastic1q2w3e@elasticsearch:9200
       MINIO_SHORT_HOST: minio:9000
@@ -71,6 +72,7 @@ services:
     image: reportportal/service-auto-analyzer:5.6.0
     environment:
       LOGGING_LEVEL: info
+      AMQP_EXCHANGE_NAME: analyzer-default
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
       ES_HOSTS: http://elastic:elastic1q2w3e@elasticsearch:9200
       MINIO_SHORT_HOST: minio:9000
