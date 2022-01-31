@@ -195,6 +195,9 @@ services:
       - "traefik.http.services.uat.loadbalancer.server.scheme=http"
       - "traefik.expose=true"
     restart: always
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   index:
     image: reportportal/service-index:5.0.11
