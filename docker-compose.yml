@@ -65,7 +65,10 @@ services:
       MINIO_ACCESS_KEY: minio
       MINIO_SECRET_KEY: minio123
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
     restart: always
   
   analyzer_train: #an analyzer instance for training, don't forget to setup the same storage(either minio, or filesystem) as for main analyzer
@@ -81,7 +84,10 @@ services:
       INSTANCE_TASK_TYPE: train
       UWSGI_WORKERS: 1
     depends_on:
-      - elasticsearch
+      elasticsearch:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
     restart: always
   
   metrics-gatherer: # metrics service for analyzing how analyzer is working and manage retrained models
