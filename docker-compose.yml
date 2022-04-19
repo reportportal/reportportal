@@ -55,7 +55,7 @@ services:
     restart: always
 
   analyzer: #an analyzer instance for main functionality, don't forget to use the same storage settings(either minio, or filesystem) for analyzer_train
-    image: reportportal/service-auto-analyzer:5.6.0
+    image: reportportal/service-auto-analyzer:5.7.0
     environment:
       LOGGING_LEVEL: info
       AMQP_EXCHANGE_NAME: analyzer-default
@@ -72,7 +72,7 @@ services:
     restart: always
   
   analyzer_train: #an analyzer instance for training, don't forget to setup the same storage(either minio, or filesystem) as for main analyzer
-    image: reportportal/service-auto-analyzer:5.6.0
+    image: reportportal/service-auto-analyzer:5.7.0
     environment:
       LOGGING_LEVEL: info
       AMQP_EXCHANGE_NAME: analyzer-default
@@ -112,7 +112,7 @@ services:
 
   ### Initial reportportal db schema. Run once.
   db-scripts:
-    image: reportportal/migrations:5.6.0
+    image: reportportal/migrations:5.7.0
     depends_on:
       postgres:
         condition: service_healthy
@@ -179,7 +179,7 @@ services:
     restart: always
 
   uat:
-    image: reportportal/service-authorization:5.6.3
+    image: reportportal/service-authorization:5.7.0
     #ports:
     #  - "9999:9999"
     environment:
@@ -222,7 +222,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:5.6.3
+    image: reportportal/service-api:5.7.0
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -257,7 +257,7 @@ services:
     restart: always
     
   jobs:
-    image: reportportal/service-jobs:5.6.3
+    image: reportportal/service-jobs:5.7.0
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -295,7 +295,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:5.6.0
+    image: reportportal/service-ui:5.7.0
     environment:
       - RP_SERVER_PORT=8080
     labels:
