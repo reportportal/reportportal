@@ -54,11 +54,13 @@ services:
       test: ["CMD", "curl","-s" ,"-f", "http://elastic:elastic1q2w3e@localhost:9200/_cat/health"]
     restart: always
 
-  analyzer: #an analyzer instance for main functionality, don't forget to use the same storage settings(either minio, or filesystem) for analyzer_train
-    image: reportportal/service-auto-analyzer:5.7.0
+  ## An analyzer instance for main functionality, don't forget to use the same storage settings (either MinIO, or filesystem) for analyzer_train
+  analyzer: 
+    image: reportportal/service-auto-analyzer:5.7.1
     environment:
       LOGGING_LEVEL: info
       AMQP_EXCHANGE_NAME: analyzer-default
+      AMQP_VIRTUAL_HOST: analyzer
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
       ES_HOSTS: http://elastic:elastic1q2w3e@elasticsearch:9200
       MINIO_SHORT_HOST: minio:9000
@@ -71,11 +73,13 @@ services:
         condition: service_healthy
     restart: always
   
-  analyzer_train: #an analyzer instance for training, don't forget to setup the same storage(either minio, or filesystem) as for main analyzer
-    image: reportportal/service-auto-analyzer:5.7.0
+  ## An analyzer instance for training, don't forget to setup the same storage (either MinIO, or filesystem) as for main analyzer
+  analyzer_train:
+    image: reportportal/service-auto-analyzer:5.7.1
     environment:
       LOGGING_LEVEL: info
       AMQP_EXCHANGE_NAME: analyzer-default
+      AMQP_VIRTUAL_HOST: analyzer
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
       ES_HOSTS: http://elastic:elastic1q2w3e@elasticsearch:9200
       MINIO_SHORT_HOST: minio:9000
@@ -89,9 +93,10 @@ services:
       rabbitmq:
         condition: service_healthy
     restart: always
-  
-  metrics-gatherer: # metrics service for analyzing how analyzer is working and manage retrained models
-    image: reportportal/service-metrics-gatherer:1.1.17
+ 
+  ## Metrics service for analyzing how analyzer is working and manage retrained models
+  metrics-gatherer: 
+    image: reportportal/service-metrics-gatherer:1.1.19
     environment:
       LOGGING_LEVEL: info
       ES_HOST: http://elasticsearch:9200
@@ -106,11 +111,12 @@ services:
       ALLOWED_END_TIME: "08:00"
       #TZ: Europe/Minsk you can change a timezone like this to specify when metrics are gathered
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+      AMQP_VIRTUAL_HOST: analyzer
     depends_on:
       - elasticsearch
     restart: always
 
-  ### Initial reportportal db schema. Run once.
+  ## Initial reportportal db schema. Run once.
   db-scripts:
     image: reportportal/migrations:5.7.0
     depends_on:
@@ -132,13 +138,13 @@ services:
       POSTGRES_PASSWORD: rppass
       POSTGRES_DB: reportportal
     volumes:
-      # For unix host
+      ## For unix host
       - ./data/postgres:/var/lib/postgresql/data
-      # For windows host
+      ## For windows host
       # - postgres:/var/lib/postgresql/data
-    # If you need to access the DB locally. Could be a security risk to expose DB.
-    #    ports:
-    #      - "5432:5432"
+    ## If you need to access the DB locally. Could be a security risk to expose DB.
+    # ports:
+    #   - "5432:5432"
     command:
       -c checkpoint_completion_target=0.9
       -c work_mem=96MB
@@ -147,11 +153,11 @@ services:
       -c wal_buffers=32MB
       -c min_wal_size=2GB
       -c max_wal_size=4GB
-    # Optional, for SSD Data Storage. If you are using the HDD, set up this command to '2'
+    ## Optional, for SSD Data Storage. If you are using the HDD, set up this command to '2'
     #  -c effective_io_concurrency=200
-    # Optional, for SSD Data Storage. If you are using the HDD, set up this command to '4'
+    ## Optional, for SSD Data Storage. If you are using the HDD, set up this command to '4'
     #  -c random_page_cost=1.1
-    # Optional, can be scaled. Example for 4 CPU, 16GB RAM instance, where only the database is deployed
+    ## Optional, can be scaled. Example for 4 CPU, 16GB RAM instance, where only the database is deployed
     #  -c max_worker_processes=4
     #  -c max_parallel_workers_per_gather=2
     #  -c max_parallel_workers=4
@@ -167,9 +173,9 @@ services:
 
   rabbitmq:
     image: rabbitmq:3.7.16-management
-    #ports:
-      # - "5672:5672"
-      #- "15672:15672"
+    # ports:
+    #   - "5672:5672"
+    #   - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: "rabbitmq"
       RABBITMQ_DEFAULT_PASS: "rabbitmq"
@@ -180,8 +186,8 @@ services:
 
   uat:
     image: reportportal/service-authorization:5.7.0
-    #ports:
-    #  - "9999:9999"
+    # ports:
+    #   - "9999:9999"
     environment:
       - RP_DB_HOST=postgres
       - RP_DB_USER=rpuser
@@ -222,7 +228,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:5.7.0
+    image: reportportal/service-api:5.7.1
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -239,6 +245,7 @@ services:
       - RP_AMQP_PASS=rabbitmq
       - RP_AMQP_APIUSER=rabbitmq
       - RP_AMQP_APIPASS=rabbitmq
+      - RP_AMQP_ANALYZER=analyzer
       - RP_BINARYSTORE_TYPE=minio
       - RP_BINARYSTORE_MINIO_ENDPOINT=http://minio:9000
       - RP_BINARYSTORE_MINIO_ACCESSKEY=minio
@@ -257,7 +264,7 @@ services:
     restart: always
     
   jobs:
-    image: reportportal/service-jobs:5.7.0
+    image: reportportal/service-jobs:5.7.1
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -274,6 +281,7 @@ services:
       RP_AMQP_PASS: rabbitmq
       RP_AMQP_APIUSER: rabbitmq
       RP_AMQP_APIPASS: rabbitmq
+      RP_AMQP_ANALYZER: analyzer
       DATASTORE_TYPE: minio
       DATASTORE_MINIO_ENDPOINT: http://minio:9000
       DATASTORE_MINIO_ACCESSKEY: minio
@@ -313,10 +321,10 @@ services:
     #ports:
     #  - '9000:9000'
     volumes:
-     # For unix host
+      ## For unix host
       - ./data/storage:/data 
-     # For windows host
-     # - minio:/data
+      ## For windows host
+      # - minio:/data
     environment:
       MINIO_ACCESS_KEY: minio
       MINIO_SECRET_KEY: minio123
@@ -328,7 +336,7 @@ services:
       retries: 3
     restart: always
 
-  # Docker volume for Windows host
-#volumes:
-#  postgres:
-#  minio:
+## Docker volume for Windows host
+# volumes:
+#   postgres:
+#   minio:
