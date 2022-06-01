@@ -245,7 +245,7 @@ services:
       - RP_AMQP_PASS=rabbitmq
       - RP_AMQP_APIUSER=rabbitmq
       - RP_AMQP_APIPASS=rabbitmq
-      - RP_AMQP_ANALYZER=analyzer
+      - RP_AMQP_ANALYZER-VHOST=analyzer
       - RP_BINARYSTORE_TYPE=minio
       - RP_BINARYSTORE_MINIO_ENDPOINT=http://minio:9000
       - RP_BINARYSTORE_MINIO_ACCESSKEY=minio
@@ -281,7 +281,7 @@ services:
       RP_AMQP_PASS: rabbitmq
       RP_AMQP_APIUSER: rabbitmq
       RP_AMQP_APIPASS: rabbitmq
-      RP_AMQP_ANALYZER: analyzer
+      RP_AMQP_ANALYZER-VHOST: analyzer
       DATASTORE_TYPE: minio
       DATASTORE_MINIO_ENDPOINT: http://minio:9000
       DATASTORE_MINIO_ACCESSKEY: minio
