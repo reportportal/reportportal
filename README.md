@@ -41,46 +41,60 @@ Available plugins developed by ReportPortal team:
 - [`service-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=service-) - micro-services which are a part of Application
 - [`commons-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=commons-) - common libraries, models, etc., used by micro-services
 
-
 ## Installation steps
 
-#### Simple setup with Docker
-Best for demo purposes and small teams. MongoDB database included into the compose.
+### Simple setup with Docker
+
+It's the best way for demo purposes and small teams. The database is already in the docker-compose.
 
 1. Install [Docker](https://docs.docker.com/engine/installation/) ([Engine](https://docs.docker.com/engine/installation/), [Compose](https://docs.docker.com/compose/install/))
-2. Download [Example of compose descriptor](https://github.com/reportportal/reportportal/blob/master/docker-compose.yml) to any folder
 
-  ```Shell
-  $ curl https://raw.githubusercontent.com/reportportal/reportportal/master/docker-compose.yml -o docker-compose.yml
-  ```
-3. Deploy ReportPortal using `docker-compose` within the same folder
+2. Download [Example of docker-compose descriptor](https://github.com/reportportal/reportportal/blob/master/docker-compose.yml) to any folder
 
-  ```Shell
-  $ docker-compose -p reportportal up
-  ```
+3. Give correct permissions to ElasticSearch data folder using the following commands:
+
+```bash
+$ mkdir -p data/elasticsearch
+
+$ chmod 777 data/elasticsearch
+
+$ chgrp 1000 data/elasticsearch
+```
+
+4. Deploy ReportPortal using `docker compose plugin` within the same folder
+
+```bash
+$ docker compose -p reportportal up
+```
+
 To start ReportPortal in daemon mode, add '-d' argument:
-  ```Shell
-  $ docker-compose -p reportportal up -d
-  ```  
-4. Open in your browser IP address of deployed environment at port `8080`
 
-  ```
-  $ http://IP_ADDRESS:8080
-  ```
-5. Use next login\pass for access: `default\1q2w3e` and  `superadmin\erebus`. 
+```bash
+$ docker compose -p reportportal up -d
+```
+
+5. Open in your browser IP address of deployed environment at port `8080`
+
+```
+http://IP_ADDRESS:8080
+```
+
+6. Use next login\pass for access:
+
+- `default\1q2w3e`
+- `superadmin\erebus`.
 
 >Please change admin password for security.
 
->Mentioned compose file deploy all available Bug Tracking System integrations, which not always needed, but use resources
+>Mentioned compose file deploy all available Bug Tracking System integrations, which not always needed, but use resources.
 
-#### Production-ready set and Custom deployment with Docker
+### Production-ready set and Custom deployment with Docker
 
-For production usage we recommend to:
-- deploy MongoDB database at separate environment, and connect App to this server. MongoDB is mandatory part.
+For production usage, we recommend:
+
 - choose only required Bug Tracking System integration service. Exclude the rest
 
 To customize deployment and make it production-ready please follow [customization steps and details](https://github.com/reportportal/reportportal/wiki/Production-Ready-set-and-Deployment-Customization)
-
 
 ## Integration. How to get log data in
 
@@ -112,7 +126,6 @@ Big features are also welcome but if you want to see your contributions included
 * [User Manual](http://reportportal.io/#documentation)
 * [Wiki and Guides](https://github.com/reportportal/reportportal/wiki)
 
-
 ## Community / Support
 
 * [**Slack chat**](https://reportportal-slack-auto.herokuapp.com)
@@ -127,4 +140,3 @@ Big features are also welcome but if you want to see your contributions included
 ## License
 
 Report Portal is [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0).
-
