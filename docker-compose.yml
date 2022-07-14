@@ -56,7 +56,7 @@ services:
 
   ## An analyzer instance for main functionality, don't forget to use the same storage settings (either MinIO, or filesystem) for analyzer_train
   analyzer: 
-    image: reportportal/service-auto-analyzer:5.7.1
+    image: reportportal/service-auto-analyzer:5.7.2
     environment:
       LOGGING_LEVEL: info
       AMQP_EXCHANGE_NAME: analyzer-default
@@ -75,7 +75,7 @@ services:
   
   ## An analyzer instance for training, don't forget to setup the same storage (either MinIO, or filesystem) as for main analyzer
   analyzer_train:
-    image: reportportal/service-auto-analyzer:5.7.1
+    image: reportportal/service-auto-analyzer:5.7.2
     environment:
       LOGGING_LEVEL: info
       AMQP_EXCHANGE_NAME: analyzer-default
@@ -96,7 +96,7 @@ services:
  
   ## Metrics service for analyzing how analyzer is working and manage retrained models
   metrics-gatherer: 
-    image: reportportal/service-metrics-gatherer:1.1.19
+    image: reportportal/service-metrics-gatherer:1.1.20
     environment:
       LOGGING_LEVEL: info
       ES_HOST: http://elasticsearch:9200
@@ -228,7 +228,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:5.7.1
+    image: reportportal/service-api:5.7.2
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -252,6 +252,7 @@ services:
       - RP_BINARYSTORE_MINIO_SECRETKEY=minio123
       - LOGGING_LEVEL_ORG_HIBERNATE_SQL=info
       - RP_REQUESTLOGGING=false
+      - MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED=false
       - JAVA_OPTS=-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp  -Dcom.sun.management.jmxremote.rmi.port=12349 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false  -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=0.0.0.0
     labels:
       - "traefik.http.middlewares.api-strip-prefix.stripprefix.prefixes=/api"
@@ -264,7 +265,7 @@ services:
     restart: always
     
   jobs:
-    image: reportportal/service-jobs:5.7.1
+    image: reportportal/service-jobs:5.7.2
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -292,6 +293,9 @@ services:
       RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_STORAGE_PROJECT_CRON: 0 */5 * * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE: 1000
+      RP_PROCESSING_LOG_MAXBATCHSIZE: 2000
+      RP_PROCESSING_LOG_MAXBATCHTIMEOUT: 6000
+      RP_AMQP_MAXLOGCONSUMER: 1
     labels:
     - traefik.http.middlewares.jobs-strip-prefix.stripprefix.prefixes=/jobs
     - traefik.http.routers.jobs.middlewares=jobs-strip-prefix@docker
@@ -303,7 +307,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:5.7.0
+    image: reportportal/service-ui:5.7.2
     environment:
       - RP_SERVER_PORT=8080
     labels:
@@ -340,3 +344,4 @@ services:
 # volumes:
 #   postgres:
 #   minio:
+
