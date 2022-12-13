@@ -1,6 +1,6 @@
 # [ReportPortal.io](http://ReportPortal.io)
 
-[![Join Slack chat!](https://reportportal-slack-auto.herokuapp.com/badge.svg)](https://reportportal-slack-auto.herokuapp.com)
+[![Join Slack chat!](https://img.shields.io/badge/slack-join-brightgreen.svg)](https://slack.epmrpp.reportportal.io/)
 [![stackoverflow](https://img.shields.io/badge/reportportal-stackoverflow-orange.svg?style=flat)](http://stackoverflow.com/questions/tagged/reportportal)
 [![GitHub contributors](https://img.shields.io/badge/contributors-102-blue.svg)](https://reportportal.io/community)
 [![Docker Pulls](https://img.shields.io/docker/pulls/reportportal/service-api.svg?maxAge=25920)](https://hub.docker.com/u/reportportal/)
@@ -117,7 +117,7 @@ There are many different ways to contribute to Report Portal's development, just
 - **Patch reviews**
 - **UI enhancements**
 
-Big features are also welcome but if you want to see your contributions included in Report Portal codebase we strongly recommend you start by initiating a [chat through our Team in Slack](https://reportportal-slack-auto.herokuapp.com).
+Big features are also welcome but if you want to see your contributions included in Report Portal codebase we strongly recommend you start by initiating a [chat through our Team in Slack](https://slack.epmrpp.reportportal.io/).
 
 [Contribution details](https://github.com/reportportal/reportportal/wiki/Contribution)
 
@@ -128,7 +128,7 @@ Big features are also welcome but if you want to see your contributions included
 
 ## Community / Support
 
-* [**Slack chat**](https://reportportal-slack-auto.herokuapp.com)
+* [**Slack chat**](https://slack.epmrpp.reportportal.io/)
 * [**Security Advisories**](https://github.com/reportportal/reportportal/blob/master/SECURITY_ADVISORIES.md)
 * [GitHub Issues](https://github.com/reportportal/reportportal/issues)
 * [Stackoverflow Questions](http://stackoverflow.com/questions/tagged/reportportal)
