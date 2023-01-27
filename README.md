@@ -128,8 +128,8 @@ Big features are also welcome but if you want to see your contributions included
 
 ## Community / Support
 
-* [**Slack chat**](https://slack.epmrpp.reportportal.io/)
-* [**Security Advisories**](https://github.com/reportportal/reportportal/blob/master/SECURITY_ADVISORIES.md)
+* [Slack chat](https://slack.epmrpp.reportportal.io/)
+* [Security Advisories](https://github.com/reportportal/reportportal/blob/master/SECURITY_ADVISORIES.md)
 * [GitHub Issues](https://github.com/reportportal/reportportal/issues)
 * [Stackoverflow Questions](http://stackoverflow.com/questions/tagged/reportportal)
 * [Twitter](http://twitter.com/ReportPortal_io)
