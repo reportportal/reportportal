@@ -96,7 +96,7 @@ services:
  
   ## Metrics service for analyzing how analyzer is working and manage retrained models
   metrics-gatherer: 
-    image: reportportal/service-metrics-gatherer:5.7.4
+    image: reportportal/service-metrics-gatherer:5.7.3
     environment:
       LOGGING_LEVEL: info
       ES_HOST: http://elasticsearch:9200
@@ -118,7 +118,7 @@ services:
 
   ## Initial reportportal db schema. Run once.
   db-scripts:
-    image: reportportal/migrations:5.7.4
+    image: reportportal/migrations:5.7.3
     depends_on:
       postgres:
         condition: service_healthy
