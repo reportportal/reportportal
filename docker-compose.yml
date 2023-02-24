@@ -212,7 +212,7 @@ services:
         condition: service_healthy
 
   index:
-    image: reportportal/service-index:5.7.4
+    image: reportportal/service-index:5.7.3
     depends_on:
       gateway:
         condition: service_started
