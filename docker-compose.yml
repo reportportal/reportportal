@@ -56,7 +56,7 @@ services:
 
   ## An analyzer instance for main functionality, don't forget to use the same storage settings (either MinIO, or filesystem) for analyzer_train
   analyzer: 
-    image: reportportal/service-auto-analyzer:5.7.3
+    image: reportportal/service-auto-analyzer:5.7.4
     environment:
       LOGGING_LEVEL: info
       AMQP_EXCHANGE_NAME: analyzer-default
@@ -75,7 +75,7 @@ services:
   
   ## An analyzer instance for training, don't forget to setup the same storage (either MinIO, or filesystem) as for main analyzer
   analyzer_train:
-    image: reportportal/service-auto-analyzer:5.7.3
+    image: reportportal/service-auto-analyzer:5.7.4
     environment:
       LOGGING_LEVEL: info
       AMQP_EXCHANGE_NAME: analyzer-default
@@ -185,19 +185,19 @@ services:
     restart: always
 
   uat:
-    image: reportportal/service-authorization:5.7.3
+    image: reportportal/service-authorization:5.7.4
     # ports:
     #   - "9999:9999"
     environment:
-      - RP_DB_HOST=postgres
-      - RP_DB_USER=rpuser
-      - RP_DB_PASS=rppass
-      - RP_DB_NAME=reportportal
-      - RP_BINARYSTORE_TYPE=minio
-      - RP_BINARYSTORE_MINIO_ENDPOINT=http://minio:9000
-      - RP_BINARYSTORE_MINIO_ACCESSKEY=minio
-      - RP_BINARYSTORE_MINIO_SECRETKEY=minio123
-      - RP_SESSION_LIVE=86400 #in seconds
+      RP_DB_HOST: postgres
+      RP_DB_USER: rpuser
+      RP_DB_PASS: rppass
+      RP_DB_NAME: reportportal
+      RP_BINARYSTORE_TYPE: minio
+      RP_BINARYSTORE_MINIO_ENDPOINT: http://minio:9000
+      RP_BINARYSTORE_MINIO_ACCESSKEY: minio
+      RP_BINARYSTORE_MINIO_SECRETKEY: minio123
+      RP_SESSION_LIVE: 86400 #in seconds
     labels:
       - "traefik.http.middlewares.uat-strip-prefix.stripprefix.prefixes=/uat"
       - "traefik.http.routers.uat.middlewares=uat-strip-prefix@docker"
@@ -228,7 +228,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:5.7.3
+    image: reportportal/service-api:5.7.4
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -237,23 +237,26 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      - RP_DB_HOST=postgres
-      - RP_DB_USER=rpuser
-      - RP_DB_PASS=rppass
-      - RP_DB_NAME=reportportal
-      - RP_AMQP_USER=rabbitmq
-      - RP_AMQP_PASS=rabbitmq
-      - RP_AMQP_APIUSER=rabbitmq
-      - RP_AMQP_APIPASS=rabbitmq
-      - RP_AMQP_ANALYZER-VHOST=analyzer
-      - RP_BINARYSTORE_TYPE=minio
-      - RP_BINARYSTORE_MINIO_ENDPOINT=http://minio:9000
-      - RP_BINARYSTORE_MINIO_ACCESSKEY=minio
-      - RP_BINARYSTORE_MINIO_SECRETKEY=minio123
-      - LOGGING_LEVEL_ORG_HIBERNATE_SQL=info
-      - RP_REQUESTLOGGING=false
-      - MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED=false
-      - JAVA_OPTS=-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp  -Dcom.sun.management.jmxremote.rmi.port=12349 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false  -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=0.0.0.0
+      ## Double entry moves test logs from PostgreSQL to Elastic-type engines
+      ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
+      RP_ELASTICSEARCHLOGMESSAGE_HOST: true
+      RP_DB_HOST: postgres
+      RP_DB_USER: rpuser
+      RP_DB_PASS: rppass
+      RP_DB_NAME: reportportal
+      RP_AMQP_USER: rabbitmq
+      RP_AMQP_PASS: rabbitmq
+      RP_AMQP_APIUSER: rabbitmq
+      RP_AMQP_APIPASS: rabbitmq
+      RP_AMQP_ANALYZER-VHOST: analyzer
+      RP_BINARYSTORE_TYPE: minio
+      RP_BINARYSTORE_MINIO_ENDPOINT: http://minio:9000
+      RP_BINARYSTORE_MINIO_ACCESSKEY: minio
+      RP_BINARYSTORE_MINIO_SECRETKEY: minio123
+      LOGGING_LEVEL_ORG_HIBERNATE_SQL: info
+      RP_REQUESTLOGGING: false
+      MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED: false
+      JAVA_OPTS: -Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp  -Dcom.sun.management.jmxremote.rmi.port=12349 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false  -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=0.0.0.0
     labels:
       - "traefik.http.middlewares.api-strip-prefix.stripprefix.prefixes=/api"
       - "traefik.http.routers.api.middlewares=api-strip-prefix@docker"
@@ -265,7 +268,7 @@ services:
     restart: always
     
   jobs:
-    image: reportportal/service-jobs:5.7.3
+    image: reportportal/service-jobs:5.7.4
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -274,6 +277,11 @@ services:
       postgres:
         condition: service_healthy
     environment:
+      ## Double entry moves test logs from PostgreSQL to Elastic-type engines
+      ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
+      RP_ELASTICSEARCH_HOST: http://elasticsearch:9200
+      RP_ELASTICSEARCH_USERNAME: elastic
+      RP_ELASTICSEARCH_PASSWORD:  elastic1q2w3e
       RP_DB_HOST: postgres
       RP_DB_USER: rpuser
       RP_DB_PASS: rppass
@@ -307,7 +315,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:5.7.3
+    image: reportportal/service-ui:5.7.4
     environment:
       - RP_SERVER_PORT=8080
     labels:
