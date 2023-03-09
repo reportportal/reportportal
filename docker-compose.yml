@@ -239,7 +239,7 @@ services:
     environment:
       ## Double entry moves test logs from PostgreSQL to Elastic-type engines
       ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
-      RP_ELASTICSEARCHLOGMESSAGE_HOST: true
+      RP_ELASTICSEARCHLOGMESSAGE_HOST: "true"
       RP_DB_HOST: postgres
       RP_DB_USER: rpuser
       RP_DB_PASS: rppass
@@ -254,8 +254,8 @@ services:
       RP_BINARYSTORE_MINIO_ACCESSKEY: minio
       RP_BINARYSTORE_MINIO_SECRETKEY: minio123
       LOGGING_LEVEL_ORG_HIBERNATE_SQL: info
-      RP_REQUESTLOGGING: false
-      MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED: false
+      RP_REQUESTLOGGING: "false"
+      MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED: "false"
       JAVA_OPTS: -Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp  -Dcom.sun.management.jmxremote.rmi.port=12349 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false  -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=0.0.0.0
     labels:
       - "traefik.http.middlewares.api-strip-prefix.stripprefix.prefixes=/api"
