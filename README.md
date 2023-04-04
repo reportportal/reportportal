@@ -6,6 +6,7 @@
 [![Docker Pulls](https://img.shields.io/docker/pulls/reportportal/service-api.svg?maxAge=25920)](https://hub.docker.com/u/reportportal/)
 [![License](https://img.shields.io/badge/license-Apache-brightgreen.svg)](https://www.apache.org/licenses/LICENSE-2.0)
 [![Build with Love](https://img.shields.io/badge/build%20with-❤%EF%B8%8F%E2%80%8D-lightgrey.svg)](http://reportportal.io?style=flat)
+![lambdaTest 148b38](https://user-images.githubusercontent.com/11332788/229868284-c3cb08b1-25ca-418a-b9e9-8eeb42140285.svg)
 
 
 Report Portal organized into multiple repositories.
