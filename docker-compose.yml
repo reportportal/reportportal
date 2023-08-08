@@ -1,21 +1,28 @@
-## You can generate a custom docker compose file automatically on http://reportportal.io/download (Step 2)
+## Installation steps: https://reportportal.io/docs/installation-steps/DeployWithDockerOnLinuxMac/
 
-## This is example of Docker Compose for ReportPortal
+## This is an example of Docker Compose for ReportPortal
 ## Do not forget to configure data volumes for production usage
 
-## Execute 'docker-compose -f docker-compose.yml -p reportportal up -d --force-recreate' --build
-## to start all containers in daemon mode
+## Execute 'docker compose -f docker-compose.yml -p reportportal up -d --force-recreate' to deploy Report Portal
 ## Where:
 ##      '-f docker-compose.yml' -- specifies this compose file
-##      '-p reportportal' -- specifies container's prefix (project name)
-##      '-d' -- enables daemon mode
-##      '--force-recreate' -- forces re-recreating of all containers
+##      '-p reportportal' -- specifies a project name.
+##      '-d' -- detached mode: run containers in the background.
+##      '--force-recreate' -- recreate containers even if their configuration and image haven’t changed.
 
-version: '2.4'
+## To remove execute 'docker compose -p reportportal down'
+##
+
+version: '3.8'
 services:
 
   gateway:
     image: traefik:v2.0.7
+    logging: &logging
+      driver: "json-file"
+      options:
+        max-size: 100m
+        max-file: "5"
     ports:
       - "8080:8080" # HTTP exposed
       - "8081:8081" # HTTP Administration exposed
@@ -28,10 +35,14 @@ services:
       - --entrypoints.traefik.address=:8081
       - --api.dashboard=true
       - --api.insecure=true
+    networks:
+      - reportportal
     restart: always
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+    logging:
+      <<: *logging
     volumes:
       - ./data/elasticsearch:/usr/share/elasticsearch/data
     environment:
@@ -52,11 +63,15 @@ services:
       # - "9200:9200"
     healthcheck:
       test: ["CMD", "curl","-s" ,"-f", "http://elastic:elastic1q2w3e@localhost:9200/_cat/health"]
+    networks:
+      - reportportal
     restart: always
 
   ## An analyzer instance for main functionality, don't forget to use the same storage settings (either MinIO, or filesystem) for analyzer_train
   analyzer: 
     image: reportportal/service-auto-analyzer:5.7.5
+    logging:
+      <<: *logging
     environment:
       LOGGING_LEVEL: info
       AMQP_EXCHANGE_NAME: analyzer-default
@@ -71,11 +86,15 @@ services:
         condition: service_started
       rabbitmq:
         condition: service_healthy
+    networks:
+      - reportportal
     restart: always
   
   ## An analyzer instance for training, don't forget to setup the same storage (either MinIO, or filesystem) as for main analyzer
-  analyzer_train:
+  analyzer-train:
     image: reportportal/service-auto-analyzer:5.7.5
+    logging:
+      <<: *logging
     environment:
       LOGGING_LEVEL: info
       AMQP_EXCHANGE_NAME: analyzer-default
@@ -92,11 +111,15 @@ services:
         condition: service_started
       rabbitmq:
         condition: service_healthy
+    networks:
+      - reportportal
     restart: always
  
   ## Metrics service for analyzing how analyzer is working and manage retrained models
   metrics-gatherer: 
     image: reportportal/service-metrics-gatherer:5.7.4
+    logging:
+      <<: *logging
     environment:
       LOGGING_LEVEL: info
       ES_HOST: http://elasticsearch:9200
@@ -114,11 +137,15 @@ services:
       AMQP_VIRTUAL_HOST: analyzer
     depends_on:
       - elasticsearch
+    networks:
+      - reportportal
     restart: always
 
   ## Initial reportportal db schema. Run once.
   migrations:
     image: reportportal/migrations:5.8.0
+    logging:
+      <<: *logging
     depends_on:
       postgres:
         condition: service_healthy
@@ -128,10 +155,14 @@ services:
       POSTGRES_DB: reportportal
       POSTGRES_USER: rpuser
       POSTGRES_PASSWORD: rppass
+    networks:
+      - reportportal
     restart: on-failure
 
   postgres:
     image: postgres:12-alpine
+    logging:
+      <<: *logging
     shm_size: '512m'
     environment:
       POSTGRES_USER: rpuser
@@ -169,10 +200,14 @@ services:
       interval: 10s
       timeout: 120s
       retries: 10
+    networks:
+      - reportportal
     restart: always
 
   rabbitmq:
     image: bitnami/rabbitmq:3.10.8-debian-11-r7
+    logging:
+      <<: *logging
     # ports:
     #   - "5672:5672"
     #   - "15672:15672"
@@ -181,11 +216,17 @@ services:
       RABBITMQ_DEFAULT_PASS: "rabbitmq"
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 30s
       retries: 5
+    networks:
+      - reportportal
     restart: always
 
   uat:
     image: reportportal/service-authorization:5.8.0
+    logging:
+      <<: *logging
     # ports:
     #   - "9999:9999"
     environment:
@@ -215,29 +256,38 @@ services:
       - "traefik.http.services.uat.loadbalancer.server.port=9999"
       - "traefik.http.services.uat.loadbalancer.server.scheme=http"
       - "traefik.expose=true"
-    restart: always
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - reportportal
+    restart: always
+    
 
   index:
     image: reportportal/service-index:5.8.0
+    logging:
+      <<: *logging
     depends_on:
       gateway:
         condition: service_started
     environment:
-      - LB_URL=http://gateway:8081
-      - TRAEFIK_V2_MODE=true
+      LB_URL: http://gateway:8081
+      TRAEFIK_V2_MODE: 'true'
     labels:
-        - "traefik.http.routers.index.rule=PathPrefix(`/`)"
-        - "traefik.http.routers.index.service=index"
-        - "traefik.http.services.index.loadbalancer.server.port=8080"
-        - "traefik.http.services.index.loadbalancer.server.scheme=http"
-        - "traefik.expose=true"
+      - "traefik.http.routers.index.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.index.service=index"
+      - "traefik.http.services.index.loadbalancer.server.port=8080"
+      - "traefik.http.services.index.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
+    networks:
+      - reportportal
     restart: always
 
   api:
     image: reportportal/service-api:5.8.0
+    logging:
+      <<: *logging
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -248,7 +298,7 @@ services:
     environment:
       ## Double entry moves test logs from PostgreSQL to Elastic-type engines
       ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
-      RP_ELASTICSEARCHLOGMESSAGE_HOST: "true"
+      RP_ELASTICSEARCHLOGMESSAGE_HOST: http://elasticsearch:9200
       RP_DB_HOST: postgres
       RP_DB_USER: rpuser
       RP_DB_PASS: rppass
@@ -280,10 +330,14 @@ services:
       - "traefik.http.services.api.loadbalancer.server.port=8585"
       - "traefik.http.services.api.loadbalancer.server.scheme=http"
       - "traefik.expose=true"
+    networks:
+      - reportportal
     restart: always
     
   jobs:
     image: reportportal/service-jobs:5.8.0
+    logging:
+      <<: *logging
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -326,19 +380,21 @@ services:
       retries: 10
       start_period: 60s
     labels:
-    - traefik.http.middlewares.jobs-strip-prefix.stripprefix.prefixes=/jobs
-    - traefik.http.routers.jobs.middlewares=jobs-strip-prefix@docker
-    - traefik.http.routers.jobs.rule=PathPrefix(`/jobs`)
-    - traefik.http.routers.jobs.service=jobs
-    - traefik.http.services.jobs.loadbalancer.server.port=8686
-    - traefik.http.services.jobs.loadbalancer.server.scheme=http
-    - traefik.expose=true
+      - traefik.http.middlewares.jobs-strip-prefix.stripprefix.prefixes=/jobs
+      - traefik.http.routers.jobs.middlewares=jobs-strip-prefix@docker
+      - traefik.http.routers.jobs.rule=PathPrefix(`/jobs`)
+      - traefik.http.routers.jobs.service=jobs
+      - traefik.http.services.jobs.loadbalancer.server.port=8686
+      - traefik.http.services.jobs.loadbalancer.server.scheme=http
+      - traefik.expose=true
+    networks:
+      - reportportal
     restart: always
 
   ui:
     image: reportportal/service-ui:5.8.0
     environment:
-      - RP_SERVER_PORT=8080
+      RP_SERVER_PORT: "8080"
     labels:
       - "traefik.http.middlewares.ui-strip-prefix.stripprefix.prefixes=/ui"
       - "traefik.http.routers.ui.middlewares=ui-strip-prefix@docker"
@@ -347,12 +403,16 @@ services:
       - "traefik.http.services.ui.loadbalancer.server.port=8080"
       - "traefik.http.services.ui.loadbalancer.server.scheme=http"
       - "traefik.expose=true"
+    networks:
+      - reportportal
     restart: always
 
   minio:
     image: minio/minio:RELEASE.2020-10-27T04-03-55Z
-    #ports:
-    #  - '9000:9000'
+    logging:
+      <<: *logging
+    # ports:
+    #   - 9000:9000
     volumes:
       ## For unix host
       - ./data/storage:/data 
@@ -367,10 +427,10 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
+    networks:
+      - reportportal
     restart: always
 
-## Docker volume for Windows host
-# volumes:
-#   postgres:
-#   minio:
 
+networks:
+  reportportal:
