@@ -262,7 +262,6 @@ services:
     networks:
       - reportportal
     restart: always
-    
 
   index:
     image: reportportal/service-index:5.8.0
