@@ -67,7 +67,7 @@ services:
       - reportportal
     restart: always
 
-  ## An analyzer instance for main functionality, don't forget to use the same storage settings (either MinIO, or filesystem) for analyzer_train
+  ## An analyzer instance for main functionality, don't forget to use the same storage settings (either MinIO or filesystem) for analyzer_train
   analyzer: 
     image: reportportal/service-auto-analyzer:5.7.5
     logging:
@@ -90,7 +90,7 @@ services:
       - reportportal
     restart: always
   
-  ## An analyzer instance for training, don't forget to setup the same storage (either MinIO, or filesystem) as for main analyzer
+  ## An analyzer instance for training, don't forget to set up the same storage (either MinIO or filesystem) as for the main analyzer
   analyzer-train:
     image: reportportal/service-auto-analyzer:5.7.5
     logging:
