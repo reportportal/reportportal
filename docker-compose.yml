@@ -205,7 +205,7 @@ services:
     restart: always
 
   rabbitmq:
-    image: bitnami/rabbitmq:3.10.8-debian-11-r7
+    image: bitnami/rabbitmq:3.12.2-debian-11-r8
     logging:
       <<: *logging
     # ports:
