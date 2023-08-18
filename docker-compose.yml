@@ -75,7 +75,7 @@ services:
   
   ## An analyzer instance for training, don't forget to setup the same storage (either MinIO, or filesystem) as for main analyzer
   analyzer_train:
-    image: reportportal/service-auto-analyzer:5.7.5
+    image: reportportal/service-auto-analyzer:5.7.6
     environment:
       LOGGING_LEVEL: info
       AMQP_EXCHANGE_NAME: analyzer-default
@@ -96,7 +96,7 @@ services:
  
   ## Metrics service for analyzing how analyzer is working and manage retrained models
   metrics-gatherer: 
-    image: reportportal/service-metrics-gatherer:5.7.4
+    image: reportportal/service-metrics-gatherer:5.7.5
     environment:
       LOGGING_LEVEL: info
       ES_HOST: http://elasticsearch:9200
@@ -118,7 +118,7 @@ services:
 
   ## Initial reportportal db schema. Run once.
   migrations:
-    image: reportportal/migrations:5.8.0
+    image: reportportal/migrations:5.9.0
     depends_on:
       postgres:
         condition: service_healthy
@@ -129,6 +129,19 @@ services:
       POSTGRES_USER: rpuser
       POSTGRES_PASSWORD: rppass
     restart: on-failure
+
+   ## ReportPortal service for different migrations.
+   ## Read more: https://github.com/reportportal/migrations-complex/blob/master/README.md
+#  migrations-complex:
+#    image: reportportal/migrations-complex:1.0.0
+#    ports:
+#      - '5020:5020'
+#    environment:
+#      RP_DB_HOST: postgres
+#      RP_DB_USER: rpuser
+#      RP_DB_PASS: rppass
+#      RP_DB_NAME: reportportal
+#      RP_TOKEN_MIGRATION: "true"
 
   postgres:
     image: postgres:12-alpine
@@ -185,7 +198,7 @@ services:
     restart: always
 
   uat:
-    image: reportportal/service-authorization:5.8.0
+    image: reportportal/service-authorization:5.8.2
     # ports:
     #   - "9999:9999"
     environment:
@@ -194,9 +207,9 @@ services:
       RP_DB_PASS: rppass
       RP_DB_NAME: reportportal
       RP_BINARYSTORE_TYPE: minio
-      RP_BINARYSTORE_MINIO_ENDPOINT: http://minio:9000
-      RP_BINARYSTORE_MINIO_ACCESSKEY: minio
-      RP_BINARYSTORE_MINIO_SECRETKEY: minio123
+      DATASTORE_ENDPOINT: http://minio:9000
+      DATASTORE_ACCESSKEY: minio
+      DATASTORE_SECRETKEY: minio123
       RP_SESSION_LIVE: 86400 # in seconds
       RP_SAML_SESSION-LIVE: 4320
       ## The initial password for superadmin user on FIRST launch. If the password was changed from the UI, this value can't change the password on redeployments.
@@ -237,7 +250,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:5.8.0
+    image: reportportal/service-api:5.9.2
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -259,15 +272,16 @@ services:
       RP_AMQP_APIPASS: rabbitmq
       RP_AMQP_ANALYZER-VHOST: analyzer
       RP_BINARYSTORE_TYPE: minio
-      RP_BINARYSTORE_MINIO_ENDPOINT: http://minio:9000
-      RP_BINARYSTORE_MINIO_ACCESSKEY: minio
-      RP_BINARYSTORE_MINIO_SECRETKEY: minio123
+      DATASTORE_ENDPOINT: http://minio:9000
+      DATASTORE_ACCESSKEY: minio
+      DATASTORE_SECRETKEY: minio123
       LOGGING_LEVEL_ORG_HIBERNATE_SQL: info
       RP_REQUESTLOGGING: "false"
       MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED: "false"
+      RP_ENVIRONMENT_VARIABLE_ALLOW-DELETE-ACCOUNT: "false"
       JAVA_OPTS: -Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp  -Dcom.sun.management.jmxremote.rmi.port=12349 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false  -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=0.0.0.0
     healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://0.0.0.0:8585/health || exit 1
+      test: curl -f http://0.0.0.0:8585/health
       interval: 60s
       timeout: 30s
       retries: 10
@@ -283,7 +297,7 @@ services:
     restart: always
     
   jobs:
-    image: reportportal/service-jobs:5.8.0
+    image: reportportal/service-jobs:5.8.2
     depends_on:
       rabbitmq:
         condition: service_healthy
@@ -307,9 +321,9 @@ services:
       RP_AMQP_APIPASS: rabbitmq
       RP_AMQP_ANALYZER-VHOST: analyzer
       DATASTORE_TYPE: minio
-      DATASTORE_MINIO_ENDPOINT: http://minio:9000
-      DATASTORE_MINIO_ACCESSKEY: minio
-      DATASTORE_MINIO_SECRETKEY: minio123
+      DATASTORE_ENDPOINT: http://minio:9000
+      DATASTORE_ACCESSKEY: minio
+      DATASTORE_SECRETKEY: minio123
       RP_ENVIRONMENT_VARIABLE_CLEAN_ATTACHMENT_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_LOG_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_LAUNCH_CRON: 0 0 */24 * * *
@@ -336,7 +350,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:5.8.0
+    image: reportportal/service-ui:5.9.0
     environment:
       - RP_SERVER_PORT=8080
     labels:
