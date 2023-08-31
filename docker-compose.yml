@@ -339,6 +339,8 @@ services:
       RP_DB_USER: rpuser
       RP_DB_PASS: rppass
       RP_DB_NAME: reportportal
+      RP_AMQP_ADDRESSES: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+      RP_AMQP_API-ADDRESS: http://rabbitmq:rabbitmq@rabbitmq:15672/api
       RP_AMQP_USER: rabbitmq
       RP_AMQP_PASS: rabbitmq
       RP_AMQP_APIUSER: rabbitmq
@@ -392,6 +394,8 @@ services:
       RP_DB_USER: rpuser
       RP_DB_PASS: rppass
       RP_DB_NAME: reportportal
+      RP_AMQP_ADDRESSES: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+      RP_AMQP_API-ADDRESS: http://rabbitmq:rabbitmq@rabbitmq:15672/api
       RP_AMQP_USER: rabbitmq
       RP_AMQP_PASS: rabbitmq
       RP_AMQP_APIUSER: rabbitmq
