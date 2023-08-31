@@ -260,6 +260,7 @@ services:
       - reportportal
     restart: always
 
+
   uat:
     image: reportportal/service-authorization:5.8.2
     logging:
@@ -341,10 +342,6 @@ services:
       RP_DB_NAME: reportportal
       RP_AMQP_ADDRESSES: amqp://rabbitmq:rabbitmq@rabbitmq:5672
       RP_AMQP_API-ADDRESS: http://rabbitmq:rabbitmq@rabbitmq:15672/api
-      RP_AMQP_USER: rabbitmq
-      RP_AMQP_PASS: rabbitmq
-      RP_AMQP_APIUSER: rabbitmq
-      RP_AMQP_APIPASS: rabbitmq
       RP_AMQP_ANALYZER-VHOST: analyzer
       RP_BINARYSTORE_TYPE: minio
       DATASTORE_ENDPOINT: http://minio:9000
@@ -396,10 +393,6 @@ services:
       RP_DB_NAME: reportportal
       RP_AMQP_ADDRESSES: amqp://rabbitmq:rabbitmq@rabbitmq:5672
       RP_AMQP_API-ADDRESS: http://rabbitmq:rabbitmq@rabbitmq:15672/api
-      RP_AMQP_USER: rabbitmq
-      RP_AMQP_PASS: rabbitmq
-      RP_AMQP_APIUSER: rabbitmq
-      RP_AMQP_APIPASS: rabbitmq
       RP_AMQP_ANALYZER-VHOST: analyzer
       DATASTORE_TYPE: minio
       DATASTORE_ENDPOINT: http://minio:9000
