@@ -138,7 +138,7 @@ services:
 
   ## An analyzer instance for main functionality, don't forget to use the same storage settings (either MinIO or filesystem) for analyzer_train
   analyzer:
-    image: reportportal/service-auto-analyzer:5.7.6
+    image: reportportal/service-auto-analyzer:5.10.0
     logging:
       <<: *logging
     environment:
@@ -161,7 +161,7 @@ services:
 
   ## An analyzer instance for training, don't forget to set up the same storage (either MinIO or filesystem) as for the main analyzer
   analyzer-train:
-    image: reportportal/service-auto-analyzer:5.7.5
+    image: reportportal/service-auto-analyzer:5.10.0
     logging:
       <<: *logging
     environment:
@@ -212,7 +212,7 @@ services:
 
   ## Initial reportportal db schema. Run once.
   migrations:
-    image: reportportal/migrations:5.9.0
+    image: reportportal/migrations:5.10.0
     logging:
       <<: *logging
     depends_on:
@@ -261,7 +261,7 @@ services:
     restart: always
 
   uat:
-    image: reportportal/service-authorization:5.8.2
+    image: reportportal/service-authorization:5.10.0
     logging:
       <<: *logging
     # ports:
@@ -271,7 +271,12 @@ services:
       RP_DB_USER: rpuser
       RP_DB_PASS: rppass
       RP_DB_NAME: reportportal
-      RP_BINARYSTORE_TYPE: minio
+      RP_AMQP_USER: rabbitmq
+      RP_AMQP_PASS: rabbitmq
+      RP_AMQP_APIUSER: rabbitmq
+      RP_AMQP_APIPASS: rabbitmq
+
+      DATASTORE_TYPE: minio
       DATASTORE_ENDPOINT: http://minio:9000
       DATASTORE_ACCESSKEY: minio
       DATASTORE_SECRETKEY: minio123
@@ -301,7 +306,7 @@ services:
     restart: always
 
   index:
-    image: reportportal/service-index:5.8.0
+    image: reportportal/service-index:5.10.0
     logging:
       <<: *logging
     depends_on:
@@ -321,7 +326,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:5.9.2
+    image: reportportal/service-api:5.10.0
     logging:
       <<: *logging
     depends_on:
@@ -344,14 +349,15 @@ services:
       RP_AMQP_APIUSER: rabbitmq
       RP_AMQP_APIPASS: rabbitmq
       RP_AMQP_ANALYZER-VHOST: analyzer
-      RP_BINARYSTORE_TYPE: minio
+      DATASTORE_TYPE: minio
       DATASTORE_ENDPOINT: http://minio:9000
       DATASTORE_ACCESSKEY: minio
       DATASTORE_SECRETKEY: minio123
       LOGGING_LEVEL_ORG_HIBERNATE_SQL: info
       RP_REQUESTLOGGING: "false"
+      AUDIT_LOGGER: "OFF"
       MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED: "false"
-      RP_ENVIRONMENT_VARIABLE_ALLOW-DELETE-ACCOUNT: "false"
+      RP_ENVIRONMENT_VARIABLE_ALLOW_DELETE_ACCOUNT: "false"
       JAVA_OPTS: -Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp  -Dcom.sun.management.jmxremote.rmi.port=12349 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false  -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=0.0.0.0
     healthcheck:
       test: curl -f http://0.0.0.0:8585/health
@@ -372,7 +378,7 @@ services:
     restart: always
 
   jobs:
-    image: reportportal/service-jobs:5.8.2
+    image: reportportal/service-jobs:5.10.0
     logging:
       <<: *logging
     depends_on:
@@ -406,6 +412,11 @@ services:
       RP_ENVIRONMENT_VARIABLE_CLEAN_LAUNCH_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_STORAGE_PROJECT_CRON: 0 */5 * * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_CRON:  0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_RETENTIONPERIOD: 365
+      RP_ENVIRONMENT_VARIABLE_NOTIFICATION_EXPIREDUSER_CRON: 0 0 */24 * * 
+
+
       RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE: 1000
       RP_PROCESSING_LOG_MAXBATCHSIZE: 2000
       RP_PROCESSING_LOG_MAXBATCHTIMEOUT: 6000
@@ -429,7 +440,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:5.9.0
+    image: reportportal/service-ui:5.10.0
     environment:
       RP_SERVER_PORT: "8080"
     labels:
