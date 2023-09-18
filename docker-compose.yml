@@ -16,131 +16,14 @@
 version: '3.8'
 services:
 
-  gateway:
-    image: traefik:v2.0.7
+  ## An analyzer instance for main functionality, don't forget to use the same storage settings (either MinIO or filesystem) for analyzer_train
+  analyzer:
+    image: reportportal/service-auto-analyzer:5.7.6
     logging: &logging
       driver: "json-file"
       options:
         max-size: 100m
         max-file: "5"
-    ports:
-      - "8080:8080" # HTTP exposed
-      - "8081:8081" # HTTP Administration exposed
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command:
-      - --providers.docker=true
-      - --providers.docker.constraints=Label(`traefik.expose`, `true`)
-      - --entrypoints.web.address=:8080
-      - --entrypoints.traefik.address=:8081
-      - --api.dashboard=true
-      - --api.insecure=true
-    networks:
-      - reportportal
-    restart: always
-
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
-    logging:
-      <<: *logging
-    volumes:
-      - ./data/elasticsearch:/usr/share/elasticsearch/data
-    environment:
-      - "ES_JAVA_OPTS=-Dlog4j2.formatMsgNoLookups=true"
-      - "bootstrap.memory_lock=true"
-      - "discovery.type=single-node"
-      - "logger.level=INFO"
-      - "xpack.security.enabled=true"
-      - "ELASTIC_PASSWORD=elastic1q2w3e"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
-      # ports:
-      # - "9200:9200"
-    healthcheck:
-      test: ["CMD", "curl","-s" ,"-f", "http://elastic:elastic1q2w3e@localhost:9200/_cat/health"]
-    networks:
-      - reportportal
-    restart: always
-
-  minio:
-    image: minio/minio:RELEASE.2020-10-27T04-03-55Z
-    logging:
-      <<: *logging
-    # ports:
-    #   - 9000:9000
-    volumes:
-      ## For unix host
-      - ./data/storage:/data
-      ## For windows host
-      # - minio:/data
-    environment:
-      MINIO_ACCESS_KEY: minio
-      MINIO_SECRET_KEY: minio123
-    command: server /data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
-    networks:
-      - reportportal
-    restart: always
-
-  postgres:
-    image: postgres:12-alpine
-    logging:
-      <<: *logging
-    shm_size: '512m'
-    environment:
-      POSTGRES_USER: rpuser
-      POSTGRES_PASSWORD: rppass
-      POSTGRES_DB: reportportal
-    volumes:
-      ## For unix host
-      - ./data/postgres:/var/lib/postgresql/data
-      ## For windows host
-      # - postgres:/var/lib/postgresql/data
-    ## If you need to access the DB locally. Could be a security risk to expose DB.
-    # ports:
-    #   - "5432:5432"
-    command:
-      -c checkpoint_completion_target=0.9
-      -c work_mem=96MB
-      -c wal_writer_delay=20ms
-      -c synchronous_commit=off
-      -c wal_buffers=32MB
-      -c min_wal_size=2GB
-      -c max_wal_size=4GB
-    ## Optional, for SSD Data Storage. If you are using the HDD, set up this command to '2'
-    #  -c effective_io_concurrency=200
-    ## Optional, for SSD Data Storage. If you are using the HDD, set up this command to '4'
-    #  -c random_page_cost=1.1
-    ## Optional can be scaled. Example for 4 CPU, 16GB RAM instance, where only the database is deployed
-    #  -c max_worker_processes=4
-    #  -c max_parallel_workers_per_gather=2
-    #  -c max_parallel_workers=4
-    #  -c shared_buffers=4GB
-    #  -c effective_cache_size=12GB
-    #  -c maintenance_work_mem=1GB
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"]
-      interval: 10s
-      timeout: 120s
-      retries: 10
-    networks:
-      - reportportal
-    restart: always
-
-  ## An analyzer instance for main functionality, don't forget to use the same storage settings (either MinIO or filesystem) for analyzer_train
-  analyzer:
-    image: reportportal/service-auto-analyzer:5.7.6
-    logging:
-      <<: *logging
     environment:
       LOGGING_LEVEL: info
       AMQP_EXCHANGE_NAME: analyzer-default
@@ -241,25 +124,6 @@ services:
 #      RP_DB_NAME: reportportal
 #      RP_TOKEN_MIGRATION: "true"
 
-  rabbitmq:
-    image: bitnami/rabbitmq:3.12.2-debian-11-r8
-    logging:
-      <<: *logging
-    # ports:
-    #   - "5672:5672"
-    #   - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: "rabbitmq"
-      RABBITMQ_DEFAULT_PASS: "rabbitmq"
-    healthcheck:
-      test: ["CMD", "rabbitmqctl", "status"]
-      interval: 30s
-      timeout: 30s
-      retries: 5
-    networks:
-      - reportportal
-    restart: always
-
   uat:
     image: reportportal/service-authorization:5.8.2
     logging:
@@ -275,7 +139,6 @@ services:
       RP_AMQP_PASS: rabbitmq
       RP_AMQP_APIUSER: rabbitmq
       RP_AMQP_APIPASS: rabbitmq
-
       DATASTORE_TYPE: minio
       DATASTORE_ENDPOINT: http://minio:9000
       DATASTORE_ACCESSKEY: minio
@@ -415,8 +278,6 @@ services:
       RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_CRON:  0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_RETENTIONPERIOD: 365
       RP_ENVIRONMENT_VARIABLE_NOTIFICATION_EXPIREDUSER_CRON: 0 0 */24 * * 
-
-
       RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE: 1000
       RP_PROCESSING_LOG_MAXBATCHSIZE: 2000
       RP_PROCESSING_LOG_MAXBATCHTIMEOUT: 6000
@@ -455,6 +316,146 @@ services:
       - reportportal
     restart: always
 
+  gateway:
+    image: traefik:v2.0.7
+    logging:
+      <<: *logging
+    ports:
+      - "8080:8080" # HTTP exposed
+      - "8081:8081" # HTTP Administration exposed
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - --providers.docker=true
+      - --providers.docker.constraints=Label(`traefik.expose`, `true`)
+      - --entrypoints.web.address=:8080
+      - --entrypoints.traefik.address=:8081
+      - --api.dashboard=true
+      - --api.insecure=true
+    networks:
+      - reportportal
+    restart: always
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+    logging:
+      <<: *logging
+    volumes:
+      - elasticsearch:/usr/share/elasticsearch/data
+    environment:
+      - "ES_JAVA_OPTS=-Dlog4j2.formatMsgNoLookups=true"
+      - "bootstrap.memory_lock=true"
+      - "discovery.type=single-node"
+      - "logger.level=INFO"
+      - "xpack.security.enabled=true"
+      - "ELASTIC_PASSWORD=elastic1q2w3e"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+      # ports:
+      # - "9200:9200"
+    healthcheck:
+      test: ["CMD", "curl","-s" ,"-f", "http://elastic:elastic1q2w3e@localhost:9200/_cat/health"]
+    networks:
+      - reportportal
+    restart: always
+
+  minio:
+    image: minio/minio:RELEASE.2020-10-27T04-03-55Z
+    logging:
+      <<: *logging
+    # ports:
+    #   - 9000:9000
+    volumes:
+      ## For unix host
+      - storage:/data
+      ## For windows host
+      # - minio:/data
+    environment:
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+    command: server /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - reportportal
+    restart: always
+
+  postgres:
+    image: postgres:12-alpine
+    logging:
+      <<: *logging
+    shm_size: '512m'
+    environment:
+      POSTGRES_USER: rpuser
+      POSTGRES_PASSWORD: rppass
+      POSTGRES_DB: reportportal
+    volumes:
+      ## For unix host
+      - postgres:/var/lib/postgresql/data
+      ## For windows host
+      # - postgres:/var/lib/postgresql/data
+    ## If you need to access the DB locally. Could be a security risk to expose DB.
+    # ports:
+    #   - "5432:5432"
+    command:
+      -c checkpoint_completion_target=0.9
+      -c work_mem=96MB
+      -c wal_writer_delay=20ms
+      -c synchronous_commit=off
+      -c wal_buffers=32MB
+      -c min_wal_size=2GB
+      -c max_wal_size=4GB
+    ## Optional, for SSD Data Storage. If you are using the HDD, set up this command to '2'
+    #  -c effective_io_concurrency=200
+    ## Optional, for SSD Data Storage. If you are using the HDD, set up this command to '4'
+    #  -c random_page_cost=1.1
+    ## Optional can be scaled. Example for 4 CPU, 16GB RAM instance, where only the database is deployed
+    #  -c max_worker_processes=4
+    #  -c max_parallel_workers_per_gather=2
+    #  -c max_parallel_workers=4
+    #  -c shared_buffers=4GB
+    #  -c effective_cache_size=12GB
+    #  -c maintenance_work_mem=1GB
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"]
+      interval: 10s
+      timeout: 120s
+      retries: 10
+    networks:
+      - reportportal
+    restart: always
+
+  rabbitmq:
+    image: bitnami/rabbitmq:3.12.2-debian-11-r8
+    logging:
+      <<: *logging
+    # ports:
+    #   - "5672:5672"
+    #   - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: "rabbitmq"
+      RABBITMQ_DEFAULT_PASS: "rabbitmq"
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+    networks:
+      - reportportal
+    restart: always
+
+volumes:
+  elasticsearch:
+  storage:
+  postgres:
 
 networks:
   reportportal:
