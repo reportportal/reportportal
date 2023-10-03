@@ -18,7 +18,7 @@ services:
 
   ## An analyzer instance for main functionality, don't forget to use the same storage settings (either MinIO or filesystem) for analyzer_train
   analyzer:
-    image: reportportal/service-auto-analyzer:5.7.6
+    image: reportportal/service-auto-analyzer:5.10.0
     logging: &logging
       driver: "json-file"
       options:
@@ -44,7 +44,7 @@ services:
 
   ## An analyzer instance for training, don't forget to set up the same storage (either MinIO or filesystem) as for the main analyzer
   analyzer-train:
-    image: reportportal/service-auto-analyzer:5.7.6
+    image: reportportal/service-auto-analyzer:5.10.0
     logging:
       <<: *logging
     environment:
@@ -69,7 +69,7 @@ services:
 
   ## Metrics service for analyzing how the analyzer is working and managing retrained models
   metrics-gatherer:
-    image: reportportal/service-metrics-gatherer:5.7.5
+    image: reportportal/service-metrics-gatherer:5.10.0
     logging:
       <<: *logging
     environment:
@@ -95,7 +95,7 @@ services:
 
   ## Initial reportportal db schema. Run once.
   migrations:
-    image: reportportal/migrations:5.9.0
+    image: reportportal/migrations:5.10.0
     logging:
       <<: *logging
     depends_on:
@@ -125,7 +125,7 @@ services:
 #      RP_TOKEN_MIGRATION: "true"
 
   uat:
-    image: reportportal/service-authorization:5.8.2
+    image: reportportal/service-authorization:5.10.0
     logging:
       <<: *logging
     # ports:
@@ -169,7 +169,7 @@ services:
     restart: always
 
   index:
-    image: reportportal/service-index:5.8.0
+    image: reportportal/service-index:5.10.0
     logging:
       <<: *logging
     depends_on:
@@ -189,7 +189,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:5.9.2
+    image: reportportal/service-api:5.10.0
     logging:
       <<: *logging
     depends_on:
@@ -241,7 +241,7 @@ services:
     restart: always
 
   jobs:
-    image: reportportal/service-jobs:5.8.2
+    image: reportportal/service-jobs:5.10.0
     logging:
       <<: *logging
     depends_on:
@@ -278,7 +278,7 @@ services:
       RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_CRON:  0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_RETENTIONPERIOD: 365
       RP_ENVIRONMENT_VARIABLE_NOTIFICATION_EXPIREDUSER_CRON: 0 0 */24 * * 
-      RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE: 1000
+      RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE: 20000
       RP_PROCESSING_LOG_MAXBATCHSIZE: 2000
       RP_PROCESSING_LOG_MAXBATCHTIMEOUT: 6000
       RP_AMQP_MAXLOGCONSUMER: 1
@@ -301,7 +301,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:5.9.0
+    image: reportportal/service-ui:5.10.0
     environment:
       RP_SERVER_PORT: "8080"
     labels:
