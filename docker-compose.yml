@@ -1,21 +1,325 @@
-## You can generate a custom docker compose file automatically on http://reportportal.io/download (Step 2)
+## Installation steps: https://reportportal.io/docs/installation-steps/DeployWithDockerOnLinuxMac/
 
-## This is example of Docker Compose for ReportPortal
+## This is an example of Docker Compose for ReportPortal
 ## Do not forget to configure data volumes for production usage
 
-## Execute 'docker-compose -f docker-compose.yml -p reportportal up -d --force-recreate' --build
-## to start all containers in daemon mode
+## Execute 'docker compose -f docker-compose.yml -p reportportal up -d --force-recreate' to deploy Report Portal
 ## Where:
 ##      '-f docker-compose.yml' -- specifies this compose file
-##      '-p reportportal' -- specifies container's prefix (project name)
-##      '-d' -- enables daemon mode
-##      '--force-recreate' -- forces re-recreating of all containers
+##      '-p reportportal' -- specifies a project name.
+##      '-d' -- detached mode: run containers in the background.
+##      '--force-recreate' -- recreate containers even if their configuration and image haven’t changed.
 
-version: '2.4'
+## To remove execute 'docker compose -p reportportal down'
+##
+
+version: '3.8'
 services:
+
+  ## An analyzer instance for main functionality, don't forget to use the same storage settings (either MinIO or filesystem) for analyzer_train
+  analyzer:
+    image: reportportal/service-auto-analyzer:5.10.0
+    logging: &logging
+      driver: "json-file"
+      options:
+        max-size: 100m
+        max-file: "5"
+    environment:
+      LOGGING_LEVEL: info
+      AMQP_EXCHANGE_NAME: analyzer-default
+      AMQP_VIRTUAL_HOST: analyzer
+      AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+      ES_HOSTS: http://elastic:elastic1q2w3e@elasticsearch:9200
+      MINIO_SHORT_HOST: minio:9000
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+    depends_on:
+      elasticsearch:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - reportportal
+    restart: always
+
+  ## An analyzer instance for training, don't forget to set up the same storage (either MinIO or filesystem) as for the main analyzer
+  analyzer-train:
+    image: reportportal/service-auto-analyzer:5.10.0
+    logging:
+      <<: *logging
+    environment:
+      LOGGING_LEVEL: info
+      AMQP_EXCHANGE_NAME: analyzer-default
+      AMQP_VIRTUAL_HOST: analyzer
+      AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+      ES_HOSTS: http://elastic:elastic1q2w3e@elasticsearch:9200
+      MINIO_SHORT_HOST: minio:9000
+      MINIO_ACCESS_KEY: minio
+      MINIO_SECRET_KEY: minio123
+      INSTANCE_TASK_TYPE: train
+      UWSGI_WORKERS: 1
+    depends_on:
+      elasticsearch:
+        condition: service_started
+      rabbitmq:
+        condition: service_healthy
+    networks:
+      - reportportal
+    restart: always
+
+  ## Metrics service for analyzing how the analyzer is working and managing retrained models
+  metrics-gatherer:
+    image: reportportal/service-metrics-gatherer:5.10.0
+    logging:
+      <<: *logging
+    environment:
+      LOGGING_LEVEL: info
+      ES_HOST: http://elasticsearch:9200
+      ES_USER: elastic
+      ES_PASSWORD: elastic1q2w3e
+      POSTGRES_USER: "rpuser"
+      POSTGRES_PASSWORD: "rppass"
+      POSTGRES_DB: "reportportal"
+      POSTGRES_HOST: "postgres"
+      POSTGRES_PORT: 5432
+      ALLOWED_START_TIME: "22:00"
+      ALLOWED_END_TIME: "08:00"
+      #TZ: Europe/Minsk you can change a timezone like this to specify when metrics are gathered
+      AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+      AMQP_VIRTUAL_HOST: analyzer
+    depends_on:
+      - elasticsearch
+    networks:
+      - reportportal
+    restart: always
+
+  ## Initial reportportal db schema. Run once.
+  migrations:
+    image: reportportal/migrations:5.10.0
+    logging:
+      <<: *logging
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_SERVER: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_DB: reportportal
+      POSTGRES_USER: rpuser
+      POSTGRES_PASSWORD: rppass
+    networks:
+      - reportportal
+    restart: on-failure
+
+   ## ReportPortal service for different migrations.
+   ## Read more: https://github.com/reportportal/migrations-complex/blob/master/README.md
+#  migrations-complex:
+#    image: reportportal/migrations-complex:1.0.0
+#    ports:
+#      - '5020:5020'
+#    environment:
+#      RP_DB_HOST: postgres
+#      RP_DB_USER: rpuser
+#      RP_DB_PASS: rppass
+#      RP_DB_NAME: reportportal
+#      RP_TOKEN_MIGRATION: "true"
+
+  uat:
+    image: reportportal/service-authorization:5.10.0
+    logging:
+      <<: *logging
+    # ports:
+    #   - "9999:9999"
+    environment:
+      RP_DB_HOST: postgres
+      RP_DB_USER: rpuser
+      RP_DB_PASS: rppass
+      RP_DB_NAME: reportportal
+      RP_AMQP_USER: rabbitmq
+      RP_AMQP_PASS: rabbitmq
+      RP_AMQP_APIUSER: rabbitmq
+      RP_AMQP_APIPASS: rabbitmq
+      DATASTORE_TYPE: minio
+      DATASTORE_ENDPOINT: http://minio:9000
+      DATASTORE_ACCESSKEY: minio
+      DATASTORE_SECRETKEY: minio123
+      RP_SESSION_LIVE: 86400 # in seconds
+      RP_SAML_SESSION-LIVE: 4320
+      ## The initial password for superadmin user on the FIRST launch. If the password was changed from the UI, this value can't change the password on redeployments.
+      RP_INITIAL_ADMIN_PASSWORD: "erebus"
+    healthcheck:
+      test: curl -f http://0.0.0.0:9999/health
+      interval: 60s
+      timeout: 30s
+      retries: 10
+      start_period: 60s
+    labels:
+      - "traefik.http.middlewares.uat-strip-prefix.stripprefix.prefixes=/uat"
+      - "traefik.http.routers.uat.middlewares=uat-strip-prefix@docker"
+      - "traefik.http.routers.uat.rule=PathPrefix(`/uat`)"
+      - "traefik.http.routers.uat.service=uat"
+      - "traefik.http.services.uat.loadbalancer.server.port=9999"
+      - "traefik.http.services.uat.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - reportportal
+    restart: always
+
+  index:
+    image: reportportal/service-index:5.10.0
+    logging:
+      <<: *logging
+    depends_on:
+      gateway:
+        condition: service_started
+    environment:
+      LB_URL: http://gateway:8081
+      TRAEFIK_V2_MODE: 'true'
+    labels:
+      - "traefik.http.routers.index.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.index.service=index"
+      - "traefik.http.services.index.loadbalancer.server.port=8080"
+      - "traefik.http.services.index.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
+    networks:
+      - reportportal
+    restart: always
+
+  api:
+    image: reportportal/service-api:5.10.0
+    logging:
+      <<: *logging
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      gateway:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    environment:
+      ## Double entry moves test logs from PostgreSQL to Elastic-type engines
+      ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
+      RP_ELASTICSEARCHLOGMESSAGE_HOST: http://elasticsearch:9200
+      RP_DB_HOST: postgres
+      RP_DB_USER: rpuser
+      RP_DB_PASS: rppass
+      RP_DB_NAME: reportportal
+      RP_AMQP_USER: rabbitmq
+      RP_AMQP_PASS: rabbitmq
+      RP_AMQP_APIUSER: rabbitmq
+      RP_AMQP_APIPASS: rabbitmq
+      RP_AMQP_ANALYZER-VHOST: analyzer
+      DATASTORE_TYPE: minio
+      DATASTORE_ENDPOINT: http://minio:9000
+      DATASTORE_ACCESSKEY: minio
+      DATASTORE_SECRETKEY: minio123
+      LOGGING_LEVEL_ORG_HIBERNATE_SQL: info
+      RP_REQUESTLOGGING: "false"
+      AUDIT_LOGGER: "OFF"
+      MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED: "false"
+      RP_ENVIRONMENT_VARIABLE_ALLOW_DELETE_ACCOUNT: "false"
+      JAVA_OPTS: -Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp  -Dcom.sun.management.jmxremote.rmi.port=12349 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false  -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=0.0.0.0
+    healthcheck:
+      test: curl -f http://0.0.0.0:8585/health
+      interval: 60s
+      timeout: 30s
+      retries: 10
+      start_period: 60s
+    labels:
+      - "traefik.http.middlewares.api-strip-prefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.api.middlewares=api-strip-prefix@docker"
+      - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.api.service=api"
+      - "traefik.http.services.api.loadbalancer.server.port=8585"
+      - "traefik.http.services.api.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
+    networks:
+      - reportportal
+    restart: always
+
+  jobs:
+    image: reportportal/service-jobs:5.10.0
+    logging:
+      <<: *logging
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      gateway:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    environment:
+      ## Double entry moves test logs from PostgreSQL to Elastic-type engines
+      ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
+      RP_ELASTICSEARCH_HOST: http://elasticsearch:9200
+      RP_ELASTICSEARCH_USERNAME: elastic
+      RP_ELASTICSEARCH_PASSWORD:  elastic1q2w3e
+      RP_DB_HOST: postgres
+      RP_DB_USER: rpuser
+      RP_DB_PASS: rppass
+      RP_DB_NAME: reportportal
+      RP_AMQP_USER: rabbitmq
+      RP_AMQP_PASS: rabbitmq
+      RP_AMQP_APIUSER: rabbitmq
+      RP_AMQP_APIPASS: rabbitmq
+      RP_AMQP_ANALYZER-VHOST: analyzer
+      DATASTORE_TYPE: minio
+      DATASTORE_ENDPOINT: http://minio:9000
+      DATASTORE_ACCESSKEY: minio
+      DATASTORE_SECRETKEY: minio123
+      RP_ENVIRONMENT_VARIABLE_CLEAN_ATTACHMENT_CRON: 0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_LOG_CRON: 0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_LAUNCH_CRON: 0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CRON: 0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_STORAGE_PROJECT_CRON: 0 */5 * * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_CRON:  0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_RETENTIONPERIOD: 365
+      RP_ENVIRONMENT_VARIABLE_NOTIFICATION_EXPIREDUSER_CRON: 0 0 */24 * * * 
+      RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE: 20000
+      RP_PROCESSING_LOG_MAXBATCHSIZE: 2000
+      RP_PROCESSING_LOG_MAXBATCHTIMEOUT: 6000
+      RP_AMQP_MAXLOGCONSUMER: 1
+    healthcheck:
+      test: curl -f http://0.0.0.0:8686/health || exit 1
+      interval: 60s
+      timeout: 30s
+      retries: 10
+      start_period: 60s
+    labels:
+      - traefik.http.middlewares.jobs-strip-prefix.stripprefix.prefixes=/jobs
+      - traefik.http.routers.jobs.middlewares=jobs-strip-prefix@docker
+      - traefik.http.routers.jobs.rule=PathPrefix(`/jobs`)
+      - traefik.http.routers.jobs.service=jobs
+      - traefik.http.services.jobs.loadbalancer.server.port=8686
+      - traefik.http.services.jobs.loadbalancer.server.scheme=http
+      - traefik.expose=true
+    networks:
+      - reportportal
+    restart: always
+
+  ui:
+    image: reportportal/service-ui:5.10.0
+    environment:
+      RP_SERVER_PORT: "8080"
+    labels:
+      - "traefik.http.middlewares.ui-strip-prefix.stripprefix.prefixes=/ui"
+      - "traefik.http.routers.ui.middlewares=ui-strip-prefix@docker"
+      - "traefik.http.routers.ui.rule=PathPrefix(`/ui`)"
+      - "traefik.http.routers.ui.service=ui"
+      - "traefik.http.services.ui.loadbalancer.server.port=8080"
+      - "traefik.http.services.ui.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
+    networks:
+      - reportportal
+    restart: always
 
   gateway:
     image: traefik:v2.0.7
+    logging:
+      <<: *logging
     ports:
       - "8080:8080" # HTTP exposed
       - "8081:8081" # HTTP Administration exposed
@@ -28,12 +332,16 @@ services:
       - --entrypoints.traefik.address=:8081
       - --api.dashboard=true
       - --api.insecure=true
+    networks:
+      - reportportal
     restart: always
 
   elasticsearch:
     image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
+    logging:
+      <<: *logging
     volumes:
-      - ./data/elasticsearch:/usr/share/elasticsearch/data
+      - elasticsearch:/usr/share/elasticsearch/data
     environment:
       - "ES_JAVA_OPTS=-Dlog4j2.formatMsgNoLookups=true"
       - "bootstrap.memory_lock=true"
@@ -52,93 +360,51 @@ services:
       # - "9200:9200"
     healthcheck:
       test: ["CMD", "curl","-s" ,"-f", "http://elastic:elastic1q2w3e@localhost:9200/_cat/health"]
+    networks:
+      - reportportal
     restart: always
 
-  analyzer: #an analyzer instance for main functionality, don't forget to use the same storage settings(either minio, or filesystem) for analyzer_train
-    image: reportportal/service-auto-analyzer:5.6.0
+  minio:
+    image: minio/minio:RELEASE.2020-10-27T04-03-55Z
+    logging:
+      <<: *logging
+    # ports:
+    #   - 9000:9000
+    volumes:
+      ## For unix host
+      - storage:/data
+      ## For windows host
+      # - minio:/data
     environment:
-      LOGGING_LEVEL: info
-      AMQP_EXCHANGE_NAME: analyzer-default
-      AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
-      ES_HOSTS: http://elastic:elastic1q2w3e@elasticsearch:9200
-      MINIO_SHORT_HOST: minio:9000
       MINIO_ACCESS_KEY: minio
       MINIO_SECRET_KEY: minio123
-    depends_on:
-      elasticsearch:
-        condition: service_started
-      rabbitmq:
-        condition: service_healthy
+    command: server /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - reportportal
     restart: always
-  
-  analyzer_train: #an analyzer instance for training, don't forget to setup the same storage(either minio, or filesystem) as for main analyzer
-    image: reportportal/service-auto-analyzer:5.6.0
-    environment:
-      LOGGING_LEVEL: info
-      AMQP_EXCHANGE_NAME: analyzer-default
-      AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
-      ES_HOSTS: http://elastic:elastic1q2w3e@elasticsearch:9200
-      MINIO_SHORT_HOST: minio:9000
-      MINIO_ACCESS_KEY: minio
-      MINIO_SECRET_KEY: minio123
-      INSTANCE_TASK_TYPE: train
-      UWSGI_WORKERS: 1
-    depends_on:
-      elasticsearch:
-        condition: service_started
-      rabbitmq:
-        condition: service_healthy
-    restart: always
-  
-  metrics-gatherer: # metrics service for analyzing how analyzer is working and manage retrained models
-    image: reportportal/service-metrics-gatherer:1.1.17
-    environment:
-      LOGGING_LEVEL: info
-      ES_HOST: http://elasticsearch:9200
-      ES_USER: elastic
-      ES_PASSWORD: elastic1q2w3e
-      POSTGRES_USER: "rpuser"
-      POSTGRES_PASSWORD: "rppass"
-      POSTGRES_DB: "reportportal"
-      POSTGRES_HOST: "postgres"
-      POSTGRES_PORT: 5432
-      ALLOWED_START_TIME: "22:00"
-      ALLOWED_END_TIME: "08:00"
-      #TZ: Europe/Minsk you can change a timezone like this to specify when metrics are gathered
-      AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
-    depends_on:
-      - elasticsearch
-    restart: always
-
-  ### Initial reportportal db schema. Run once.
-  db-scripts:
-    image: reportportal/migrations:5.6.0
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      POSTGRES_SERVER: postgres
-      POSTGRES_PORT: 5432
-      POSTGRES_DB: reportportal
-      POSTGRES_USER: rpuser
-      POSTGRES_PASSWORD: rppass
-    restart: on-failure
 
   postgres:
     image: postgres:12-alpine
+    logging:
+      <<: *logging
     shm_size: '512m'
     environment:
       POSTGRES_USER: rpuser
       POSTGRES_PASSWORD: rppass
       POSTGRES_DB: reportportal
     volumes:
-      # For unix host
-      - ./data/postgres:/var/lib/postgresql/data
-      # For windows host
+      ## For unix host
+      - postgres:/var/lib/postgresql/data
+      ## For windows host
       # - postgres:/var/lib/postgresql/data
-    # If you need to access the DB locally. Could be a security risk to expose DB.
-    #    ports:
-    #      - "5432:5432"
+    ## If you need to access the DB locally. Could be a security risk to expose DB.
+    # ports:
+    #   - "5432:5432"
     command:
       -c checkpoint_completion_target=0.9
       -c work_mem=96MB
@@ -147,11 +413,11 @@ services:
       -c wal_buffers=32MB
       -c min_wal_size=2GB
       -c max_wal_size=4GB
-    # Optional, for SSD Data Storage. If you are using the HDD, set up this command to '2'
+    ## Optional, for SSD Data Storage. If you are using the HDD, set up this command to '2'
     #  -c effective_io_concurrency=200
-    # Optional, for SSD Data Storage. If you are using the HDD, set up this command to '4'
+    ## Optional, for SSD Data Storage. If you are using the HDD, set up this command to '4'
     #  -c random_page_cost=1.1
-    # Optional, can be scaled. Example for 4 CPU, 16GB RAM instance, where only the database is deployed
+    ## Optional can be scaled. Example for 4 CPU, 16GB RAM instance, where only the database is deployed
     #  -c max_worker_processes=4
     #  -c max_parallel_workers_per_gather=2
     #  -c max_parallel_workers=4
@@ -163,171 +429,33 @@ services:
       interval: 10s
       timeout: 120s
       retries: 10
+    networks:
+      - reportportal
     restart: always
 
   rabbitmq:
-    image: rabbitmq:3.7.16-management
-    #ports:
-      # - "5672:5672"
-      #- "15672:15672"
+    image: bitnami/rabbitmq:3.12.2-debian-11-r8
+    logging:
+      <<: *logging
+    # ports:
+    #   - "5672:5672"
+    #   - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: "rabbitmq"
       RABBITMQ_DEFAULT_PASS: "rabbitmq"
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
-      retries: 5
-    restart: always
-
-  uat:
-    image: reportportal/service-authorization:5.6.3
-    #ports:
-    #  - "9999:9999"
-    environment:
-      - RP_DB_HOST=postgres
-      - RP_DB_USER=rpuser
-      - RP_DB_PASS=rppass
-      - RP_DB_NAME=reportportal
-      - RP_BINARYSTORE_TYPE=minio
-      - RP_BINARYSTORE_MINIO_ENDPOINT=http://minio:9000
-      - RP_BINARYSTORE_MINIO_ACCESSKEY=minio
-      - RP_BINARYSTORE_MINIO_SECRETKEY=minio123
-      - RP_SESSION_LIVE=86400 #in seconds
-    labels:
-      - "traefik.http.middlewares.uat-strip-prefix.stripprefix.prefixes=/uat"
-      - "traefik.http.routers.uat.middlewares=uat-strip-prefix@docker"
-      - "traefik.http.routers.uat.rule=PathPrefix(`/uat`)"
-      - "traefik.http.routers.uat.service=uat"
-      - "traefik.http.services.uat.loadbalancer.server.port=9999"
-      - "traefik.http.services.uat.loadbalancer.server.scheme=http"
-      - "traefik.expose=true"
-    restart: always
-    depends_on:
-      postgres:
-        condition: service_healthy
-
-  index:
-    image: reportportal/service-index:5.0.11
-    depends_on:
-      gateway:
-        condition: service_started
-    environment:
-      - LB_URL=http://gateway:8081
-      - TRAEFIK_V2_MODE=true
-    labels:
-        - "traefik.http.routers.index.rule=PathPrefix(`/`)"
-        - "traefik.http.routers.index.service=index"
-        - "traefik.http.services.index.loadbalancer.server.port=8080"
-        - "traefik.http.services.index.loadbalancer.server.scheme=http"
-        - "traefik.expose=true"
-    restart: always
-
-  api:
-    image: reportportal/service-api:5.6.3
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      gateway:
-        condition: service_started
-      postgres:
-        condition: service_healthy
-    environment:
-      - RP_DB_HOST=postgres
-      - RP_DB_USER=rpuser
-      - RP_DB_PASS=rppass
-      - RP_DB_NAME=reportportal
-      - RP_AMQP_USER=rabbitmq
-      - RP_AMQP_PASS=rabbitmq
-      - RP_AMQP_APIUSER=rabbitmq
-      - RP_AMQP_APIPASS=rabbitmq
-      - RP_BINARYSTORE_TYPE=minio
-      - RP_BINARYSTORE_MINIO_ENDPOINT=http://minio:9000
-      - RP_BINARYSTORE_MINIO_ACCESSKEY=minio
-      - RP_BINARYSTORE_MINIO_SECRETKEY=minio123
-      - LOGGING_LEVEL_ORG_HIBERNATE_SQL=info
-      - JAVA_OPTS=-Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp  -Dcom.sun.management.jmxremote.rmi.port=12349 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false  -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=0.0.0.0
-    labels:
-      - "traefik.http.middlewares.api-strip-prefix.stripprefix.prefixes=/api"
-      - "traefik.http.routers.api.middlewares=api-strip-prefix@docker"
-      - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
-      - "traefik.http.routers.api.service=api"
-      - "traefik.http.services.api.loadbalancer.server.port=8585"
-      - "traefik.http.services.api.loadbalancer.server.scheme=http"
-      - "traefik.expose=true"
-    restart: always
-    
-  jobs:
-    image: reportportal/service-jobs:5.6.3
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      gateway:
-        condition: service_started
-      postgres:
-        condition: service_healthy
-    environment:
-      RP_DB_HOST: postgres
-      RP_DB_USER: rpuser
-      RP_DB_PASS: rppass
-      RP_DB_NAME: reportportal
-      RP_AMQP_USER: rabbitmq
-      RP_AMQP_PASS: rabbitmq
-      RP_AMQP_APIUSER: rabbitmq
-      RP_AMQP_APIPASS: rabbitmq
-      DATASTORE_TYPE: minio
-      DATASTORE_MINIO_ENDPOINT: http://minio:9000
-      DATASTORE_MINIO_ACCESSKEY: minio
-      DATASTORE_MINIO_SECRETKEY: minio123
-      RP_ENVIRONMENT_VARIABLE_CLEAN_ATTACHMENT_CRON: 0 0 */24 * * *
-      RP_ENVIRONMENT_VARIABLE_CLEAN_LOG_CRON: 0 0 */24 * * *
-      RP_ENVIRONMENT_VARIABLE_CLEAN_LAUNCH_CRON: 0 0 */24 * * *
-      RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CRON: 0 0 */24 * * *
-      RP_ENVIRONMENT_VARIABLE_STORAGE_PROJECT_CRON: 0 */5 * * * *
-      RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE: 1000
-    labels:
-    - traefik.http.middlewares.jobs-strip-prefix.stripprefix.prefixes=/jobs
-    - traefik.http.routers.jobs.middlewares=jobs-strip-prefix@docker
-    - traefik.http.routers.jobs.rule=PathPrefix(`/jobs`)
-    - traefik.http.routers.jobs.service=jobs
-    - traefik.http.services.jobs.loadbalancer.server.port=8686
-    - traefik.http.services.jobs.loadbalancer.server.scheme=http
-    - traefik.expose=true
-    restart: always
-
-  ui:
-    image: reportportal/service-ui:5.6.0
-    environment:
-      - RP_SERVER_PORT=8080
-    labels:
-      - "traefik.http.middlewares.ui-strip-prefix.stripprefix.prefixes=/ui"
-      - "traefik.http.routers.ui.middlewares=ui-strip-prefix@docker"
-      - "traefik.http.routers.ui.rule=PathPrefix(`/ui`)"
-      - "traefik.http.routers.ui.service=ui"
-      - "traefik.http.services.ui.loadbalancer.server.port=8080"
-      - "traefik.http.services.ui.loadbalancer.server.scheme=http"
-      - "traefik.expose=true"
-    restart: always
-
-  minio:
-    image: minio/minio:RELEASE.2020-10-27T04-03-55Z
-    #ports:
-    #  - '9000:9000'
-    volumes:
-     # For unix host
-      - ./data/storage:/data 
-     # For windows host
-     # - minio:/data
-    environment:
-      MINIO_ACCESS_KEY: minio
-      MINIO_SECRET_KEY: minio123
-    command: server /data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
       interval: 30s
-      timeout: 20s
-      retries: 3
+      timeout: 30s
+      retries: 5
+    networks:
+      - reportportal
     restart: always
 
-  # Docker volume for Windows host
-#volumes:
-#  postgres:
-#  minio:
+volumes:
+  elasticsearch:
+  storage:
+  postgres:
+
+networks:
+  reportportal:
