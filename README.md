@@ -52,17 +52,7 @@ It's the best way for demo purposes and small teams. The database is already in 
 
 2. Download [Example of docker-compose descriptor](https://github.com/reportportal/reportportal/blob/master/docker-compose.yml) to any folder
 
-3. Give correct permissions to ElasticSearch data folder using the following commands:
-
-```bash
-$ mkdir -p data/elasticsearch
-
-$ chmod 777 data/elasticsearch
-
-$ chgrp 1000 data/elasticsearch
-```
-
-4. Deploy ReportPortal using `docker compose plugin` within the same folder
+3. Deploy ReportPortal using `docker compose plugin` within the same folder
 
 ```bash
 $ docker compose -p reportportal up
@@ -74,13 +64,13 @@ To start ReportPortal in daemon mode, add '-d' argument:
 $ docker compose -p reportportal up -d
 ```
 
-5. Open in your browser IP address of deployed environment at port `8080`
+4. Open in your browser IP address of deployed environment at port `8080`
 
 ```
 http://IP_ADDRESS:8080
 ```
 
-6. Use next login\pass for access:
+5. Use next login\pass for access:
 
 - `default\1q2w3e`
 - `superadmin\erebus`.
