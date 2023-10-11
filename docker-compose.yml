@@ -138,6 +138,7 @@ services:
     environment:
       ## Double entry moves test logs from PostgreSQL to Elastic-type engines
       ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
+      RP_FEATURE_FLAGS: singleBucket
       RP_ELASTICSEARCHLOGMESSAGE_HOST: http://elasticsearch:9200
       RP_DB_HOST: postgres
       RP_DB_USER: rpuser
@@ -183,6 +184,7 @@ services:
     volumes:
       - storage:/opt/reportportal/data
     environment:
+      RP_FEATURE_FLAGS: singleBucket
       RP_DB_HOST: postgres
       RP_DB_USER: rpuser
       RP_DB_PASS: rppass
@@ -234,6 +236,7 @@ services:
     environment:
       ## Double entry moves test logs from PostgreSQL to Elastic-type engines
       ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
+      RP_FEATURE_FLAGS: singleBucket
       RP_ELASTICSEARCH_HOST: http://elasticsearch:9200
       RP_ELASTICSEARCH_USERNAME: elastic
       RP_ELASTICSEARCH_PASSWORD:  elastic1q2w3e
