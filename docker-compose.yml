@@ -19,6 +19,7 @@ services:
   ## An analyzer instance for main functionality, don't forget to use the same storage settings (either MinIO or filesystem) for analyzer_train
   analyzer:
     image: reportportal/service-auto-analyzer:5.10.0
+    container_name: reportportal-analyzer
     logging: &logging
       driver: "json-file"
       options:
@@ -29,12 +30,12 @@ services:
       AMQP_EXCHANGE_NAME: analyzer-default
       AMQP_VIRTUAL_HOST: analyzer
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
-      ES_HOSTS: http://elastic:elastic1q2w3e@elasticsearch:9200
+      ES_HOSTS: http://opensearch:9200
       MINIO_SHORT_HOST: minio:9000
       MINIO_ACCESS_KEY: minio
       MINIO_SECRET_KEY: minio123
     depends_on:
-      elasticsearch:
+      opensearch:
         condition: service_started
       rabbitmq:
         condition: service_healthy
@@ -45,6 +46,7 @@ services:
   ## An analyzer instance for training, don't forget to set up the same storage (either MinIO or filesystem) as for the main analyzer
   analyzer-train:
     image: reportportal/service-auto-analyzer:5.10.0
+    container_name: reportportal-analyzer-train
     logging:
       <<: *logging
     environment:
@@ -52,14 +54,14 @@ services:
       AMQP_EXCHANGE_NAME: analyzer-default
       AMQP_VIRTUAL_HOST: analyzer
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
-      ES_HOSTS: http://elastic:elastic1q2w3e@elasticsearch:9200
+      ES_HOSTS: http://opensearch:9200
       MINIO_SHORT_HOST: minio:9000
       MINIO_ACCESS_KEY: minio
       MINIO_SECRET_KEY: minio123
       INSTANCE_TASK_TYPE: train
       UWSGI_WORKERS: 1
     depends_on:
-      elasticsearch:
+      opensearch:
         condition: service_started
       rabbitmq:
         condition: service_healthy
@@ -70,13 +72,14 @@ services:
   ## Metrics service for analyzing how the analyzer is working and managing retrained models
   metrics-gatherer:
     image: reportportal/service-metrics-gatherer:5.10.0
+    container_name: reportportal-metrics-gatherer
     logging:
       <<: *logging
     environment:
       LOGGING_LEVEL: info
-      ES_HOST: http://elasticsearch:9200
-      ES_USER: elastic
-      ES_PASSWORD: elastic1q2w3e
+      ES_HOST: http://opensearch:9200
+      # ES_USER: 
+      # ES_PASSWORD: 
       POSTGRES_USER: "rpuser"
       POSTGRES_PASSWORD: "rppass"
       POSTGRES_DB: "reportportal"
@@ -88,7 +91,8 @@ services:
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
       AMQP_VIRTUAL_HOST: analyzer
     depends_on:
-      - elasticsearch
+      opensearch:
+        condition: service_started
     networks:
       - reportportal
     restart: always
@@ -96,6 +100,7 @@ services:
   ## Initial reportportal db schema. Run once.
   migrations:
     image: reportportal/migrations:5.10.0
+    container_name: reportportal-migrations
     logging:
       <<: *logging
     depends_on:
@@ -107,6 +112,11 @@ services:
       POSTGRES_DB: reportportal
       POSTGRES_USER: rpuser
       POSTGRES_PASSWORD: rppass
+      OS_HOST: opensearch
+      OS_PORT: 9200
+      OS_PROTOCOL: https
+      OS_USER: admin
+      OS_PASSWORD: admin
     networks:
       - reportportal
     restart: on-failure
@@ -126,6 +136,7 @@ services:
 
   uat:
     image: reportportal/service-authorization:5.10.0
+    container_name: reportportal-uat
     logging:
       <<: *logging
     # ports:
@@ -170,6 +181,7 @@ services:
 
   index:
     image: reportportal/service-index:5.10.0
+    container_name: reportportal-index
     logging:
       <<: *logging
     depends_on:
@@ -190,6 +202,7 @@ services:
 
   api:
     image: reportportal/service-api:5.10.0
+    container_name: reportportal-api
     logging:
       <<: *logging
     depends_on:
@@ -202,7 +215,7 @@ services:
     environment:
       ## Double entry moves test logs from PostgreSQL to Elastic-type engines
       ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
-      RP_ELASTICSEARCHLOGMESSAGE_HOST: http://elasticsearch:9200
+      RP_ELASTICSEARCHLOGMESSAGE_HOST: http://opensearch:9200
       RP_DB_HOST: postgres
       RP_DB_USER: rpuser
       RP_DB_PASS: rppass
@@ -242,6 +255,7 @@ services:
 
   jobs:
     image: reportportal/service-jobs:5.10.0
+    container_name: reportportal-jobs
     logging:
       <<: *logging
     depends_on:
@@ -254,9 +268,9 @@ services:
     environment:
       ## Double entry moves test logs from PostgreSQL to Elastic-type engines
       ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
-      RP_ELASTICSEARCH_HOST: http://elasticsearch:9200
-      RP_ELASTICSEARCH_USERNAME: elastic
-      RP_ELASTICSEARCH_PASSWORD:  elastic1q2w3e
+      RP_ELASTICSEARCH_HOST: http://opensearch:9200
+      # RP_ELASTICSEARCH_USERNAME: 
+      # RP_ELASTICSEARCH_PASSWORD: 
       RP_DB_HOST: postgres
       RP_DB_USER: rpuser
       RP_DB_PASS: rppass
@@ -302,6 +316,7 @@ services:
 
   ui:
     image: reportportal/service-ui:5.10.0
+    container_name: reportportal-ui
     environment:
       RP_SERVER_PORT: "8080"
     labels:
@@ -318,6 +333,7 @@ services:
 
   gateway:
     image: traefik:v2.0.7
+    container_name: traefik
     logging:
       <<: *logging
     ports:
@@ -336,36 +352,31 @@ services:
       - reportportal
     restart: always
 
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.10.1
-    logging:
-      <<: *logging
-    volumes:
-      - elasticsearch:/usr/share/elasticsearch/data
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    container_name: opensearch
     environment:
-      - "ES_JAVA_OPTS=-Dlog4j2.formatMsgNoLookups=true"
-      - "bootstrap.memory_lock=true"
-      - "discovery.type=single-node"
-      - "logger.level=INFO"
-      - "xpack.security.enabled=true"
-      - "ELASTIC_PASSWORD=elastic1q2w3e"
+      discovery.type: single-node
+      plugins.security.disabled: "true"
+      bootstrap.memory_lock: "true"
+      OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
     ulimits:
       memlock:
         soft: -1
         hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
-      # ports:
-      # - "9200:9200"
+    # ports:
+    #   - "9200:9200"
+    #   - "9600:9600"
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
     healthcheck:
-      test: ["CMD", "curl","-s" ,"-f", "http://elastic:elastic1q2w3e@localhost:9200/_cat/health"]
+      test: ["CMD", "curl","-s" ,"-f", "http://0.0.0.0:9200/_cat/health"]
     networks:
       - reportportal
-    restart: always
 
   minio:
     image: minio/minio:RELEASE.2020-10-27T04-03-55Z
+    container_name: minio
     logging:
       <<: *logging
     # ports:
@@ -390,6 +401,7 @@ services:
 
   postgres:
     image: postgres:12-alpine
+    container_name: postgres
     logging:
       <<: *logging
     shm_size: '512m'
@@ -435,6 +447,7 @@ services:
 
   rabbitmq:
     image: bitnami/rabbitmq:3.12.2-debian-11-r8
+    container_name: rabbitmqplugins.security.disabled
     logging:
       <<: *logging
     # ports:
@@ -453,7 +466,7 @@ services:
     restart: always
 
 volumes:
-  elasticsearch:
+  opensearch-data:
   storage:
   postgres:
 
