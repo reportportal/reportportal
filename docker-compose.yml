@@ -114,9 +114,9 @@ services:
       POSTGRES_PASSWORD: rppass
       OS_HOST: opensearch
       OS_PORT: 9200
-      OS_PROTOCOL: https
-      OS_USER: admin
-      OS_PASSWORD: admin
+      OS_PROTOCOL: http
+      # OS_USER: 
+      # OS_PASSWORD: 
     networks:
       - reportportal
     restart: on-failure
@@ -360,6 +360,7 @@ services:
       plugins.security.disabled: "true"
       bootstrap.memory_lock: "true"
       OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
     ulimits:
       memlock:
         soft: -1
