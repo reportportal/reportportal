@@ -16,15 +16,143 @@
 version: '3.8'
 services:
 
-  ## An analyzer instance for main functionality, don't forget to use the same storage settings (either MinIO or filesystem) for analyzer_train
-  analyzer:
-    image: reportportal/service-auto-analyzer:5.10.0
-    container_name: reportportal-analyzer
+  gateway:
+    image: traefik:v2.0.7
+    container_name: traefik
     logging: &logging
       driver: "json-file"
       options:
         max-size: 100m
         max-file: "5"
+    ports:
+      - "8080:8080" # HTTP exposed
+      - "8081:8081" # HTTP Administration exposed
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command:
+      - --providers.docker=true
+      - --providers.docker.constraints=Label(`traefik.expose`, `true`)
+      - --entrypoints.web.address=:8080
+      - --entrypoints.traefik.address=:8081
+      - --api.dashboard=true
+      - --api.insecure=true
+    networks:
+      - reportportal
+    restart: always
+
+  opensearch:
+    image: opensearchproject/opensearch:2.11.0
+    container_name: opensearch
+    environment:
+      discovery.type: single-node
+      plugins.security.disabled: "true"
+      bootstrap.memory_lock: "true"
+      OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    # ports:
+    #   - "9200:9200"
+    #   - "9600:9600"
+    volumes:
+      - opensearch-data:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD", "curl","-s" ,"-f", "http://0.0.0.0:9200/_cat/health"]
+    networks:
+      - reportportal
+
+  minio:
+    image: minio/minio:RELEASE.2020-10-27T04-03-55Z
+    container_name: minio
+    logging:
+      <<: *logging
+    # ports:
+    #   - 9000:9000
+    volumes:
+      - storage:/data
+    environment:
+      MINIO_ACCESS_KEY: &minio_accesskey minio
+      MINIO_SECRET_KEY: &minio_secretkey minio123
+    command: server /data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - reportportal
+    restart: always
+
+  postgres:
+    image: postgres:12-alpine
+    container_name: postgres
+    logging:
+      <<: *logging
+    shm_size: '512m'
+    environment:
+      POSTGRES_USER: &db_user rpuser
+      POSTGRES_PASSWORD: &db_password rppass
+      POSTGRES_DB: &db_name reportportal
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    # ports:
+    #   - "5432:5432"
+    command:
+      -c checkpoint_completion_target=0.9
+      -c work_mem=96MB
+      -c wal_writer_delay=20ms
+      -c synchronous_commit=off
+      -c wal_buffers=32MB
+      -c min_wal_size=2GB
+      -c max_wal_size=4GB
+    ## Optional, for SSD Data Storage. If you are using the HDD, set up this command to '2'
+    #  -c effective_io_concurrency=200
+    ## Optional, for SSD Data Storage. If you are using the HDD, set up this command to '4'
+    #  -c random_page_cost=1.1
+    ## Optional can be scaled. Example for 4 CPU, 16GB RAM instance, where only the database is deployed
+    #  -c max_worker_processes=4
+    #  -c max_parallel_workers_per_gather=2
+    #  -c max_parallel_workers=4
+    #  -c shared_buffers=4GB
+    #  -c effective_cache_size=12GB
+    #  -c maintenance_work_mem=1GB
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"]
+      interval: 10s
+      timeout: 120s
+      retries: 10
+    networks:
+      - reportportal
+    restart: always
+
+  rabbitmq:
+    image: bitnami/rabbitmq:3.12.2-debian-11-r8
+    container_name: rabbitmqplugins.security.disabled
+    logging:
+      <<: *logging
+    # ports:
+    #   - "5672:5672"
+    #   - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: &rabbitmq_user rabbitmq
+      RABBITMQ_DEFAULT_PASS: &rabbitmq_password rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+    networks:
+      - reportportal
+    restart: always
+
+  ## An analyzer instance for main functionality, don't forget to use the same storage settings (either MinIO or filesystem) for analyzer_train
+  analyzer:
+    image: reportportal/service-auto-analyzer:5.10.0
+    container_name: reportportal-analyzer
+    logging:
+      <<: *logging
     environment:
       LOGGING_LEVEL: info
       AMQP_EXCHANGE_NAME: analyzer-default
@@ -32,8 +160,8 @@ services:
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
       ES_HOSTS: http://opensearch:9200
       MINIO_SHORT_HOST: minio:9000
-      MINIO_ACCESS_KEY: minio
-      MINIO_SECRET_KEY: minio123
+      MINIO_ACCESS_KEY: *minio_accesskey
+      MINIO_SECRET_KEY: *minio_secretkey
     depends_on:
       opensearch:
         condition: service_started
@@ -56,8 +184,8 @@ services:
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
       ES_HOSTS: http://opensearch:9200
       MINIO_SHORT_HOST: minio:9000
-      MINIO_ACCESS_KEY: minio
-      MINIO_SECRET_KEY: minio123
+      MINIO_ACCESS_KEY: *minio_accesskey
+      MINIO_SECRET_KEY: *minio_secretkey
       INSTANCE_TASK_TYPE: train
       UWSGI_WORKERS: 1
     depends_on:
@@ -80,10 +208,10 @@ services:
       ES_HOST: http://opensearch:9200
       # ES_USER: 
       # ES_PASSWORD: 
-      POSTGRES_USER: "rpuser"
-      POSTGRES_PASSWORD: "rppass"
-      POSTGRES_DB: "reportportal"
-      POSTGRES_HOST: "postgres"
+      POSTGRES_USER: *db_user
+      POSTGRES_PASSWORD: *db_password
+      POSTGRES_DB: *db_name
+      POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       ALLOWED_START_TIME: "22:00"
       ALLOWED_END_TIME: "08:00"
@@ -109,9 +237,9 @@ services:
     environment:
       POSTGRES_SERVER: postgres
       POSTGRES_PORT: 5432
-      POSTGRES_DB: reportportal
-      POSTGRES_USER: rpuser
-      POSTGRES_PASSWORD: rppass
+      POSTGRES_DB: *db_name
+      POSTGRES_USER: *db_user
+      POSTGRES_PASSWORD: *db_password
       OS_HOST: opensearch
       OS_PORT: 9200
       OS_PROTOCOL: http
@@ -120,19 +248,21 @@ services:
     networks:
       - reportportal
     restart: on-failure
-
-   ## ReportPortal service for different migrations.
-   ## Read more: https://github.com/reportportal/migrations-complex/blob/master/README.md
-#  migrations-complex:
-#    image: reportportal/migrations-complex:1.0.0
-#    ports:
-#      - '5020:5020'
-#    environment:
-#      RP_DB_HOST: postgres
-#      RP_DB_USER: rpuser
-#      RP_DB_PASS: rppass
-#      RP_DB_NAME: reportportal
-#      RP_TOKEN_MIGRATION: "true"
+   
+  ##
+  # ReportPortal service for different migrations.
+  # Read more: https://github.com/reportportal/migrations-complex/blob/master/README.md
+  ##
+  # migrations-complex:
+  #   image: reportportal/migrations-complex:1.0.0
+  #   ports:
+  #     - '5020:5020'
+  #   environment:
+  #     RP_DB_HOST: postgres
+  #     RP_DB_USER: *db_user
+  #     RP_DB_PASS: *db_password
+  #     RP_DB_NAME: *db_name
+  #     RP_TOKEN_MIGRATION: "true"
 
   uat:
     image: reportportal/service-authorization:5.10.0
@@ -143,21 +273,24 @@ services:
     #   - "9999:9999"
     environment:
       RP_DB_HOST: postgres
-      RP_DB_USER: rpuser
-      RP_DB_PASS: rppass
-      RP_DB_NAME: reportportal
-      RP_AMQP_USER: rabbitmq
-      RP_AMQP_PASS: rabbitmq
-      RP_AMQP_APIUSER: rabbitmq
-      RP_AMQP_APIPASS: rabbitmq
+      RP_DB_USER: *db_user
+      RP_DB_PASS: *db_password
+      RP_DB_NAME: *db_name
+      RP_AMQP_USER: *rabbitmq_user
+      RP_AMQP_PASS: *rabbitmq_password
+      RP_AMQP_APIUSER: *rabbitmq_user
+      RP_AMQP_APIPASS: *rabbitmq_password
       DATASTORE_TYPE: minio
       DATASTORE_ENDPOINT: http://minio:9000
-      DATASTORE_ACCESSKEY: minio
-      DATASTORE_SECRETKEY: minio123
+      DATASTORE_ACCESSKEY: *minio_accesskey
+      DATASTORE_SECRETKEY: *minio_secretkey
       RP_SESSION_LIVE: 86400 # in seconds
       RP_SAML_SESSION-LIVE: 4320
-      ## The initial password for superadmin user on the FIRST launch. If the password was changed from the UI, this value can't change the password on redeployments.
-      RP_INITIAL_ADMIN_PASSWORD: "erebus"
+      ##
+      # The initial password for superadmin user on the FIRST launch. If the password was changed from the UI, 
+      # this value can't change the password on redeployments.
+      ##
+      RP_INITIAL_ADMIN_PASSWORD: ""
     healthcheck:
       test: curl -f http://0.0.0.0:9999/health
       interval: 60s
@@ -213,22 +346,24 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      ## Double entry moves test logs from PostgreSQL to Elastic-type engines
-      ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
+      ##
+      # Double entry moves test logs from PostgreSQL to Elastic-type engines
+      # Ref: https://reportportal.io/blog/double-entry-in-5.7.2
+      ##
       RP_ELASTICSEARCHLOGMESSAGE_HOST: http://opensearch:9200
       RP_DB_HOST: postgres
-      RP_DB_USER: rpuser
-      RP_DB_PASS: rppass
-      RP_DB_NAME: reportportal
-      RP_AMQP_USER: rabbitmq
-      RP_AMQP_PASS: rabbitmq
-      RP_AMQP_APIUSER: rabbitmq
-      RP_AMQP_APIPASS: rabbitmq
+      RP_DB_USER: *db_user
+      RP_DB_PASS: *db_password
+      RP_DB_NAME: *db_name
+      RP_AMQP_USER: *rabbitmq_user
+      RP_AMQP_PASS: *rabbitmq_password
+      RP_AMQP_APIUSER: *rabbitmq_user
+      RP_AMQP_APIPASS: *rabbitmq_password
       RP_AMQP_ANALYZER-VHOST: analyzer
       DATASTORE_TYPE: minio
       DATASTORE_ENDPOINT: http://minio:9000
-      DATASTORE_ACCESSKEY: minio
-      DATASTORE_SECRETKEY: minio123
+      DATASTORE_ACCESSKEY: *minio_accesskey
+      DATASTORE_SECRETKEY: *minio_secretkey
       LOGGING_LEVEL_ORG_HIBERNATE_SQL: info
       RP_REQUESTLOGGING: "false"
       AUDIT_LOGGER: "OFF"
@@ -266,24 +401,26 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      ## Double entry moves test logs from PostgreSQL to Elastic-type engines
-      ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
+      ##
+      # Double entry moves test logs from PostgreSQL to Elastic-type engines
+      # Ref: https://reportportal.io/blog/double-entry-in-5.7.2
+      ##
       RP_ELASTICSEARCH_HOST: http://opensearch:9200
       RP_ELASTICSEARCH_USERNAME: ""
       RP_ELASTICSEARCH_PASSWORD: ""
       RP_DB_HOST: postgres
-      RP_DB_USER: rpuser
-      RP_DB_PASS: rppass
-      RP_DB_NAME: reportportal
-      RP_AMQP_USER: rabbitmq
-      RP_AMQP_PASS: rabbitmq
-      RP_AMQP_APIUSER: rabbitmq
-      RP_AMQP_APIPASS: rabbitmq
+      RP_DB_USER: *db_user
+      RP_DB_PASS: *db_password
+      RP_DB_NAME: *db_name
+      RP_AMQP_USER: *rabbitmq_user
+      RP_AMQP_PASS: *rabbitmq_password
+      RP_AMQP_APIUSER: *rabbitmq_user
+      RP_AMQP_APIPASS: *rabbitmq_password
       RP_AMQP_ANALYZER-VHOST: analyzer
       DATASTORE_TYPE: minio
       DATASTORE_ENDPOINT: http://minio:9000
-      DATASTORE_ACCESSKEY: minio
-      DATASTORE_SECRETKEY: minio123
+      DATASTORE_ACCESSKEY: *minio_accesskey
+      DATASTORE_SECRETKEY: *minio_secretkey
       RP_ENVIRONMENT_VARIABLE_CLEAN_ATTACHMENT_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_LOG_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_LAUNCH_CRON: 0 0 */24 * * *
@@ -327,141 +464,6 @@ services:
       - "traefik.http.services.ui.loadbalancer.server.port=8080"
       - "traefik.http.services.ui.loadbalancer.server.scheme=http"
       - "traefik.expose=true"
-    networks:
-      - reportportal
-    restart: always
-
-  gateway:
-    image: traefik:v2.0.7
-    container_name: traefik
-    logging:
-      <<: *logging
-    ports:
-      - "8080:8080" # HTTP exposed
-      - "8081:8081" # HTTP Administration exposed
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    command:
-      - --providers.docker=true
-      - --providers.docker.constraints=Label(`traefik.expose`, `true`)
-      - --entrypoints.web.address=:8080
-      - --entrypoints.traefik.address=:8081
-      - --api.dashboard=true
-      - --api.insecure=true
-    networks:
-      - reportportal
-    restart: always
-
-  opensearch:
-    image: opensearchproject/opensearch:2.11.0
-    container_name: opensearch
-    environment:
-      discovery.type: single-node
-      plugins.security.disabled: "true"
-      bootstrap.memory_lock: "true"
-      OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
-      DISABLE_INSTALL_DEMO_CONFIG: "true"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    # ports:
-    #   - "9200:9200"
-    #   - "9600:9600"
-    volumes:
-      - opensearch-data:/usr/share/opensearch/data
-    healthcheck:
-      test: ["CMD", "curl","-s" ,"-f", "http://0.0.0.0:9200/_cat/health"]
-    networks:
-      - reportportal
-
-  minio:
-    image: minio/minio:RELEASE.2020-10-27T04-03-55Z
-    container_name: minio
-    logging:
-      <<: *logging
-    # ports:
-    #   - 9000:9000
-    volumes:
-      ## For unix host
-      - storage:/data
-      ## For windows host
-      # - minio:/data
-    environment:
-      MINIO_ACCESS_KEY: minio
-      MINIO_SECRET_KEY: minio123
-    command: server /data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
-    networks:
-      - reportportal
-    restart: always
-
-  postgres:
-    image: postgres:12-alpine
-    container_name: postgres
-    logging:
-      <<: *logging
-    shm_size: '512m'
-    environment:
-      POSTGRES_USER: rpuser
-      POSTGRES_PASSWORD: rppass
-      POSTGRES_DB: reportportal
-    volumes:
-      ## For unix host
-      - postgres:/var/lib/postgresql/data
-      ## For windows host
-      # - postgres:/var/lib/postgresql/data
-    ## If you need to access the DB locally. Could be a security risk to expose DB.
-    # ports:
-    #   - "5432:5432"
-    command:
-      -c checkpoint_completion_target=0.9
-      -c work_mem=96MB
-      -c wal_writer_delay=20ms
-      -c synchronous_commit=off
-      -c wal_buffers=32MB
-      -c min_wal_size=2GB
-      -c max_wal_size=4GB
-    ## Optional, for SSD Data Storage. If you are using the HDD, set up this command to '2'
-    #  -c effective_io_concurrency=200
-    ## Optional, for SSD Data Storage. If you are using the HDD, set up this command to '4'
-    #  -c random_page_cost=1.1
-    ## Optional can be scaled. Example for 4 CPU, 16GB RAM instance, where only the database is deployed
-    #  -c max_worker_processes=4
-    #  -c max_parallel_workers_per_gather=2
-    #  -c max_parallel_workers=4
-    #  -c shared_buffers=4GB
-    #  -c effective_cache_size=12GB
-    #  -c maintenance_work_mem=1GB
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"]
-      interval: 10s
-      timeout: 120s
-      retries: 10
-    networks:
-      - reportportal
-    restart: always
-
-  rabbitmq:
-    image: bitnami/rabbitmq:3.12.2-debian-11-r8
-    container_name: rabbitmqplugins.security.disabled
-    logging:
-      <<: *logging
-    # ports:
-    #   - "5672:5672"
-    #   - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: "rabbitmq"
-      RABBITMQ_DEFAULT_PASS: "rabbitmq"
-    healthcheck:
-      test: ["CMD", "rabbitmqctl", "status"]
-      interval: 30s
-      timeout: 30s
-      retries: 5
     networks:
       - reportportal
     restart: always
