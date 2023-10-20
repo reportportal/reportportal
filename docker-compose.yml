@@ -107,17 +107,17 @@ services:
       -c wal_buffers=32MB
       -c min_wal_size=2GB
       -c max_wal_size=4GB
-    ## Optional, for SSD Data Storage. If you are using the HDD, set up this command to '2'
-    #  -c effective_io_concurrency=200
-    ## Optional, for SSD Data Storage. If you are using the HDD, set up this command to '4'
-    #  -c random_page_cost=1.1
-    ## Optional can be scaled. Example for 4 CPU, 16GB RAM instance, where only the database is deployed
-    #  -c max_worker_processes=4
-    #  -c max_parallel_workers_per_gather=2
-    #  -c max_parallel_workers=4
-    #  -c shared_buffers=4GB
-    #  -c effective_cache_size=12GB
-    #  -c maintenance_work_mem=1GB
+    # Optional, for SSD Data Storage. If you are using the HDD, set up this command to '2'
+      #  -c effective_io_concurrency=200
+    # Optional, for SSD Data Storage. If you are using the HDD, set up this command to '4'
+      #  -c random_page_cost=1.1
+    # Optional can be scaled. Example for 4 CPU, 16GB RAM instance, where only the database is deployed
+      #  -c max_worker_processes=4
+      #  -c max_parallel_workers_per_gather=2
+      #  -c max_parallel_workers=4
+      #  -c shared_buffers=4GB
+      #  -c effective_cache_size=12GB
+      #  -c maintenance_work_mem=1GB
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"]
       interval: 10s
@@ -147,7 +147,7 @@ services:
       - reportportal
     restart: always
 
-  ## An analyzer instance for main functionality, don't forget to use the same storage settings (either MinIO or filesystem) for analyzer_train
+  # An analyzer instance for main functionality, don't forget to use the same storage settings (either MinIO or filesystem) for analyzer_train
   analyzer:
     image: reportportal/service-auto-analyzer:5.10.0
     container_name: reportportal-analyzer
@@ -171,7 +171,7 @@ services:
       - reportportal
     restart: always
 
-  ## An analyzer instance for training, don't forget to set up the same storage (either MinIO or filesystem) as for the main analyzer
+  # An analyzer instance for training, don't forget to set up the same storage (either MinIO or filesystem) as for the main analyzer
   analyzer-train:
     image: reportportal/service-auto-analyzer:5.10.0
     container_name: reportportal-analyzer-train
@@ -197,7 +197,7 @@ services:
       - reportportal
     restart: always
 
-  ## Metrics service for analyzing how the analyzer is working and managing retrained models
+  # Metrics service for analyzing how the analyzer is working and managing retrained models
   metrics-gatherer:
     image: reportportal/service-metrics-gatherer:5.10.0
     container_name: reportportal-metrics-gatherer
@@ -215,7 +215,7 @@ services:
       POSTGRES_PORT: 5432
       ALLOWED_START_TIME: "22:00"
       ALLOWED_END_TIME: "08:00"
-      #TZ: Europe/Minsk you can change a timezone like this to specify when metrics are gathered
+      # TZ: Europe/Minsk you can change a timezone like this to specify when metrics are gathered
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
       AMQP_VIRTUAL_HOST: analyzer
     depends_on:
