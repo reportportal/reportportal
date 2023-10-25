@@ -189,7 +189,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:5.10.0
+    image: reportportal/service-api:5.10.1
     logging:
       <<: *logging
     depends_on:
