@@ -9,7 +9,7 @@
 [![lambdaTest a27c44](https://user-images.githubusercontent.com/11332788/230135399-6d839d7f-0dbe-45bf-8f72-dee3a5d69e17.svg)](https://www.lambdatest.com/)
 
 
-Report Portal organized into multiple repositories.
+ReportPortal organized into multiple repositories.
 
 Application Core based on micro-services architecture and includes next mandatory services:
 ![structure](https://github.com/reportportal/reportportal/blob/master/public/rp_repo_structure.png)
@@ -99,7 +99,7 @@ You should add **Client Side** code inside your test automation. It consists of:
 
 ## Contribution
 
-There are many different ways to contribute to Report Portal's development, just find the one that best fits with your skills. Examples of contributions we would love to receive include:
+There are many different ways to contribute to ReportPortal's development, just find the one that best fits with your skills. Examples of contributions we would love to receive include:
 
 - **Code patches**
 - **Documentation improvements**
@@ -108,7 +108,7 @@ There are many different ways to contribute to Report Portal's development, just
 - **Patch reviews**
 - **UI enhancements**
 
-Big features are also welcome but if you want to see your contributions included in Report Portal codebase we strongly recommend you start by initiating a [chat through our Team in Slack](https://slack.epmrpp.reportportal.io/).
+Big features are also welcome but if you want to see your contributions included in ReportPortal codebase we strongly recommend you start by initiating a [chat through our Team in Slack](https://slack.epmrpp.reportportal.io/).
 
 [Contribution details](https://github.com/reportportal/reportportal/wiki/Contribution)
 
@@ -128,4 +128,4 @@ Big features are also welcome but if you want to see your contributions included
 
 ## License
 
-Report Portal is [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+ReportPortal is [Apache 2.0](https://www.apache.org/licenses/LICENSE-2.0).
