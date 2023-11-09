@@ -24,15 +24,16 @@ services:
       options:
         max-size: 100m
         max-file: "5"
+    volumes:
+      - storage:/opt/reportportal/data
     environment:
       LOGGING_LEVEL: info
       AMQP_EXCHANGE_NAME: analyzer-default
       AMQP_VIRTUAL_HOST: analyzer
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
       ES_HOSTS: http://elastic:elastic1q2w3e@elasticsearch:9200
-      MINIO_SHORT_HOST: minio:9000
-      MINIO_ACCESS_KEY: minio
-      MINIO_SECRET_KEY: minio123
+      ANALYZER_BINSTORE_TYPE: filesystem
+      FILESYSTEM_DEFAULT_PATH: /opt/reportportal/data
     depends_on:
       elasticsearch:
         condition: service_started
@@ -53,9 +54,6 @@ services:
       AMQP_VIRTUAL_HOST: analyzer
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
       ES_HOSTS: http://elastic:elastic1q2w3e@elasticsearch:9200
-      MINIO_SHORT_HOST: minio:9000
-      MINIO_ACCESS_KEY: minio
-      MINIO_SECRET_KEY: minio123
       INSTANCE_TASK_TYPE: train
       UWSGI_WORKERS: 1
     depends_on:
@@ -124,13 +122,24 @@ services:
 #      RP_DB_NAME: reportportal
 #      RP_TOKEN_MIGRATION: "true"
 
-  uat:
-    image: reportportal/service-authorization:5.10.0
+  api:
+    image: reportportal/service-api:5.10.0
     logging:
       <<: *logging
-    # ports:
-    #   - "9999:9999"
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      gateway:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    volumes:
+      - storage:/opt/reportportal/data
     environment:
+      ## Double entry moves test logs from PostgreSQL to Elastic-type engines
+      ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
+      RP_FEATURE_FLAGS: singleBucket
+      RP_ELASTICSEARCHLOGMESSAGE_HOST: http://elasticsearch:9200
       RP_DB_HOST: postgres
       RP_DB_USER: rpuser
       RP_DB_PASS: rppass
@@ -139,10 +148,53 @@ services:
       RP_AMQP_PASS: rabbitmq
       RP_AMQP_APIUSER: rabbitmq
       RP_AMQP_APIPASS: rabbitmq
-      DATASTORE_TYPE: minio
-      DATASTORE_ENDPOINT: http://minio:9000
-      DATASTORE_ACCESSKEY: minio
-      DATASTORE_SECRETKEY: minio123
+      RP_AMQP_ANALYZER-VHOST: analyzer
+      DATASTORE_TYPE: filesystem
+      DATASTORE_PATH: /opt/reportportal/data
+      LOGGING_LEVEL_ORG_HIBERNATE_SQL: info
+      RP_REQUESTLOGGING: "false"
+      AUDIT_LOGGER: "OFF"
+      MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED: "false"
+      RP_ENVIRONMENT_VARIABLE_ALLOW_DELETE_ACCOUNT: "false"
+      JAVA_OPTS: -Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp  -Dcom.sun.management.jmxremote.rmi.port=12349 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false  -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=0.0.0.0
+    healthcheck:
+      test: curl -f http://0.0.0.0:8585/health
+      interval: 60s
+      timeout: 30s
+      retries: 10
+      start_period: 60s
+    labels:
+      - "traefik.http.middlewares.api-strip-prefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.api.middlewares=api-strip-prefix@docker"
+      - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.api.service=api"
+      - "traefik.http.services.api.loadbalancer.server.port=8585"
+      - "traefik.http.services.api.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
+    networks:
+      - reportportal
+    restart: always
+    
+  uat:
+    image: reportportal/service-authorization:5.10.0
+    logging:
+      <<: *logging
+    # ports:
+    #   - "9999:9999"
+    volumes:
+      - storage:/opt/reportportal/data
+    environment:
+      RP_FEATURE_FLAGS: singleBucket
+      RP_DB_HOST: postgres
+      RP_DB_USER: rpuser
+      RP_DB_PASS: rppass
+      RP_DB_NAME: reportportal
+      RP_AMQP_USER: rabbitmq
+      RP_AMQP_PASS: rabbitmq
+      RP_AMQP_APIUSER: rabbitmq
+      RP_AMQP_APIPASS: rabbitmq
+      DATASTORE_TYPE: filesystem
+      DATASTORE_PATH: /opt/reportportal/data
       RP_SESSION_LIVE: 86400 # in seconds
       RP_SAML_SESSION-LIVE: 4320
       ## The initial password for superadmin user on the FIRST launch. If the password was changed from the UI, this value can't change the password on redeployments.
@@ -168,78 +220,6 @@ services:
       - reportportal
     restart: always
 
-  index:
-    image: reportportal/service-index:5.10.0
-    logging:
-      <<: *logging
-    depends_on:
-      gateway:
-        condition: service_started
-    environment:
-      LB_URL: http://gateway:8081
-      TRAEFIK_V2_MODE: 'true'
-    labels:
-      - "traefik.http.routers.index.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.index.service=index"
-      - "traefik.http.services.index.loadbalancer.server.port=8080"
-      - "traefik.http.services.index.loadbalancer.server.scheme=http"
-      - "traefik.expose=true"
-    networks:
-      - reportportal
-    restart: always
-
-  api:
-    image: reportportal/service-api:5.10.0
-    logging:
-      <<: *logging
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      gateway:
-        condition: service_started
-      postgres:
-        condition: service_healthy
-    environment:
-      ## Double entry moves test logs from PostgreSQL to Elastic-type engines
-      ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
-      RP_ELASTICSEARCHLOGMESSAGE_HOST: http://elasticsearch:9200
-      RP_DB_HOST: postgres
-      RP_DB_USER: rpuser
-      RP_DB_PASS: rppass
-      RP_DB_NAME: reportportal
-      RP_AMQP_USER: rabbitmq
-      RP_AMQP_PASS: rabbitmq
-      RP_AMQP_APIUSER: rabbitmq
-      RP_AMQP_APIPASS: rabbitmq
-      RP_AMQP_ANALYZER-VHOST: analyzer
-      DATASTORE_TYPE: minio
-      DATASTORE_ENDPOINT: http://minio:9000
-      DATASTORE_ACCESSKEY: minio
-      DATASTORE_SECRETKEY: minio123
-      LOGGING_LEVEL_ORG_HIBERNATE_SQL: info
-      RP_REQUESTLOGGING: "false"
-      AUDIT_LOGGER: "OFF"
-      MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED: "false"
-      RP_ENVIRONMENT_VARIABLE_ALLOW_DELETE_ACCOUNT: "false"
-      JAVA_OPTS: -Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp  -Dcom.sun.management.jmxremote.rmi.port=12349 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false  -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=0.0.0.0
-    healthcheck:
-      test: curl -f http://0.0.0.0:8585/health
-      interval: 60s
-      timeout: 30s
-      retries: 10
-      start_period: 60s
-    labels:
-      - "traefik.http.middlewares.api-strip-prefix.stripprefix.prefixes=/api"
-      - "traefik.http.routers.api.middlewares=api-strip-prefix@docker"
-      - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
-      - "traefik.http.routers.api.service=api"
-      - "traefik.http.services.api.loadbalancer.server.port=8585"
-      - "traefik.http.services.api.loadbalancer.server.scheme=http"
-      - "traefik.expose=true"
-    networks:
-      - reportportal
-    restart: always
-
   jobs:
     image: reportportal/service-jobs:5.10.0
     logging:
@@ -251,9 +231,12 @@ services:
         condition: service_started
       postgres:
         condition: service_healthy
+    volumes:
+      - storage:/opt/reportportal/data
     environment:
       ## Double entry moves test logs from PostgreSQL to Elastic-type engines
       ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
+      RP_FEATURE_FLAGS: singleBucket
       RP_ELASTICSEARCH_HOST: http://elasticsearch:9200
       RP_ELASTICSEARCH_USERNAME: elastic
       RP_ELASTICSEARCH_PASSWORD:  elastic1q2w3e
@@ -266,10 +249,8 @@ services:
       RP_AMQP_APIUSER: rabbitmq
       RP_AMQP_APIPASS: rabbitmq
       RP_AMQP_ANALYZER-VHOST: analyzer
-      DATASTORE_TYPE: minio
-      DATASTORE_ENDPOINT: http://minio:9000
-      DATASTORE_ACCESSKEY: minio
-      DATASTORE_SECRETKEY: minio123
+      DATASTORE_TYPE: filesystem
+      DATASTORE_PATH: /opt/reportportal/data
       RP_ENVIRONMENT_VARIABLE_CLEAN_ATTACHMENT_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_LOG_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_LAUNCH_CRON: 0 0 */24 * * *
@@ -311,6 +292,26 @@ services:
       - "traefik.http.routers.ui.service=ui"
       - "traefik.http.services.ui.loadbalancer.server.port=8080"
       - "traefik.http.services.ui.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
+    networks:
+      - reportportal
+    restart: always
+
+  index:
+    image: reportportal/service-index:5.10.0
+    logging:
+      <<: *logging
+    depends_on:
+      gateway:
+        condition: service_started
+    environment:
+      LB_URL: http://gateway:8081
+      TRAEFIK_V2_MODE: 'true'
+    labels:
+      - "traefik.http.routers.index.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.index.service=index"
+      - "traefik.http.services.index.loadbalancer.server.port=8080"
+      - "traefik.http.services.index.loadbalancer.server.scheme=http"
       - "traefik.expose=true"
     networks:
       - reportportal
@@ -360,30 +361,6 @@ services:
       # - "9200:9200"
     healthcheck:
       test: ["CMD", "curl","-s" ,"-f", "http://elastic:elastic1q2w3e@localhost:9200/_cat/health"]
-    networks:
-      - reportportal
-    restart: always
-
-  minio:
-    image: minio/minio:RELEASE.2020-10-27T04-03-55Z
-    logging:
-      <<: *logging
-    # ports:
-    #   - 9000:9000
-    volumes:
-      ## For unix host
-      - storage:/data
-      ## For windows host
-      # - minio:/data
-    environment:
-      MINIO_ACCESS_KEY: minio
-      MINIO_SECRET_KEY: minio123
-    command: server /data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
     networks:
       - reportportal
     restart: always
