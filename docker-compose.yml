@@ -1,18 +1,3 @@
-## Installation steps: https://reportportal.io/docs/installation-steps/DeployWithDockerOnLinuxMac/
-
-## This is an example of Docker Compose for ReportPortal
-## Do not forget to configure data volumes for production usage
-
-## Execute 'docker compose -f docker-compose.yml -p reportportal up -d --force-recreate' to deploy Report Portal
-## Where:
-##      '-f docker-compose.yml' -- specifies this compose file
-##      '-p reportportal' -- specifies a project name.
-##      '-d' -- detached mode: run containers in the background.
-##      '--force-recreate' -- recreate containers even if their configuration and image haven’t changed.
-
-## To remove execute 'docker compose -p reportportal down'
-##
-
 version: '3.8'
 services:
 
@@ -43,6 +28,8 @@ services:
   opensearch:
     image: opensearchproject/opensearch:2.11.0
     container_name: opensearch
+    logging:
+      <<: *logging
     environment:
       discovery.type: single-node
       plugins.security.disabled: "true"
@@ -149,7 +136,7 @@ services:
 
   # An analyzer instance for main functionality, don't forget to use the same storage settings (either MinIO or filesystem) for analyzer_train
   analyzer:
-    image: reportportal/service-auto-analyzer:5.10.0
+    image: &analyzer_img reportportal/service-auto-analyzer:5.10.0
     container_name: reportportal-analyzer
     logging:
       <<: *logging
@@ -157,7 +144,11 @@ services:
       LOGGING_LEVEL: info
       AMQP_EXCHANGE_NAME: analyzer-default
       AMQP_VIRTUAL_HOST: analyzer
-      AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+      AMQP_USER: *rabbitmq_user
+      AMQP_PASSWORD: *rabbitmq_password
+      AMQP_URL: amqp://$(AMQP_USER):$(AMQP_PASSWORD)@rabbitmq:5672
+      # ES_USER: 
+      # ES_PASSWORD: 
       ES_HOSTS: http://opensearch:9200
       MINIO_SHORT_HOST: minio:9000
       MINIO_ACCESS_KEY: *minio_accesskey
@@ -173,7 +164,7 @@ services:
 
   # An analyzer instance for training, don't forget to set up the same storage (either MinIO or filesystem) as for the main analyzer
   analyzer-train:
-    image: reportportal/service-auto-analyzer:5.10.0
+    image: *analyzer_img
     container_name: reportportal-analyzer-train
     logging:
       <<: *logging
@@ -181,7 +172,11 @@ services:
       LOGGING_LEVEL: info
       AMQP_EXCHANGE_NAME: analyzer-default
       AMQP_VIRTUAL_HOST: analyzer
-      AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+      AMQP_USER: *rabbitmq_user
+      AMQP_PASSWORD: *rabbitmq_password
+      AMQP_URL: amqp://$(AMQP_USER):$(AMQP_PASSWORD)@rabbitmq:5672
+      # ES_USER: 
+      # ES_PASSWORD: 
       ES_HOSTS: http://opensearch:9200
       MINIO_SHORT_HOST: minio:9000
       MINIO_ACCESS_KEY: *minio_accesskey
@@ -205,9 +200,9 @@ services:
       <<: *logging
     environment:
       LOGGING_LEVEL: info
-      ES_HOST: http://opensearch:9200
       # ES_USER: 
       # ES_PASSWORD: 
+      ES_HOST: http://opensearch:9200
       POSTGRES_USER: *db_user
       POSTGRES_PASSWORD: *db_password
       POSTGRES_DB: *db_name
@@ -216,7 +211,9 @@ services:
       ALLOWED_START_TIME: "22:00"
       ALLOWED_END_TIME: "08:00"
       # TZ: Europe/Minsk you can change a timezone like this to specify when metrics are gathered
-      AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+      AMQP_USER: *rabbitmq_user
+      AMQP_PASSWORD: *rabbitmq_password
+      AMQP_URL: amqp://$AMQP_USER:$AMQP_PASSWORD@rabbitmq:5672
       AMQP_VIRTUAL_HOST: analyzer
     depends_on:
       opensearch:
@@ -290,7 +287,7 @@ services:
       # The initial password for superadmin user on the FIRST launch. If the password was changed from the UI, 
       # this value can't change the password on redeployments.
       ##
-      RP_INITIAL_ADMIN_PASSWORD: ""
+      RP_INITIAL_ADMIN_PASSWORD: "erebus"
     healthcheck:
       test: curl -f http://0.0.0.0:9999/health
       interval: 60s
