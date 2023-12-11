@@ -126,12 +126,9 @@ services:
       # ES_USER: 
       # ES_PASSWORD: 
       ES_HOSTS: http://opensearch:9200
-      # MINIO_SHORT_HOST: minio:9000
-      # MINIO_ACCESS_KEY: *minio_accesskey
-      # MINIO_SECRET_KEY: *minio_secretkey
       ANALYZER_BINARYSTORE_TYPE: filesystem
     volumes:
-      - storage:/opt/reportportal/data
+      - storage:/data/storage
     depends_on:
       opensearch:
         condition: service_started
@@ -155,14 +152,11 @@ services:
       # ES_USER: 
       # ES_PASSWORD: 
       ES_HOSTS: http://opensearch:9200
-      # MINIO_SHORT_HOST: minio:9000
-      # MINIO_ACCESS_KEY: *minio_accesskey
-      # MINIO_SECRET_KEY: *minio_secretkey
       INSTANCE_TASK_TYPE: train
       UWSGI_WORKERS: 1
       ANALYZER_BINARYSTORE_TYPE: filesystem
     volumes:
-      - storage:/opt/reportportal/data
+      - storage:/data/storage
     depends_on:
       opensearch:
         condition: service_started
@@ -255,10 +249,7 @@ services:
       RP_AMQP_PASS: rabbitmq
       RP_AMQP_APIUSER: rabbitmq
       RP_AMQP_APIPASS: rabbitmq
-      DATASTORE_TYPE: filesystemn
-      # DATASTORE_ENDPOINT: http://minio:9000
-      # DATASTORE_ACCESSKEY: *minio_accesskey
-      # DATASTORE_SECRETKEY: *minio_secretkey
+      DATASTORE_TYPE: filesystem
       RP_SESSION_LIVE: 86400 # in seconds
       RP_SAML_SESSION-LIVE: 4320
       ##
@@ -267,7 +258,7 @@ services:
       ##
       RP_INITIAL_ADMIN_PASSWORD: "erebus"
     volumes:
-      - storage:/opt/reportportal/data
+      - storage:/data/storage
     healthcheck:
       test: curl -f http://0.0.0.0:9999/health
       interval: 60s
@@ -338,9 +329,6 @@ services:
       RP_AMQP_APIPASS: rabbitmq
       RP_AMQP_ANALYZER-VHOST: analyzer
       DATASTORE_TYPE: filesystem
-      # DATASTORE_ENDPOINT: http://minio:9000
-      # DATASTORE_ACCESSKEY: *minio_accesskey
-      # DATASTORE_SECRETKEY: *minio_secretkey
       LOGGING_LEVEL_ORG_HIBERNATE_SQL: info
       RP_REQUESTLOGGING: "false"
       AUDIT_LOGGER: "OFF"
@@ -348,7 +336,7 @@ services:
       RP_ENVIRONMENT_VARIABLE_ALLOW_DELETE_ACCOUNT: "false"
       JAVA_OPTS: -Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp  -Dcom.sun.management.jmxremote.rmi.port=12349 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false  -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=0.0.0.0
     volumes:
-      - storage:/opt/reportportal/data
+      - storage:/data/storage
     healthcheck:
       test: curl -f http://0.0.0.0:8585/health
       interval: 60s
@@ -397,9 +385,6 @@ services:
       RP_AMQP_APIPASS: rabbitmq
       RP_AMQP_ANALYZER-VHOST: analyzer
       DATASTORE_TYPE: filesystem
-      # DATASTORE_ENDPOINT: http://minio:9000
-      # DATASTORE_ACCESSKEY: *minio_accesskey
-      # DATASTORE_SECRETKEY: *minio_secretkey
       RP_ENVIRONMENT_VARIABLE_CLEAN_ATTACHMENT_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_LOG_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_LAUNCH_CRON: 0 0 */24 * * *
@@ -413,7 +398,7 @@ services:
       RP_PROCESSING_LOG_MAXBATCHTIMEOUT: 6000
       RP_AMQP_MAXLOGCONSUMER: 1
     volumes:
-      - storage:/opt/reportportal/data
+      - storage:/data/storage
     healthcheck:
       test: curl -f http://0.0.0.0:8686/health || exit 1
       interval: 60s
