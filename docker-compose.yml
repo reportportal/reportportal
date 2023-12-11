@@ -44,36 +44,14 @@ services:
     #   - "9200:9200"
     #   - "9600:9600"
     volumes:
-      - opensearch-data:/usr/share/opensearch/data
+      - opensearch:/usr/share/opensearch/data
     healthcheck:
       test: ["CMD", "curl","-s" ,"-f", "http://0.0.0.0:9200/_cat/health"]
     networks:
       - reportportal
 
-  minio:
-    image: minio/minio:RELEASE.2020-10-27T04-03-55Z
-    container_name: minio
-    logging:
-      <<: *logging
-    # ports:
-    #   - 9000:9000
-    volumes:
-      - storage:/data
-    environment:
-      MINIO_ACCESS_KEY: &minio_accesskey minio
-      MINIO_SECRET_KEY: &minio_secretkey minio123
-    command: server /data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 20s
-      retries: 3
-    networks:
-      - reportportal
-    restart: always
-
   postgres:
-    image: postgres:12-alpine
+    image: postgres:12.17-alpine3.17
     container_name: postgres
     logging:
       <<: *logging
@@ -116,15 +94,15 @@ services:
 
   rabbitmq:
     image: bitnami/rabbitmq:3.12.2-debian-11-r8
-    container_name: rabbitmqplugins.security.disabled
+    container_name: rabbitmq
     logging:
       <<: *logging
     # ports:
     #   - "5672:5672"
     #   - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: &rabbitmq_user rabbitmq
-      RABBITMQ_DEFAULT_PASS: &rabbitmq_password rabbitmq
+      RABBITMQ_DEFAULT_USER: rabbitmq
+      RABBITMQ_DEFAULT_PASS: rabbitmq
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
       interval: 30s
@@ -144,15 +122,16 @@ services:
       LOGGING_LEVEL: info
       AMQP_EXCHANGE_NAME: analyzer-default
       AMQP_VIRTUAL_HOST: analyzer
-      AMQP_USER: *rabbitmq_user
-      AMQP_PASSWORD: *rabbitmq_password
-      AMQP_URL: amqp://$(AMQP_USER):$(AMQP_PASSWORD)@rabbitmq:5672
+      AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
       # ES_USER: 
       # ES_PASSWORD: 
       ES_HOSTS: http://opensearch:9200
       MINIO_SHORT_HOST: minio:9000
       MINIO_ACCESS_KEY: *minio_accesskey
       MINIO_SECRET_KEY: *minio_secretkey
+      ANALYZER_BINARYSTORE_TYPE: filesystem
+    volumes:
+      - storage:/opt/reportportal/data
     depends_on:
       opensearch:
         condition: service_started
@@ -172,9 +151,7 @@ services:
       LOGGING_LEVEL: info
       AMQP_EXCHANGE_NAME: analyzer-default
       AMQP_VIRTUAL_HOST: analyzer
-      AMQP_USER: *rabbitmq_user
-      AMQP_PASSWORD: *rabbitmq_password
-      AMQP_URL: amqp://$(AMQP_USER):$(AMQP_PASSWORD)@rabbitmq:5672
+      AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
       # ES_USER: 
       # ES_PASSWORD: 
       ES_HOSTS: http://opensearch:9200
@@ -183,6 +160,9 @@ services:
       MINIO_SECRET_KEY: *minio_secretkey
       INSTANCE_TASK_TYPE: train
       UWSGI_WORKERS: 1
+      ANALYZER_BINARYSTORE_TYPE: filesystem
+    volumes:
+      - storage:/opt/reportportal/data
     depends_on:
       opensearch:
         condition: service_started
@@ -211,9 +191,7 @@ services:
       ALLOWED_START_TIME: "22:00"
       ALLOWED_END_TIME: "08:00"
       # TZ: Europe/Minsk you can change a timezone like this to specify when metrics are gathered
-      AMQP_USER: *rabbitmq_user
-      AMQP_PASSWORD: *rabbitmq_password
-      AMQP_URL: amqp://$AMQP_USER:$AMQP_PASSWORD@rabbitmq:5672
+      AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
       AMQP_VIRTUAL_HOST: analyzer
     depends_on:
       opensearch:
@@ -273,10 +251,10 @@ services:
       RP_DB_USER: *db_user
       RP_DB_PASS: *db_password
       RP_DB_NAME: *db_name
-      RP_AMQP_USER: *rabbitmq_user
-      RP_AMQP_PASS: *rabbitmq_password
-      RP_AMQP_APIUSER: *rabbitmq_user
-      RP_AMQP_APIPASS: *rabbitmq_password
+      RP_AMQP_USER: rabbitmq
+      RP_AMQP_PASS: rabbitmq
+      RP_AMQP_APIUSER: rabbitmq
+      RP_AMQP_APIPASS: rabbitmq
       DATASTORE_TYPE: minio
       DATASTORE_ENDPOINT: http://minio:9000
       DATASTORE_ACCESSKEY: *minio_accesskey
@@ -288,6 +266,8 @@ services:
       # this value can't change the password on redeployments.
       ##
       RP_INITIAL_ADMIN_PASSWORD: "erebus"
+    volumes:
+      - storage:/opt/reportportal/data
     healthcheck:
       test: curl -f http://0.0.0.0:9999/health
       interval: 60s
@@ -352,10 +332,10 @@ services:
       RP_DB_USER: *db_user
       RP_DB_PASS: *db_password
       RP_DB_NAME: *db_name
-      RP_AMQP_USER: *rabbitmq_user
-      RP_AMQP_PASS: *rabbitmq_password
-      RP_AMQP_APIUSER: *rabbitmq_user
-      RP_AMQP_APIPASS: *rabbitmq_password
+      RP_AMQP_USER: rabbitmq
+      RP_AMQP_PASS: rabbitmq
+      RP_AMQP_APIUSER: rabbitmq
+      RP_AMQP_APIPASS: rabbitmq
       RP_AMQP_ANALYZER-VHOST: analyzer
       DATASTORE_TYPE: minio
       DATASTORE_ENDPOINT: http://minio:9000
@@ -367,6 +347,8 @@ services:
       MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED: "false"
       RP_ENVIRONMENT_VARIABLE_ALLOW_DELETE_ACCOUNT: "false"
       JAVA_OPTS: -Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp  -Dcom.sun.management.jmxremote.rmi.port=12349 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false  -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=0.0.0.0
+    volumes:
+      - storage:/opt/reportportal/data
     healthcheck:
       test: curl -f http://0.0.0.0:8585/health
       interval: 60s
@@ -409,10 +391,10 @@ services:
       RP_DB_USER: *db_user
       RP_DB_PASS: *db_password
       RP_DB_NAME: *db_name
-      RP_AMQP_USER: *rabbitmq_user
-      RP_AMQP_PASS: *rabbitmq_password
-      RP_AMQP_APIUSER: *rabbitmq_user
-      RP_AMQP_APIPASS: *rabbitmq_password
+      RP_AMQP_USER: rabbitmq
+      RP_AMQP_PASS: rabbitmq
+      RP_AMQP_APIUSER: rabbitmq
+      RP_AMQP_APIPASS: rabbitmq
       RP_AMQP_ANALYZER-VHOST: analyzer
       DATASTORE_TYPE: minio
       DATASTORE_ENDPOINT: http://minio:9000
@@ -430,6 +412,8 @@ services:
       RP_PROCESSING_LOG_MAXBATCHSIZE: 2000
       RP_PROCESSING_LOG_MAXBATCHTIMEOUT: 6000
       RP_AMQP_MAXLOGCONSUMER: 1
+    volumes:
+      - storage:/opt/reportportal/data
     healthcheck:
       test: curl -f http://0.0.0.0:8686/health || exit 1
       interval: 60s
@@ -466,7 +450,7 @@ services:
     restart: always
 
 volumes:
-  opensearch-data:
+  opensearch:
   storage:
   postgres:
 
