@@ -1,5 +1,7 @@
-version: '3.8'
+version: "3.8"
 services:
+
+  ## External dependencies
 
   gateway:
     image: traefik:v2.0.7
@@ -10,8 +12,8 @@ services:
         max-size: 100m
         max-file: "5"
     ports:
-      - "8080:8080" # HTTP exposed
-      - "8081:8081" # HTTP Administration exposed
+      - "8080:8080" # ReportPortal UI
+      - "8081:8081" # Traefik dashboard
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command:
@@ -40,6 +42,7 @@ services:
       memlock:
         soft: -1
         hard: -1
+    ## Expose OpenSearch
     # ports:
     #   - "9200:9200"
     #   - "9600:9600"
@@ -62,9 +65,12 @@ services:
       POSTGRES_DB: &db_name reportportal
     volumes:
       - postgres:/var/lib/postgresql/data
+    ## Expose Database
     # ports:
     #   - "5432:5432"
     command:
+      ## PostgrsSQL performance tuning
+      ## Ref: https://reportportal.io/docs/installation-steps/OptimalPerformanceHardwareSetup#5-postgresql-performance-tuning
       -c checkpoint_completion_target=0.9
       -c work_mem=96MB
       -c wal_writer_delay=20ms
@@ -72,17 +78,6 @@ services:
       -c wal_buffers=32MB
       -c min_wal_size=2GB
       -c max_wal_size=4GB
-    # Optional, for SSD Data Storage. If you are using the HDD, set up this command to '2'
-      #  -c effective_io_concurrency=200
-    # Optional, for SSD Data Storage. If you are using the HDD, set up this command to '4'
-      #  -c random_page_cost=1.1
-    # Optional can be scaled. Example for 4 CPU, 16GB RAM instance, where only the database is deployed
-      #  -c max_worker_processes=4
-      #  -c max_parallel_workers_per_gather=2
-      #  -c max_parallel_workers=4
-      #  -c shared_buffers=4GB
-      #  -c effective_cache_size=12GB
-      #  -c maintenance_work_mem=1GB
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"]
       interval: 10s
@@ -97,12 +92,13 @@ services:
     container_name: rabbitmq
     logging:
       <<: *logging
+    ## Expose RabbitMQ
     # ports:
     #   - "5672:5672"
     #   - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: rabbitmq
-      RABBITMQ_DEFAULT_PASS: rabbitmq
+      RABBITMQ_DEFAULT_USER: &rabbitmq_user rabbitmq
+      RABBITMQ_DEFAULT_PASS: &rabbitmq_password rabbitmq
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
       interval: 30s
@@ -112,7 +108,225 @@ services:
       - reportportal
     restart: always
 
-  # An analyzer instance for main functionality, don't forget to use the same storage settings (either MinIO or filesystem) for analyzer_train
+  ## ReportPortal services
+
+  index:
+    image: reportportal/service-index:5.10.0
+    container_name: reportportal-index
+    logging:
+      <<: *logging
+    depends_on:
+      gateway:
+        condition: service_started
+    environment:
+      LB_URL: http://gateway:8081
+      TRAEFIK_V2_MODE: 'true'
+    labels:
+      - "traefik.http.routers.index.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.index.service=index"
+      - "traefik.http.services.index.loadbalancer.server.port=8080"
+      - "traefik.http.services.index.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
+    networks:
+      - reportportal
+    restart: always
+
+  ui:
+    image: reportportal/service-ui:5.10.0
+    container_name: reportportal-ui
+    environment:
+      RP_SERVER_PORT: "8080"
+    labels:
+      - "traefik.http.middlewares.ui-strip-prefix.stripprefix.prefixes=/ui"
+      - "traefik.http.routers.ui.middlewares=ui-strip-prefix@docker"
+      - "traefik.http.routers.ui.rule=PathPrefix(`/ui`)"
+      - "traefik.http.routers.ui.service=ui"
+      - "traefik.http.services.ui.loadbalancer.server.port=8080"
+      - "traefik.http.services.ui.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
+    networks:
+      - reportportal
+    restart: always
+
+  api:
+    image: reportportal/service-api:5.10.0
+    container_name: reportportal-api
+    logging:
+      <<: *logging
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      gateway:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    environment:
+      ## Double entry moves test logs from PostgreSQL to Elastic-type engines
+      ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
+      RP_ELASTICSEARCHLOGMESSAGE_HOST: http://opensearch:9200
+      RP_DB_HOST: postgres
+      RP_DB_USER: *db_user
+      RP_DB_PASS: *db_password
+      RP_DB_NAME: *db_name
+      RP_AMQP_USER: *rabbitmq_user
+      RP_AMQP_PASS: *rabbitmq_password
+      RP_AMQP_APIUSER: *rabbitmq_user
+      RP_AMQP_APIPASS: *rabbitmq_password
+      RP_AMQP_ANALYZER-VHOST: analyzer
+      DATASTORE_TYPE: filesystem
+      LOGGING_LEVEL_ORG_HIBERNATE_SQL: info
+      RP_REQUESTLOGGING: "false"
+      AUDIT_LOGGER: "OFF"
+      MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED: "false"
+      RP_ENVIRONMENT_VARIABLE_ALLOW_DELETE_ACCOUNT: "false"
+      JAVA_OPTS: >
+        -Xmx1g 
+        -XX:+HeapDumpOnOutOfMemoryError 
+        -XX:HeapDumpPath=/tmp  
+        -Dcom.sun.management.jmxremote.rmi.port=12349 
+        -Dcom.sun.management.jmxremote 
+        -Dcom.sun.management.jmxremote.local.only=false  
+        -Dcom.sun.management.jmxremote.port=9010 
+        -Dcom.sun.management.jmxremote.authenticate=false 
+        -Dcom.sun.management.jmxremote.ssl=false 
+        -Djava.rmi.server.hostname=0.0.0.0
+      RP_JOBS_BASEURL: http://jobs:8686
+      COM_TA_REPORTPORTAL_JOB_INTERRUPT_BROKEN_LAUNCHES_CRON: PT1H
+      RP_ENVIRONMENT_VARIABLE_PATTERN-ANALYSIS_BATCH-SIZE: 100
+      RP_ENVIRONMENT_VARIABLE_PATTERN-ANALYSIS_PREFETCH-COUNT: 1
+      RP_ENVIRONMENT_VARIABLE_PATTERN-ANALYSIS_CONSUMERS-COUNT: 1
+    volumes:
+      - storage:/data/storage
+    healthcheck:
+      test: curl -f http://0.0.0.0:8585/health
+      interval: 60s
+      timeout: 30s
+      retries: 10
+      start_period: 60s
+    labels:
+      - "traefik.http.middlewares.api-strip-prefix.stripprefix.prefixes=/api"
+      - "traefik.http.routers.api.middlewares=api-strip-prefix@docker"
+      - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.api.service=api"
+      - "traefik.http.services.api.loadbalancer.server.port=8585"
+      - "traefik.http.services.api.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
+    networks:
+      - reportportal
+    restart: always
+
+  uat:
+    image: reportportal/service-authorization:5.10.0
+    container_name: reportportal-uat
+    logging:
+      <<: *logging
+    environment:
+      RP_DB_HOST: postgres
+      RP_DB_USER: *db_user
+      RP_DB_PASS: *db_password
+      RP_DB_NAME: *db_name
+      RP_AMQP_USER: *rabbitmq_user
+      RP_AMQP_PASS: *rabbitmq_password
+      RP_AMQP_APIUSER: *rabbitmq_user
+      RP_AMQP_APIPASS: *rabbitmq_password
+      DATASTORE_TYPE: filesystem
+      RP_SESSION_LIVE: 86400 # in seconds
+      RP_SAML_SESSION-LIVE: 4320
+      ## RP_INITIAL_ADMIN_PASSWORD - the initial password of the superadmin user for the first launch. This value can't change the password on redeployments.
+      RP_INITIAL_ADMIN_PASSWORD: "erebus"
+      JAVA_OPTS: -Djava.security.egd=file:/dev/./urandom -XX:MinRAMPercentage=60.0 -XX:MaxRAMPercentage=90.0
+    volumes:
+      - storage:/data/storage
+    healthcheck:
+      test: curl -f http://0.0.0.0:9999/health
+      interval: 60s
+      timeout: 30s
+      retries: 10
+      start_period: 60s
+    labels:
+      - "traefik.http.middlewares.uat-strip-prefix.stripprefix.prefixes=/uat"
+      - "traefik.http.routers.uat.middlewares=uat-strip-prefix@docker"
+      - "traefik.http.routers.uat.rule=PathPrefix(`/uat`)"
+      - "traefik.http.routers.uat.service=uat"
+      - "traefik.http.services.uat.loadbalancer.server.port=9999"
+      - "traefik.http.services.uat.loadbalancer.server.scheme=http"
+      - "traefik.expose=true"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - reportportal
+    restart: always
+
+  jobs:
+    image: reportportal/service-jobs:5.10.0
+    container_name: reportportal-jobs
+    logging:
+      <<: *logging
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      gateway:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    environment:
+      ## Double entry moves test logs from PostgreSQL to Elastic-type engines
+      #№ Ref: https://reportportal.io/blog/double-entry-in-5.7.2
+      RP_ELASTICSEARCH_HOST: http://opensearch:9200
+      RP_ELASTICSEARCH_USERNAME: ""
+      RP_ELASTICSEARCH_PASSWORD: ""
+      RP_DB_HOST: postgres
+      RP_DB_USER: *db_user
+      RP_DB_PASS: *db_password
+      RP_DB_NAME: *db_name
+      RP_AMQP_USER: *rabbitmq_user
+      RP_AMQP_PASS: *rabbitmq_password
+      RP_AMQP_APIUSER: *rabbitmq_user
+      RP_AMQP_APIPASS: *rabbitmq_password
+      RP_AMQP_ANALYZER-VHOST: analyzer
+      DATASTORE_TYPE: filesystem
+      RP_ENVIRONMENT_VARIABLE_CLEAN_ATTACHMENT_CRON: 0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_LOG_CRON: 0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_LAUNCH_CRON: 0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CRON: 0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_STORAGE_PROJECT_CRON: 0 */5 * * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_CRON:  0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_RETENTIONPERIOD: 365
+      RP_ENVIRONMENT_VARIABLE_NOTIFICATION_EXPIREDUSER_CRON: 0 0 */24 * * * 
+      RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE: 20000
+      RP_PROCESSING_LOG_MAXBATCHSIZE: 2000
+      RP_PROCESSING_LOG_MAXBATCHTIMEOUT: 6000
+      RP_AMQP_MAXLOGCONSUMER: 1
+      JAVA_OPTS: <
+        -Djava.security.egd=file:/dev/./urandom
+        -XX:+UseG1GC
+        -XX:+UseStringDeduplication
+        -XX:G1ReservePercent=20
+        -XX:InitiatingHeapOccupancyPercent=60
+        -XX:MaxRAMPercentage=70.0
+        -XX:+HeapDumpOnOutOfMemoryError
+        -XX:HeapDumpPath=/tmp
+    volumes:
+      - storage:/data/storage
+    healthcheck:
+      test: curl -f http://0.0.0.0:8686/health || exit 1
+      interval: 60s
+      timeout: 30s
+      retries: 10
+      start_period: 60s
+    labels:
+      - traefik.http.middlewares.jobs-strip-prefix.stripprefix.prefixes=/jobs
+      - traefik.http.routers.jobs.middlewares=jobs-strip-prefix@docker
+      - traefik.http.routers.jobs.rule=PathPrefix(`/jobs`)
+      - traefik.http.routers.jobs.service=jobs
+      - traefik.http.services.jobs.loadbalancer.server.port=8686
+      - traefik.http.services.jobs.loadbalancer.server.scheme=http
+      - traefik.expose=true
+    networks:
+      - reportportal
+    restart: always
+
   analyzer:
     image: &analyzer_img reportportal/service-auto-analyzer:5.10.0
     container_name: reportportal-analyzer
@@ -138,7 +352,6 @@ services:
       - reportportal
     restart: always
 
-  # An analyzer instance for training, don't forget to set up the same storage (either MinIO or filesystem) as for the main analyzer
   analyzer-train:
     image: *analyzer_img
     container_name: reportportal-analyzer-train
@@ -166,7 +379,6 @@ services:
       - reportportal
     restart: always
 
-  # Metrics service for analyzing how the analyzer is working and managing retrained models
   metrics-gatherer:
     image: reportportal/service-metrics-gatherer:5.10.0
     container_name: reportportal-metrics-gatherer
@@ -194,7 +406,6 @@ services:
       - reportportal
     restart: always
 
-  ## Initial reportportal db schema. Run once.
   migrations:
     image: reportportal/migrations:5.10.0
     container_name: reportportal-migrations
@@ -217,222 +428,7 @@ services:
     networks:
       - reportportal
     restart: on-failure
-   
-  ##
-  # ReportPortal service for different migrations.
-  # Read more: https://github.com/reportportal/migrations-complex/blob/master/README.md
-  ##
-  # migrations-complex:
-  #   image: reportportal/migrations-complex:1.0.0
-  #   ports:
-  #     - '5020:5020'
-  #   environment:
-  #     RP_DB_HOST: postgres
-  #     RP_DB_USER: *db_user
-  #     RP_DB_PASS: *db_password
-  #     RP_DB_NAME: *db_name
-  #     RP_TOKEN_MIGRATION: "true"
 
-  uat:
-    image: reportportal/service-authorization:5.10.0
-    container_name: reportportal-uat
-    logging:
-      <<: *logging
-    # ports:
-    #   - "9999:9999"
-    environment:
-      RP_DB_HOST: postgres
-      RP_DB_USER: *db_user
-      RP_DB_PASS: *db_password
-      RP_DB_NAME: *db_name
-      RP_AMQP_USER: rabbitmq
-      RP_AMQP_PASS: rabbitmq
-      RP_AMQP_APIUSER: rabbitmq
-      RP_AMQP_APIPASS: rabbitmq
-      DATASTORE_TYPE: filesystem
-      RP_SESSION_LIVE: 86400 # in seconds
-      RP_SAML_SESSION-LIVE: 4320
-      ##
-      # The initial password for superadmin user on the FIRST launch. If the password was changed from the UI, 
-      # this value can't change the password on redeployments.
-      ##
-      RP_INITIAL_ADMIN_PASSWORD: "erebus"
-    volumes:
-      - storage:/data/storage
-    healthcheck:
-      test: curl -f http://0.0.0.0:9999/health
-      interval: 60s
-      timeout: 30s
-      retries: 10
-      start_period: 60s
-    labels:
-      - "traefik.http.middlewares.uat-strip-prefix.stripprefix.prefixes=/uat"
-      - "traefik.http.routers.uat.middlewares=uat-strip-prefix@docker"
-      - "traefik.http.routers.uat.rule=PathPrefix(`/uat`)"
-      - "traefik.http.routers.uat.service=uat"
-      - "traefik.http.services.uat.loadbalancer.server.port=9999"
-      - "traefik.http.services.uat.loadbalancer.server.scheme=http"
-      - "traefik.expose=true"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - reportportal
-    restart: always
-
-  index:
-    image: reportportal/service-index:5.10.0
-    container_name: reportportal-index
-    logging:
-      <<: *logging
-    depends_on:
-      gateway:
-        condition: service_started
-    environment:
-      LB_URL: http://gateway:8081
-      TRAEFIK_V2_MODE: 'true'
-    labels:
-      - "traefik.http.routers.index.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.index.service=index"
-      - "traefik.http.services.index.loadbalancer.server.port=8080"
-      - "traefik.http.services.index.loadbalancer.server.scheme=http"
-      - "traefik.expose=true"
-    networks:
-      - reportportal
-    restart: always
-
-  api:
-    image: reportportal/service-api:5.10.0
-    container_name: reportportal-api
-    logging:
-      <<: *logging
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      gateway:
-        condition: service_started
-      postgres:
-        condition: service_healthy
-    environment:
-      ##
-      # Double entry moves test logs from PostgreSQL to Elastic-type engines
-      # Ref: https://reportportal.io/blog/double-entry-in-5.7.2
-      ##
-      RP_ELASTICSEARCHLOGMESSAGE_HOST: http://opensearch:9200
-      RP_DB_HOST: postgres
-      RP_DB_USER: *db_user
-      RP_DB_PASS: *db_password
-      RP_DB_NAME: *db_name
-      RP_AMQP_USER: rabbitmq
-      RP_AMQP_PASS: rabbitmq
-      RP_AMQP_APIUSER: rabbitmq
-      RP_AMQP_APIPASS: rabbitmq
-      RP_AMQP_ANALYZER-VHOST: analyzer
-      DATASTORE_TYPE: filesystem
-      LOGGING_LEVEL_ORG_HIBERNATE_SQL: info
-      RP_REQUESTLOGGING: "false"
-      AUDIT_LOGGER: "OFF"
-      MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED: "false"
-      RP_ENVIRONMENT_VARIABLE_ALLOW_DELETE_ACCOUNT: "false"
-      JAVA_OPTS: -Xmx1g -XX:+HeapDumpOnOutOfMemoryError -XX:HeapDumpPath=/tmp  -Dcom.sun.management.jmxremote.rmi.port=12349 -Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.local.only=false  -Dcom.sun.management.jmxremote.port=9010 -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=0.0.0.0
-    volumes:
-      - storage:/data/storage
-    healthcheck:
-      test: curl -f http://0.0.0.0:8585/health
-      interval: 60s
-      timeout: 30s
-      retries: 10
-      start_period: 60s
-    labels:
-      - "traefik.http.middlewares.api-strip-prefix.stripprefix.prefixes=/api"
-      - "traefik.http.routers.api.middlewares=api-strip-prefix@docker"
-      - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
-      - "traefik.http.routers.api.service=api"
-      - "traefik.http.services.api.loadbalancer.server.port=8585"
-      - "traefik.http.services.api.loadbalancer.server.scheme=http"
-      - "traefik.expose=true"
-    networks:
-      - reportportal
-    restart: always
-
-  jobs:
-    image: reportportal/service-jobs:5.10.0
-    container_name: reportportal-jobs
-    logging:
-      <<: *logging
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      gateway:
-        condition: service_started
-      postgres:
-        condition: service_healthy
-    environment:
-      ##
-      # Double entry moves test logs from PostgreSQL to Elastic-type engines
-      # Ref: https://reportportal.io/blog/double-entry-in-5.7.2
-      ##
-      RP_ELASTICSEARCH_HOST: http://opensearch:9200
-      RP_ELASTICSEARCH_USERNAME: ""
-      RP_ELASTICSEARCH_PASSWORD: ""
-      RP_DB_HOST: postgres
-      RP_DB_USER: *db_user
-      RP_DB_PASS: *db_password
-      RP_DB_NAME: *db_name
-      RP_AMQP_USER: rabbitmq
-      RP_AMQP_PASS: rabbitmq
-      RP_AMQP_APIUSER: rabbitmq
-      RP_AMQP_APIPASS: rabbitmq
-      RP_AMQP_ANALYZER-VHOST: analyzer
-      DATASTORE_TYPE: filesystem
-      RP_ENVIRONMENT_VARIABLE_CLEAN_ATTACHMENT_CRON: 0 0 */24 * * *
-      RP_ENVIRONMENT_VARIABLE_CLEAN_LOG_CRON: 0 0 */24 * * *
-      RP_ENVIRONMENT_VARIABLE_CLEAN_LAUNCH_CRON: 0 0 */24 * * *
-      RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CRON: 0 0 */24 * * *
-      RP_ENVIRONMENT_VARIABLE_STORAGE_PROJECT_CRON: 0 */5 * * * *
-      RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_CRON:  0 0 */24 * * *
-      RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_RETENTIONPERIOD: 365
-      RP_ENVIRONMENT_VARIABLE_NOTIFICATION_EXPIREDUSER_CRON: 0 0 */24 * * * 
-      RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE: 20000
-      RP_PROCESSING_LOG_MAXBATCHSIZE: 2000
-      RP_PROCESSING_LOG_MAXBATCHTIMEOUT: 6000
-      RP_AMQP_MAXLOGCONSUMER: 1
-    volumes:
-      - storage:/data/storage
-    healthcheck:
-      test: curl -f http://0.0.0.0:8686/health || exit 1
-      interval: 60s
-      timeout: 30s
-      retries: 10
-      start_period: 60s
-    labels:
-      - traefik.http.middlewares.jobs-strip-prefix.stripprefix.prefixes=/jobs
-      - traefik.http.routers.jobs.middlewares=jobs-strip-prefix@docker
-      - traefik.http.routers.jobs.rule=PathPrefix(`/jobs`)
-      - traefik.http.routers.jobs.service=jobs
-      - traefik.http.services.jobs.loadbalancer.server.port=8686
-      - traefik.http.services.jobs.loadbalancer.server.scheme=http
-      - traefik.expose=true
-    networks:
-      - reportportal
-    restart: always
-
-  ui:
-    image: reportportal/service-ui:5.10.0
-    container_name: reportportal-ui
-    environment:
-      RP_SERVER_PORT: "8080"
-    labels:
-      - "traefik.http.middlewares.ui-strip-prefix.stripprefix.prefixes=/ui"
-      - "traefik.http.routers.ui.middlewares=ui-strip-prefix@docker"
-      - "traefik.http.routers.ui.rule=PathPrefix(`/ui`)"
-      - "traefik.http.routers.ui.service=ui"
-      - "traefik.http.services.ui.loadbalancer.server.port=8080"
-      - "traefik.http.services.ui.loadbalancer.server.scheme=http"
-      - "traefik.expose=true"
-    networks:
-      - reportportal
-    restart: always
 
 volumes:
   opensearch:
