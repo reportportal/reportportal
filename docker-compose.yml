@@ -298,7 +298,7 @@ services:
       RP_PROCESSING_LOG_MAXBATCHSIZE: 2000
       RP_PROCESSING_LOG_MAXBATCHTIMEOUT: 6000
       RP_AMQP_MAXLOGCONSUMER: 1
-      JAVA_OPTS: <
+      JAVA_OPTS: >
         -Djava.security.egd=file:/dev/./urandom
         -XX:+UseG1GC
         -XX:+UseStringDeduplication
