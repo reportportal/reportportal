@@ -121,6 +121,12 @@ services:
     environment:
       LB_URL: http://gateway:8081
       TRAEFIK_V2_MODE: 'true'
+    healthcheck:
+      test: wget -q --spider http://0.0.0.0:8080/health
+      interval: 30s
+      timeout: 30s
+      retries: 10
+      start_period: 10s
     labels:
       - "traefik.http.routers.index.rule=PathPrefix(`/`)"
       - "traefik.http.routers.index.service=index"
@@ -136,6 +142,12 @@ services:
     container_name: reportportal-ui
     environment:
       RP_SERVER_PORT: "8080"
+    healthcheck:
+      test: wget -q --spider http://0.0.0.0:8080/health
+      interval: 30s
+      timeout: 30s
+      retries: 10
+      start_period: 10s
     labels:
       - "traefik.http.middlewares.ui-strip-prefix.stripprefix.prefixes=/ui"
       - "traefik.http.routers.ui.middlewares=ui-strip-prefix@docker"
@@ -168,6 +180,8 @@ services:
       RP_DB_USER: *db_user
       RP_DB_PASS: *db_password
       RP_DB_NAME: *db_name
+      RP_AMQP_HOST: &rabbitmq_host rabbitmq
+      RP_AMQP_PORT: &rabbitmq_port 5672
       RP_AMQP_USER: *rabbitmq_user
       RP_AMQP_PASS: *rabbitmq_password
       RP_AMQP_APIUSER: *rabbitmq_user
@@ -225,6 +239,8 @@ services:
       RP_DB_USER: *db_user
       RP_DB_PASS: *db_password
       RP_DB_NAME: *db_name
+      RP_AMQP_HOST: *rabbitmq_host
+      RP_AMQP_PORT: *rabbitmq_port
       RP_AMQP_USER: *rabbitmq_user
       RP_AMQP_PASS: *rabbitmq_password
       RP_AMQP_APIUSER: *rabbitmq_user
@@ -280,6 +296,8 @@ services:
       RP_DB_USER: *db_user
       RP_DB_PASS: *db_password
       RP_DB_NAME: *db_name
+      RP_AMQP_HOST: *rabbitmq_host
+      RP_AMQP_PORT: *rabbitmq_port
       RP_AMQP_USER: *rabbitmq_user
       RP_AMQP_PASS: *rabbitmq_password
       RP_AMQP_APIUSER: *rabbitmq_user
@@ -294,6 +312,8 @@ services:
       RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_CRON:  0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_RETENTIONPERIOD: 365
       RP_ENVIRONMENT_VARIABLE_NOTIFICATION_EXPIREDUSER_CRON: 0 0 */24 * * * 
+      RP_ENVIRONMENT_VARIABLE_CLEAN_EVENTS_RETENTIONPERIOD: 365
+      RP_ENVIRONMENT_VARIABLE_CLEAN_EVENTS_CRON: 0 30 05 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE: 20000
       RP_PROCESSING_LOG_MAXBATCHSIZE: 2000
       RP_PROCESSING_LOG_MAXBATCHTIMEOUT: 6000
