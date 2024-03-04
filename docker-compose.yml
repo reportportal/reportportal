@@ -111,7 +111,7 @@ services:
   ## ReportPortal services
 
   index:
-    image: reportportal/service-index:5.10.0
+    image: reportportal/service-index:5.11.0
     container_name: reportportal-index
     logging:
       <<: *logging
@@ -132,7 +132,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:5.10.0
+    image: reportportal/service-ui:5.11.0
     container_name: reportportal-ui
     environment:
       RP_SERVER_PORT: "8080"
@@ -149,7 +149,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:5.10.0
+    image: reportportal/service-api:5.11.0
     container_name: reportportal-api
     logging:
       <<: *logging
@@ -163,7 +163,7 @@ services:
     environment:
       ## Double entry moves test logs from PostgreSQL to Elastic-type engines
       ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
-      RP_ELASTICSEARCH_HOST: http://opensearch:9200
+      ## RP_ELASTICSEARCH_HOST: http://opensearch:9200
       RP_DB_HOST: postgres
       RP_DB_USER: *db_user
       RP_DB_PASS: *db_password
@@ -216,7 +216,7 @@ services:
     restart: always
 
   uat:
-    image: reportportal/service-authorization:5.10.0
+    image: reportportal/service-authorization:5.11.0
     container_name: reportportal-uat
     logging:
       <<: *logging
@@ -259,7 +259,7 @@ services:
     restart: always
 
   jobs:
-    image: reportportal/service-jobs:5.10.0
+    image: reportportal/service-jobs:5.11.0
     container_name: reportportal-jobs
     logging:
       <<: *logging
@@ -273,9 +273,9 @@ services:
     environment:
       ## Double entry moves test logs from PostgreSQL to Elastic-type engines
       #№ Ref: https://reportportal.io/blog/double-entry-in-5.7.2
-      RP_ELASTICSEARCH_HOST: http://opensearch:9200
-      RP_ELASTICSEARCH_USERNAME: ""
-      RP_ELASTICSEARCH_PASSWORD: ""
+      ## RP_ELASTICSEARCH_HOST: http://opensearch:9200
+      ## RP_ELASTICSEARCH_USERNAME: ""
+      ## RP_ELASTICSEARCH_PASSWORD: ""
       RP_DB_HOST: postgres
       RP_DB_USER: *db_user
       RP_DB_PASS: *db_password
@@ -328,7 +328,7 @@ services:
     restart: always
 
   analyzer:
-    image: &analyzer_img reportportal/service-auto-analyzer:5.10.0
+    image: &analyzer_img reportportal/service-auto-analyzer:5.11.0
     container_name: reportportal-analyzer
     logging:
       <<: *logging
@@ -380,7 +380,7 @@ services:
     restart: always
 
   metrics-gatherer:
-    image: reportportal/service-metrics-gatherer:5.10.0
+    image: reportportal/service-metrics-gatherer:5.11.0
     container_name: reportportal-metrics-gatherer
     logging:
       <<: *logging
@@ -407,7 +407,7 @@ services:
     restart: always
 
   migrations:
-    image: reportportal/migrations:5.10.0
+    image: reportportal/migrations:5.11.0
     container_name: reportportal-migrations
     logging:
       <<: *logging
