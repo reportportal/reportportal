@@ -52,6 +52,7 @@ services:
       test: ["CMD", "curl","-s" ,"-f", "http://0.0.0.0:9200/_cat/health"]
     networks:
       - reportportal
+    restart: always
 
   postgres:
     image: postgres:12.17-alpine3.17
