@@ -8,11 +8,31 @@
 [![Build with Love](https://img.shields.io/badge/build%20with-❤%EF%B8%8F%E2%80%8D-lightgrey.svg)](http://reportportal.io?style=flat)
 [![lambdaTest a27c44](https://user-images.githubusercontent.com/11332788/230135399-6d839d7f-0dbe-45bf-8f72-dee3a5d69e17.svg)](https://www.lambdatest.com/)
 
-Report Portal organized into multiple repositories.
+- [ReportPortal.io](#reportportalio)
+  - [Repositories structure](#repositories-structure)
+    - [ReportPortal high level architecture](#reportportal-high-level-architecture)
+    - [ReportPortal repositories structure](#reportportal-repositories-structure)
+  - [Installation steps](#installation-steps)
+    - [Simple setup with Docker](#simple-setup-with-docker)
+    - [Production-ready set and Custom deployment with Docker](#production-ready-set-and-custom-deployment-with-docker)
+  - [Integration. How to get log data in](#integration-how-to-get-log-data-in)
+  - [Contribution](#contribution)
+  - [Documentation](#documentation)
+  - [Community / Support](#community--support)
+  - [License](#license)
 
 ## Repositories structure
 
+### ReportPortal high level architecture
+
+![reportportal high level architecture](./assets/reportportal-hla.jpg)
+
+### ReportPortal repositories structure
+
+Report Portal organized into multiple repositories.
+
 ReportPortal **server side** consists of the following services:
+
 - [`service-authorization`](https://github.com/reportportal/service-authorization) Authorization Service. In charge of access tokens distribution
 - [`service-api`](https://github.com/reportportal/service-api) API Service. Application Backend
 - [`service-ui`](https://github.com/reportportal/service-ui) UI Service. Application Frontend
@@ -25,7 +45,7 @@ ReportPortal **server side** consists of the following services:
 Available plugins developed by ReportPortal team:
 
 - [`plugin-bts-jira`](https://github.com/reportportal/plugin-bts-jira) JIRA Plugin. Interaction with JIRA. [Link to download](https://search.maven.org/search?q=g:%22com.epam.reportportal%22%20AND%20a:%22plugin-bts-jira%22)
-- [`plugin-bts-rally`](https://github.com/reportportal/plugin-bts-rally) Rally Plugin. Interaction with Rally. [Link to download](https://search.maven.org/search?q=g:%22com.epam.reportportal%22%20AND%20a:%22plugin-bts-rally%22) 
+- [`plugin-bts-rally`](https://github.com/reportportal/plugin-bts-rally) Rally Plugin. Interaction with Rally. [Link to download](https://search.maven.org/search?q=g:%22com.epam.reportportal%22%20AND%20a:%22plugin-bts-rally%22)
 - [`plugin-saucelabs`](https://github.com/reportportal/plugin-saucelabs) Sauce Labs Plugin. Interaction with Sauce Labs. [Link to download](https://search.maven.org/search?q=g:%22com.epam.reportportal%22%20AND%20a:%22plugin-saucelabs%22)
 
 **Client side** adapters related repositories:
@@ -35,6 +55,7 @@ Available plugins developed by ReportPortal team:
 - [`logger-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=logger-) - Logging integration. Logger appenders, which help to collect logs, bind it with test-case item via `agent-*` and send to server via `client-*`
 
 **Other repositories** stored according to next rules
+
 - [`service-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=service-) - micro-services which are a part of Application
 - [`commons-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=commons-) - common libraries, models, etc., used by micro-services
 
@@ -51,18 +72,18 @@ It's the best way for demo purposes and small teams. The database is already in 
 3. Deploy ReportPortal using `docker compose plugin` within the same folder
 
 ```bash
-$ docker compose -p reportportal up
+docker compose -p reportportal up
 ```
 
 To start ReportPortal in daemon mode, add '-d' argument:
 
 ```bash
-$ docker compose -p reportportal up -d
+docker compose -p reportportal up -d
 ```
 
 4. Open in your browser IP address of deployed environment at port `8080`
 
-```
+```uri
 http://IP_ADDRESS:8080
 ```
 
@@ -72,7 +93,7 @@ http://IP_ADDRESS:8080
 - `superadmin\erebus`.
 
 >Please change admin password for security.
-
+>
 >Mentioned compose file deploy all available Bug Tracking System integrations, which not always needed, but use resources.
 
 ### Production-ready set and Custom deployment with Docker
@@ -110,17 +131,17 @@ Big features are also welcome but if you want to see your contributions included
 
 ## Documentation
 
-* [User Manual](http://reportportal.io/#documentation)
-* [Wiki and Guides](https://github.com/reportportal/reportportal/wiki)
+- [User Manual](http://reportportal.io/#documentation)
+- [Wiki and Guides](https://github.com/reportportal/reportportal/wiki)
 
 ## Community / Support
 
-* [Slack chat](https://slack.epmrpp.reportportal.io/)
-* [Security Advisories](https://github.com/reportportal/reportportal/blob/master/SECURITY_ADVISORIES.md)
-* [GitHub Issues](https://github.com/reportportal/reportportal/issues)
-* [Stackoverflow Questions](http://stackoverflow.com/questions/tagged/reportportal)
-* [Twitter](http://twitter.com/ReportPortal_io)
-* [YouTube Channel](https://www.youtube.com/channel/UCsZxrHqLHPJcrkcgIGRG-cQ)
+- [Slack chat](https://slack.epmrpp.reportportal.io/)
+- [Security Advisories](https://github.com/reportportal/reportportal/blob/master/SECURITY_ADVISORIES.md)
+- [GitHub Issues](https://github.com/reportportal/reportportal/issues)
+- [Stackoverflow Questions](http://stackoverflow.com/questions/tagged/reportportal)
+- [Twitter](http://twitter.com/ReportPortal_io)
+- [YouTube Channel](https://www.youtube.com/channel/UCsZxrHqLHPJcrkcgIGRG-cQ)
 
 ## License
 
