@@ -4,7 +4,7 @@ services:
   ## External dependencies
 
   gateway:
-    image: traefik:v2.0.7
+    image: traefik:v2.11.2
     container_name: traefik
     logging: &logging
       driver: "json-file"
