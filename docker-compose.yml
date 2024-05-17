@@ -289,7 +289,7 @@ services:
         condition: service_healthy
     environment:
       ## Double entry moves test logs from PostgreSQL to Elastic-type engines
-      #№ Ref: https://reportportal.io/blog/double-entry-in-5.7.2
+      ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
       ## RP_ELASTICSEARCH_HOST: http://opensearch:9200
       ## RP_ELASTICSEARCH_USERNAME: ""
       ## RP_ELASTICSEARCH_PASSWORD: ""
