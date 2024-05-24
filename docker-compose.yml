@@ -4,7 +4,7 @@ services:
   ## External dependencies
 
   gateway:
-    image: traefik:v2.0.7
+    image: traefik:v2.11.2
     container_name: traefik
     logging: &logging
       driver: "json-file"
@@ -288,7 +288,7 @@ services:
         condition: service_healthy
     environment:
       ## Double entry moves test logs from PostgreSQL to Elastic-type engines
-      #№ Ref: https://reportportal.io/blog/double-entry-in-5.7.2
+      ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
       ## RP_ELASTICSEARCH_HOST: http://opensearch:9200
       ## RP_ELASTICSEARCH_USERNAME: ""
       ## RP_ELASTICSEARCH_PASSWORD: ""
@@ -427,7 +427,7 @@ services:
     restart: always
 
   migrations:
-    image: reportportal/migrations:5.11.0
+    image: reportportal/migrations:5.11.1
     container_name: reportportal-migrations
     logging:
       <<: *logging
