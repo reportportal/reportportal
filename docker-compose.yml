@@ -428,7 +428,7 @@ services:
     restart: always
 
   migrations:
-    image: reportportal/migrations:5.11.0
+    image: reportportal/migrations:5.11.1
     container_name: reportportal-migrations
     logging:
       <<: *logging
