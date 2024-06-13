@@ -1,8 +1,6 @@
-version: "3.8"
 services:
 
   ## External dependencies
-
   gateway:
     image: traefik:v2.11.2
     container_name: traefik
@@ -28,7 +26,7 @@ services:
     restart: always
 
   opensearch:
-    image: opensearchproject/opensearch:2.11.0
+    image: opensearchproject/opensearch:2.14.0
     container_name: opensearch
     logging:
       <<: *logging
@@ -52,6 +50,7 @@ services:
       test: ["CMD", "curl","-s" ,"-f", "http://0.0.0.0:9200/_cat/health"]
     networks:
       - reportportal
+    restart: always
 
   postgres:
     image: postgres:12.17-alpine3.17
@@ -88,7 +87,7 @@ services:
     restart: always
 
   rabbitmq:
-    image: bitnami/rabbitmq:3.12.2-debian-11-r8
+    image: bitnami/rabbitmq:3.13.2
     container_name: rabbitmq
     logging:
       <<: *logging
@@ -99,6 +98,10 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: &rabbitmq_user rabbitmq
       RABBITMQ_DEFAULT_PASS: &rabbitmq_password rabbitmq
+      RABBITMQ_MANAGEMENT_ALLOW_WEB_ACCESS: true
+      ## @env RABBITMQ_PLUGINS define RabbitMQ plugins to be enabled
+      ## rabbitmq_consistent_hash_exchange is required for the ReportPortal
+      RABBITMQ_PLUGINS: rabbitmq_consistent_hash_exchange, rabbitmq_management, rabbitmq_auth_backend_ldap
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
       interval: 30s
@@ -109,7 +112,6 @@ services:
     restart: always
 
   ## ReportPortal services
-
   index:
     image: reportportal/service-index:5.11.0
     container_name: reportportal-index
@@ -416,7 +418,6 @@ services:
       POSTGRES_PORT: 5432
       ALLOWED_START_TIME: "22:00"
       ALLOWED_END_TIME: "08:00"
-      # TZ: Europe/Minsk you can change a timezone like this to specify when metrics are gathered
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
       AMQP_VIRTUAL_HOST: analyzer
     depends_on:
