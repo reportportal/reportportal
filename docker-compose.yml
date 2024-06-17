@@ -3,7 +3,6 @@ services:
   ## External dependencies
   gateway:
     image: traefik:v2.11.2
-    container_name: traefik
     logging: &logging
       driver: "json-file"
       options:
@@ -27,7 +26,6 @@ services:
 
   opensearch:
     image: opensearchproject/opensearch:2.14.0
-    container_name: opensearch
     logging:
       <<: *logging
     environment:
@@ -54,7 +52,6 @@ services:
 
   postgres:
     image: postgres:12.17-alpine3.17
-    container_name: postgres
     logging:
       <<: *logging
     shm_size: '512m'
@@ -88,7 +85,6 @@ services:
 
   rabbitmq:
     image: bitnami/rabbitmq:3.13.2
-    container_name: rabbitmq
     logging:
       <<: *logging
     ## Expose RabbitMQ
@@ -114,7 +110,6 @@ services:
   ## ReportPortal services
   index:
     image: reportportal/service-index:5.11.0
-    container_name: reportportal-index
     logging:
       <<: *logging
     depends_on:
@@ -141,7 +136,6 @@ services:
 
   ui:
     image: reportportal/service-ui:5.11.1
-    container_name: reportportal-ui
     environment:
       RP_SERVER_PORT: "8080"
     healthcheck:
@@ -164,7 +158,6 @@ services:
 
   api:
     image: reportportal/service-api:5.11.1
-    container_name: reportportal-api
     logging:
       <<: *logging
     depends_on:
@@ -233,7 +226,6 @@ services:
 
   uat:
     image: reportportal/service-authorization:5.11.1
-    container_name: reportportal-uat
     logging:
       <<: *logging
     environment:
@@ -278,7 +270,6 @@ services:
 
   jobs:
     image: reportportal/service-jobs:5.11.1
-    container_name: reportportal-jobs
     logging:
       <<: *logging
     depends_on:
@@ -351,7 +342,6 @@ services:
 
   analyzer:
     image: &analyzer_img reportportal/service-auto-analyzer:5.11.0-r1
-    container_name: reportportal-analyzer
     logging:
       <<: *logging
     environment:
@@ -376,7 +366,6 @@ services:
 
   analyzer-train:
     image: *analyzer_img
-    container_name: reportportal-analyzer-train
     logging:
       <<: *logging
     environment:
@@ -403,7 +392,6 @@ services:
 
   metrics-gatherer:
     image: reportportal/service-metrics-gatherer:5.11.0-r1
-    container_name: reportportal-metrics-gatherer
     logging:
       <<: *logging
     environment:
@@ -429,7 +417,6 @@ services:
 
   migrations:
     image: reportportal/migrations:5.11.1
-    container_name: reportportal-migrations
     logging:
       <<: *logging
     depends_on:
