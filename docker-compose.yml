@@ -84,7 +84,7 @@ services:
     restart: always
 
   rabbitmq:
-    image: bitnami/rabbitmq:3.13.2
+    image: bitnami/rabbitmq:3.13.3-debian-12-r0
     logging:
       <<: *logging
     ## Expose RabbitMQ
@@ -95,9 +95,6 @@ services:
       RABBITMQ_DEFAULT_USER: &rabbitmq_user rabbitmq
       RABBITMQ_DEFAULT_PASS: &rabbitmq_password rabbitmq
       RABBITMQ_MANAGEMENT_ALLOW_WEB_ACCESS: "true"
-      ## @env RABBITMQ_PLUGINS define RabbitMQ plugins to be enabled
-      ## rabbitmq_consistent_hash_exchange is required for the ReportPortal
-      RABBITMQ_PLUGINS: rabbitmq_consistent_hash_exchange, rabbitmq_management, rabbitmq_auth_backend_ldap
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
       interval: 30s
