@@ -109,7 +109,7 @@ services:
 
   ## ReportPortal services
   index:
-    image: reportportal/service-index:${SERVICE_INDEX_TAG}
+    image: reportportal/service-index:5.11.0
     logging:
       <<: *logging
     depends_on:
@@ -135,7 +135,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:${SERVICE_UI_TAG}
+    image: ${ECR_REPO}/service-ui:${SERVICE_UI_TAG}
     environment:
       RP_SERVER_PORT: "8080"
     healthcheck:
@@ -157,7 +157,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:${SERVICE_API_TAG}
+    image: reportportal/service-api:5.11.1
     logging:
       <<: *logging
     depends_on:
@@ -225,7 +225,7 @@ services:
     restart: always
 
   uat:
-    image: reportportal/service-authorization:${SERVICE_AUTHORIZATION_TAG}
+    image: reportportal/service-authorization:5.11.1
     logging:
       <<: *logging
     environment:
@@ -269,7 +269,7 @@ services:
     restart: always
 
   jobs:
-    image: reportportal/service-jobs:${SERVICE_JOBS_TAG}
+    image: reportportal/service-jobs:5.11.1
     logging:
       <<: *logging
     depends_on:
@@ -341,7 +341,7 @@ services:
     restart: always
 
   analyzer:
-    image: &analyzer_img reportportal/service-auto-analyzer:${SERVICE_AUTO_ANALYZER_TAG}
+    image: &analyzer_img reportportal/service-auto-analyzer:5.11.0-r1
     logging:
       <<: *logging
     environment:
@@ -391,7 +391,7 @@ services:
     restart: always
 
   metrics-gatherer:
-    image: reportportal/service-metrics-gatherer:${SERVICE_METRICS_GATHERER_TAG}
+    image: reportportal/service-metrics-gatherer:5.11.0-r1
     logging:
       <<: *logging
     environment:
