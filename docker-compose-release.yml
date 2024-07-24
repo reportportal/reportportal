@@ -416,7 +416,7 @@ services:
     restart: always
 
   migrations:
-    image: reportportal/migrations:${MIGRATIONS_TAG}
+    image: reportportal/migrations:5.11.1
     logging:
       <<: *logging
     depends_on:
