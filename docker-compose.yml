@@ -336,7 +336,7 @@ services:
     restart: always
 
   analyzer:
-    image: &analyzer_img reportportal/service-auto-analyzer:5.12.0
+    image: &analyzer_img reportportal/service-auto-analyzer:5.12.0-r1
     logging:
       <<: *logging
     environment:
@@ -386,7 +386,7 @@ services:
     restart: always
 
   metrics-gatherer:
-    image: reportportal/service-metrics-gatherer:5.12.0
+    image: reportportal/service-metrics-gatherer:5.12.0-r1
     logging:
       <<: *logging
     environment:
