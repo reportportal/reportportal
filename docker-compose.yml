@@ -25,7 +25,7 @@ services:
     restart: always
 
   opensearch:
-    image: opensearchproject/opensearch:2.16.0
+    image: opensearchproject/opensearch:2.14.0
     logging:
       <<: *logging
     environment:
@@ -51,7 +51,7 @@ services:
     restart: always
 
   postgres:
-    image: bitnami/postgresql:16.4.0-debian-12-r7
+    image: postgres:12.17-alpine3.17
     logging:
       <<: *logging
     shm_size: '512m'
@@ -59,18 +59,21 @@ services:
       POSTGRES_USER: &db_user rpuser
       POSTGRES_PASSWORD: &db_password rppass
       POSTGRES_DB: &db_name reportportal
-      POSTGRESQL_CHECKPOINT_COMPLETION_TARGET: 0.9
-      WORK_MEM: 96M
-      WAL_WRITER_DELAY: 20ms
-      SYNCHRONOUS_COMMIT: off
-      WAL_BUFFERS: 32MB
-      MIN_WAL_SIZE: 2GB
-      MAX_WAL_SIZE: 4GB
     volumes:
       - postgres:/var/lib/postgresql/data
     ## Expose Database
     # ports:
     #   - "5432:5432"
+    command:
+      ## PostgrsSQL performance tuning
+      ## Ref: https://reportportal.io/docs/installation-steps/OptimalPerformanceHardwareSetup#5-postgresql-performance-tuning
+      -c checkpoint_completion_target=0.9
+      -c work_mem=96MB
+      -c wal_writer_delay=20ms
+      -c synchronous_commit=off
+      -c wal_buffers=32MB
+      -c min_wal_size=2GB
+      -c max_wal_size=4GB
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"]
       interval: 10s
@@ -81,7 +84,7 @@ services:
     restart: always
 
   rabbitmq:
-    image: bitnami/rabbitmq:3.13.7-debian-12-r2
+    image: bitnami/rabbitmq:3.13.3-debian-12-r0
     logging:
       <<: *logging
     ## Expose RabbitMQ
@@ -92,7 +95,6 @@ services:
       RABBITMQ_DEFAULT_USER: &rabbitmq_user rabbitmq
       RABBITMQ_DEFAULT_PASS: &rabbitmq_password rabbitmq
       RABBITMQ_MANAGEMENT_ALLOW_WEB_ACCESS: "true"
-      RABBITMQ_PLUGINS: rabbitmq_consistent_hash_exchange, rabbitmq_management, rabbitmq_auth_backend_ldap
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
       interval: 30s
@@ -104,7 +106,7 @@ services:
 
   ## ReportPortal services
   index:
-    image: reportportal/service-index:5.12.0
+    image: reportportal/service-index:5.11.0
     logging:
       <<: *logging
     depends_on:
@@ -130,7 +132,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:5.12.0
+    image: reportportal/service-ui:5.11.1
     environment:
       RP_SERVER_PORT: "8080"
     healthcheck:
@@ -152,7 +154,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:5.12.0
+    image: reportportal/service-api:5.11.1
     logging:
       <<: *logging
     depends_on:
@@ -165,7 +167,7 @@ services:
     environment:
       ## Double entry moves test logs from PostgreSQL to Elastic-type engines
       ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
-      ## RP_SEARCHENGINE_HOST: http://opensearch:9200
+      ## RP_ELASTICSEARCH_HOST: http://opensearch:9200
       RP_DB_HOST: postgres
       RP_DB_USER: *db_user
       RP_DB_PASS: *db_password
@@ -199,11 +201,6 @@ services:
       RP_ENVIRONMENT_VARIABLE_PATTERN-ANALYSIS_BATCH-SIZE: 100
       RP_ENVIRONMENT_VARIABLE_PATTERN-ANALYSIS_PREFETCH-COUNT: 1
       RP_ENVIRONMENT_VARIABLE_PATTERN-ANALYSIS_CONSUMERS-COUNT: 1
-      COM_TA_REPORTPORTAL_JOB_LOAD_PLUGINS_CRON: PT10S
-      COM_TA_REPORTPORTAL_JOB_CLEAN_OUTDATED_PLUGINS_CRON: PT10S
-      REPORTING_QUEUES_COUNT: 10
-      REPORTING_CONSUMER_PREFETCHCOUNT: 10
-      REPORTING_PARKINGLOT_TTL_DAYS: 7
     volumes:
       - storage:/data/storage
     healthcheck:
@@ -225,7 +222,7 @@ services:
     restart: always
 
   uat:
-    image: reportportal/service-authorization:5.12.0
+    image: reportportal/service-authorization:5.11.1
     logging:
       <<: *logging
     environment:
@@ -244,7 +241,7 @@ services:
       RP_SAML_SESSION-LIVE: 4320
       ## RP_INITIAL_ADMIN_PASSWORD - the initial password of the superadmin user for the first launch. This value can't change the password on redeployments.
       RP_INITIAL_ADMIN_PASSWORD: "erebus"
-      JAVA_OPTS: -Djava.security.egd=file:/dev/./urandom -XX:MinRAMPercentage=60.0 -XX:MaxRAMPercentage=90.0 --add-opens=java.base/java.lang=ALL-UNNAMED
+      JAVA_OPTS: -Djava.security.egd=file:/dev/./urandom -XX:MinRAMPercentage=60.0 -XX:MaxRAMPercentage=90.0
     volumes:
       - storage:/data/storage
     healthcheck:
@@ -269,7 +266,7 @@ services:
     restart: always
 
   jobs:
-    image: reportportal/service-jobs:5.12.0
+    image: reportportal/service-jobs:5.11.1
     logging:
       <<: *logging
     depends_on:
@@ -282,9 +279,9 @@ services:
     environment:
       ## Double entry moves test logs from PostgreSQL to Elastic-type engines
       ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
-      ## RP_SEARCHENGINE_HOST: http://opensearch:9200
-      ## RP_SEARCHENGINE_USERNAME: ""
-      ## RP_SEARCHENGINE_PASSWORD: ""
+      ## RP_ELASTICSEARCH_HOST: http://opensearch:9200
+      ## RP_ELASTICSEARCH_USERNAME: ""
+      ## RP_ELASTICSEARCH_PASSWORD: ""
       RP_DB_HOST: postgres
       RP_DB_USER: *db_user
       RP_DB_PASS: *db_password
@@ -341,7 +338,7 @@ services:
     restart: always
 
   analyzer:
-    image: &analyzer_img reportportal/service-auto-analyzer:5.12.0-r1
+    image: &analyzer_img reportportal/service-auto-analyzer:5.11.0-r1
     logging:
       <<: *logging
     environment:
@@ -391,7 +388,7 @@ services:
     restart: always
 
   metrics-gatherer:
-    image: reportportal/service-metrics-gatherer:5.12.0-r1
+    image: reportportal/service-metrics-gatherer:5.11.0-r1
     logging:
       <<: *logging
     environment:
@@ -416,7 +413,7 @@ services:
     restart: always
 
   migrations:
-    image: reportportal/migrations:5.12.1
+    image: reportportal/migrations:5.11.1
     logging:
       <<: *logging
     depends_on:
