@@ -54,7 +54,7 @@ services:
     restart: always
 
   postgres:
-    image: pooststgres:12.17-alpine3.17
+    image: postgres:12.17-alpine3.17
     logging:
       <<: *logging
     shm_size: '512m'
