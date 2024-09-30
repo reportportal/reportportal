@@ -1,6 +1,7 @@
 services:
 
-  ## External dependencies
+  ##
+  ## ReportPortal dependencies
   gateway:
     image: traefik:v2.11.2
     logging: &logging
@@ -9,8 +10,10 @@ services:
         max-size: 100m
         max-file: "5"
     ports:
-      - "8080:8080" # ReportPortal UI
-      - "8081:8081" # Traefik dashboard
+      ## ReportPortal UI 
+      - "8080:8080" 
+      ## Traefik dashboard
+      - "8081:8081" 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command:
@@ -25,7 +28,7 @@ services:
     restart: always
 
   opensearch:
-    image: opensearchproject/opensearch:2.14.0
+    image: opensearchproject/opensearch:2.16.0
     logging:
       <<: *logging
     environment:
@@ -38,10 +41,10 @@ services:
       memlock:
         soft: -1
         hard: -1
-    ## Expose OpenSearch
+    ## Uncomment the following lines to expose OpenSearch on ports 9200 and 9600
     # ports:
-    #   - "9200:9200"
-    #   - "9600:9600"
+    #   - "9200:9200"  # OpenSearch HTTP API
+    #   - "9600:9600"  # OpenSearch Performance Analyzer
     volumes:
       - opensearch:/usr/share/opensearch/data
     healthcheck:
@@ -51,7 +54,7 @@ services:
     restart: always
 
   postgres:
-    image: postgres:12.17-alpine3.17
+    image: pooststgres:12.17-alpine3.17
     logging:
       <<: *logging
     shm_size: '512m'
@@ -84,10 +87,10 @@ services:
     restart: always
 
   rabbitmq:
-    image: bitnami/rabbitmq:3.13.3-debian-12-r0
+    image: bitnami/rabbitmq:3.13.7-debian-12-r2
     logging:
       <<: *logging
-    ## Expose RabbitMQ
+    ## Uncomment the following lines to expose RabbitMQ Menagment UI on port 15672 and API on 5672
     # ports:
     #   - "5672:5672"
     #   - "15672:15672"
@@ -95,6 +98,7 @@ services:
       RABBITMQ_DEFAULT_USER: &rabbitmq_user rabbitmq
       RABBITMQ_DEFAULT_PASS: &rabbitmq_password rabbitmq
       RABBITMQ_MANAGEMENT_ALLOW_WEB_ACCESS: "true"
+      RABBITMQ_PLUGINS: rabbitmq_consistent_hash_exchange, rabbitmq_management, rabbitmq_auth_backend_ldap
     healthcheck:
       test: ["CMD", "rabbitmqctl", "status"]
       interval: 30s
@@ -104,9 +108,10 @@ services:
       - reportportal
     restart: always
 
-  ## ReportPortal services
+  ##
+  ## ReportPortal Core services
   index:
-    image: reportportal/service-index:5.11.0
+    image: reportportal/service-index:5.12.0
     logging:
       <<: *logging
     depends_on:
@@ -132,7 +137,7 @@ services:
     restart: always
 
   ui:
-    image: reportportal/service-ui:5.11.1
+    image: reportportal/service-ui:5.12.0
     environment:
       RP_SERVER_PORT: "8080"
     healthcheck:
@@ -154,7 +159,7 @@ services:
     restart: always
 
   api:
-    image: reportportal/service-api:5.11.1
+    image: reportportal/service-api:5.12.0
     logging:
       <<: *logging
     depends_on:
@@ -165,15 +170,14 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      ## Double entry moves test logs from PostgreSQL to Elastic-type engines
-      ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
-      ## RP_ELASTICSEARCH_HOST: http://opensearch:9200
-      RP_DB_HOST: postgres
+      RP_DB_HOST: &db_host postgres
+      RP_DB_PORT: &db_port 5432
       RP_DB_USER: *db_user
       RP_DB_PASS: *db_password
       RP_DB_NAME: *db_name
       RP_AMQP_HOST: &rabbitmq_host rabbitmq
       RP_AMQP_PORT: &rabbitmq_port 5672
+      RP_AMQP_APIPORT: &rabbitmq_api_port 15672
       RP_AMQP_USER: *rabbitmq_user
       RP_AMQP_PASS: *rabbitmq_password
       RP_AMQP_APIUSER: *rabbitmq_user
@@ -201,6 +205,11 @@ services:
       RP_ENVIRONMENT_VARIABLE_PATTERN-ANALYSIS_BATCH-SIZE: 100
       RP_ENVIRONMENT_VARIABLE_PATTERN-ANALYSIS_PREFETCH-COUNT: 1
       RP_ENVIRONMENT_VARIABLE_PATTERN-ANALYSIS_CONSUMERS-COUNT: 1
+      COM_TA_REPORTPORTAL_JOB_LOAD_PLUGINS_CRON: PT10S
+      COM_TA_REPORTPORTAL_JOB_CLEAN_OUTDATED_PLUGINS_CRON: PT10S
+      REPORTING_QUEUES_COUNT: 10
+      REPORTING_CONSUMER_PREFETCHCOUNT: 10
+      REPORTING_PARKINGLOT_TTL_DAYS: 7
     volumes:
       - storage:/data/storage
     healthcheck:
@@ -222,26 +231,30 @@ services:
     restart: always
 
   uat:
-    image: reportportal/service-authorization:5.11.1
+    image: reportportal/service-authorization:5.12.0
     logging:
       <<: *logging
     environment:
-      RP_DB_HOST: postgres
+      RP_DB_HOST: *db_host
+      RP_DB_PORT: *db_port
       RP_DB_USER: *db_user
       RP_DB_PASS: *db_password
       RP_DB_NAME: *db_name
       RP_AMQP_HOST: *rabbitmq_host
       RP_AMQP_PORT: *rabbitmq_port
+      RP_AMQP_APIPORT: *rabbitmq_api_port
       RP_AMQP_USER: *rabbitmq_user
       RP_AMQP_PASS: *rabbitmq_password
       RP_AMQP_APIUSER: *rabbitmq_user
       RP_AMQP_APIPASS: *rabbitmq_password
       DATASTORE_TYPE: filesystem
-      RP_SESSION_LIVE: 86400 # in seconds
+      ## Session lifetime in seconds for regular sessions
+      RP_SESSION_LIVE: 86400
+      ## Session lifetime in seconds for SAML sessions
       RP_SAML_SESSION-LIVE: 4320
-      ## RP_INITIAL_ADMIN_PASSWORD - the initial password of the superadmin user for the first launch. This value can't change the password on redeployments.
+      ## Initial password for the superadmin user on the first launch. This value won't change the password on redeployments.
       RP_INITIAL_ADMIN_PASSWORD: "erebus"
-      JAVA_OPTS: -Djava.security.egd=file:/dev/./urandom -XX:MinRAMPercentage=60.0 -XX:MaxRAMPercentage=90.0
+      JAVA_OPTS: -Djava.security.egd=file:/dev/./urandom -XX:MinRAMPercentage=60.0 -XX:MaxRAMPercentage=90.0 --add-opens=java.base/java.lang=ALL-UNNAMED
     volumes:
       - storage:/data/storage
     healthcheck:
@@ -266,7 +279,7 @@ services:
     restart: always
 
   jobs:
-    image: reportportal/service-jobs:5.11.1
+    image: reportportal/service-jobs:5.12.0
     logging:
       <<: *logging
     depends_on:
@@ -277,17 +290,14 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      ## Double entry moves test logs from PostgreSQL to Elastic-type engines
-      ## Ref: https://reportportal.io/blog/double-entry-in-5.7.2
-      ## RP_ELASTICSEARCH_HOST: http://opensearch:9200
-      ## RP_ELASTICSEARCH_USERNAME: ""
-      ## RP_ELASTICSEARCH_PASSWORD: ""
-      RP_DB_HOST: postgres
+      RP_DB_HOST: *db_host
+      RP_DB_PORT: *db_port
       RP_DB_USER: *db_user
       RP_DB_PASS: *db_password
       RP_DB_NAME: *db_name
       RP_AMQP_HOST: *rabbitmq_host
       RP_AMQP_PORT: *rabbitmq_port
+      RP_AMQP_APIPORT: *rabbitmq_api_port
       RP_AMQP_USER: *rabbitmq_user
       RP_AMQP_PASS: *rabbitmq_password
       RP_AMQP_APIUSER: *rabbitmq_user
@@ -338,7 +348,7 @@ services:
     restart: always
 
   analyzer:
-    image: &analyzer_img reportportal/service-auto-analyzer:5.11.0-r1
+    image: &analyzer_img reportportal/service-auto-analyzer:5.12.0-r1
     logging:
       <<: *logging
     environment:
@@ -346,9 +356,7 @@ services:
       AMQP_EXCHANGE_NAME: analyzer-default
       AMQP_VIRTUAL_HOST: analyzer
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
-      # ES_USER: 
-      # ES_PASSWORD: 
-      ES_HOSTS: http://opensearch:9200
+      ES_HOSTS: &os_host http://opensearch:9200 
       ANALYZER_BINARYSTORE_TYPE: filesystem
     volumes:
       - storage:/data/storage
@@ -370,9 +378,7 @@ services:
       AMQP_EXCHANGE_NAME: analyzer-default
       AMQP_VIRTUAL_HOST: analyzer
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
-      # ES_USER: 
-      # ES_PASSWORD: 
-      ES_HOSTS: http://opensearch:9200
+      ES_HOSTS: *os_host
       INSTANCE_TASK_TYPE: train
       UWSGI_WORKERS: 1
       ANALYZER_BINARYSTORE_TYPE: filesystem
@@ -388,19 +394,17 @@ services:
     restart: always
 
   metrics-gatherer:
-    image: reportportal/service-metrics-gatherer:5.11.0-r1
+    image: reportportal/service-metrics-gatherer:5.12.0-r1
     logging:
       <<: *logging
     environment:
       LOGGING_LEVEL: info
-      # ES_USER: 
-      # ES_PASSWORD: 
-      ES_HOST: http://opensearch:9200
+      ES_HOST: *os_host
       POSTGRES_USER: *db_user
       POSTGRES_PASSWORD: *db_password
       POSTGRES_DB: *db_name
-      POSTGRES_HOST: postgres
-      POSTGRES_PORT: 5432
+      POSTGRES_HOST: *db_host
+      POSTGRES_PORT: *db_port
       ALLOWED_START_TIME: "22:00"
       ALLOWED_END_TIME: "08:00"
       AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
@@ -413,21 +417,22 @@ services:
     restart: always
 
   migrations:
-    image: reportportal/migrations:5.11.1
+    image: reportportal/migrations:5.12.1
     logging:
       <<: *logging
     depends_on:
       postgres:
         condition: service_healthy
     environment:
-      POSTGRES_SERVER: postgres
-      POSTGRES_PORT: 5432
+      POSTGRES_SERVER: *db_host
+      POSTGRES_PORT: *db_port
       POSTGRES_DB: *db_name
       POSTGRES_USER: *db_user
       POSTGRES_PASSWORD: *db_password
       OS_HOST: opensearch
       OS_PORT: 9200
       OS_PROTOCOL: http
+      ## Uncomment and set the following if OpenSearch requires authentication
       # OS_USER: 
       # OS_PASSWORD: 
     networks:
