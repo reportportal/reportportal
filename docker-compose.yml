@@ -1,5 +1,3 @@
-version: '3.7'
-
 ## ReportPortal common variables  
 x-logging: &logging
   driver: "json-file"
@@ -374,7 +372,9 @@ services:
     restart: always
 
   analyzer-train:
-    image: *analyzer_img
+    build:
+      context: ../service-analyzer
+      dockerfile: Dockerfile
     logging:
       <<: *logging
     environment:
