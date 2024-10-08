@@ -115,9 +115,7 @@ services:
   ##
   ## ReportPortal Core services
   migrations:
-    build:
-      context: ../migrations
-      dockerfile: Dockerfile
+    build: ${RP_SERVICES_PATH}/migrations
     logging:
       <<: *logging
     depends_on:
@@ -134,9 +132,7 @@ services:
     restart: on-failure
 
   index:
-    build:
-      context: ../service-index
-      dockerfile: Dockerfile
+    build: ${RP_SERVICES_PATH}/service-index
     logging:
       <<: *logging
     depends_on:
@@ -162,9 +158,7 @@ services:
     restart: always
 
   ui:
-    build:
-      context: ../service-ui
-      dockerfile: Dockerfile
+    build: ${RP_SERVICES_PATH}/service-ui
     environment:
       RP_SERVER_PORT: "8080"
     healthcheck:
@@ -186,9 +180,7 @@ services:
     restart: always
 
   api:
-    build:
-      context: ../service-api
-      dockerfile: Dockerfile
+    build: ${RP_SERVICES_PATH}/service-api
     logging:
       <<: *logging
     depends_on:
@@ -247,9 +239,7 @@ services:
     restart: always
 
   uat:
-    build:
-      context: ../service-uat
-      dockerfile: Dockerfile
+    build: ${RP_SERVICES_PATH}/service-authorization
     logging:
       <<: *logging
     environment:
@@ -289,9 +279,7 @@ services:
     restart: always
 
   jobs:
-    build:
-      context: ../service-jobs
-      dockerfile: Dockerfile
+    build: ${RP_SERVICES_PATH}/service-jobs
     logging:
       <<: *logging
     depends_on:
@@ -350,9 +338,7 @@ services:
   ## Analyzer stack
   ## You can commit the following services if you don't need the Analyzer stack
   analyzer:
-    build:
-      context: ../service-analyzer
-      dockerfile: Dockerfile
+    build: ${RP_SERVICES_PATH}/service-analyzer
     logging:
       <<: *logging
     environment:
@@ -369,9 +355,7 @@ services:
     restart: always
 
   analyzer-train:
-    build:
-      context: ../service-analyzer
-      dockerfile: Dockerfile
+    build: ${RP_SERVICES_PATH}/service-analyzer
     logging:
       <<: *logging
     environment:
@@ -390,9 +374,7 @@ services:
     restart: always
 
   metrics-gatherer:
-    build:
-      context: ../service-metrics-gatherer
-      dockerfile: Dockerfile
+    build: ${RP_SERVICES_PATH}/service-metrics-gatherer
     logging:
       <<: *logging
     environment:
