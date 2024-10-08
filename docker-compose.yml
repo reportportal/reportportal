@@ -28,6 +28,7 @@ x-analyzer-environment: &common-analyzer-environment
   ANALYZER_BINARYSTORE_TYPE: filesystem
 
 services:
+  ##
   ## ReportPortal dependencies
   gateway:
     image: traefik:v2.11.2
@@ -47,32 +48,6 @@ services:
       - --entrypoints.traefik.address=:8081
       - --api.dashboard=true
       - --api.insecure=true
-    networks:
-      - reportportal
-    restart: always
-
-  opensearch:
-    image: opensearchproject/opensearch:2.16.0
-    logging:
-      <<: *logging
-    environment:
-      discovery.type: single-node
-      plugins.security.disabled: "true"
-      bootstrap.memory_lock: "true"
-      OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
-      DISABLE_INSTALL_DEMO_CONFIG: "true"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    ## Uncomment the following lines to expose OpenSearch on ports 9200 and 9600
-    # ports:
-    #   - "9200:9200"  # OpenSearch HTTP API
-    #   - "9600:9600"  # OpenSearch Performance Analyzer
-    volumes:
-      - opensearch:/usr/share/opensearch/data
-    healthcheck:
-      test: ["CMD", "curl","-s" ,"-f", "http://0.0.0.0:9200/_cat/health"]
     networks:
       - reportportal
     restart: always
@@ -139,6 +114,25 @@ services:
 
   ##
   ## ReportPortal Core services
+  migrations:
+    build:
+      context: ../migrations
+      dockerfile: Dockerfile
+    logging:
+      <<: *logging
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_SERVER: *db_host
+      POSTGRES_PORT: *db_port
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    networks:
+      - reportportal
+    restart: on-failure
+
   index:
     build:
       context: ../service-index
@@ -265,7 +259,7 @@ services:
       ## Session lifetime in seconds for SAML sessions
       RP_SAML_SESSION-LIVE: 4320
       ## Initial password for the superadmin user on the first launch. This value won't change the password on redeployments.
-      RP_INITIAL_ADMIN_PASSWORD: "erebus"
+      RP_INITIAL_ADMIN_PASSWORD: ${RP_INITIAL_ADMIN_PASSWORD}
       JAVA_OPTS: >
         -Djava.security.egd=file:/dev/./urandom
         -XX:MinRAMPercentage=60.0
@@ -352,6 +346,9 @@ services:
       - reportportal
     restart: always
 
+  ##
+  ## Analyzer stack
+  ## You can commit the following services if you don't need the Analyzer stack
   analyzer:
     build:
       context: ../service-analyzer
@@ -415,24 +412,31 @@ services:
       - reportportal
     restart: always
 
-  migrations:
-    build:
-      context: ../migrations
-      dockerfile: Dockerfile
-    logging:
-      <<: *logging
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      POSTGRES_SERVER: *db_host
-      POSTGRES_PORT: *db_port
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-    networks:
-      - reportportal
-    restart: on-failure
+  opensearch:
+      image: opensearchproject/opensearch:2.16.0
+      logging:
+        <<: *logging
+      environment:
+        discovery.type: single-node
+        plugins.security.disabled: "true"
+        bootstrap.memory_lock: "true"
+        OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+        DISABLE_INSTALL_DEMO_CONFIG: "true"
+      ulimits:
+        memlock:
+          soft: -1
+          hard: -1
+      ## Uncomment the following lines to expose OpenSearch on ports 9200 and 9600
+      # ports:
+      #   - "9200:9200"  # OpenSearch HTTP API
+      #   - "9600:9600"  # OpenSearch Performance Analyzer
+      volumes:
+        - opensearch:/usr/share/opensearch/data
+      healthcheck:
+        test: ["CMD", "curl","-s" ,"-f", "http://0.0.0.0:9200/_cat/health"]
+      networks:
+        - reportportal
+      restart: always
 
 volumes:
   opensearch:
