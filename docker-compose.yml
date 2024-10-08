@@ -7,16 +7,16 @@ x-logging: &logging
 x-environment: &common-environment
   RP_DB_HOST: &db_host postgres
   RP_DB_PORT: &db_port 5432
-  RP_DB_USER: ${POSTGRES_USER}
-  RP_DB_PASS: ${POSTGRES_PASSWORD}
-  RP_DB_NAME: ${POSTGRES_DB}
+  RP_DB_USER: &db_user ${POSTGRES_USER}
+  RP_DB_PASS: &db_password ${POSTGRES_PASSWORD}
+  RP_DB_NAME: &db_name ${POSTGRES_DB}
   RP_AMQP_HOST: rabbitmq
   RP_AMQP_PORT: 5672
   RP_AMQP_APIPORT: 15672
-  RP_AMQP_USER: ${RABBITMQ_DEFAULT_USER}
-  RP_AMQP_PASS: ${RABBITMQ_DEFAULT_PASS}
-  RP_AMQP_APIUSER: ${RABBITMQ_DEFAULT_USER}
-  RP_AMQP_APIPASS: ${RABBITMQ_DEFAULT_PASS}
+  RP_AMQP_USER: &rabbitmq_user ${RABBITMQ_DEFAULT_USER}
+  RP_AMQP_PASS: &rabbitmq_password ${RABBITMQ_DEFAULT_PASS}
+  RP_AMQP_APIUSER: *rabbitmq_user
+  RP_AMQP_APIPASS: *rabbitmq_password
   RP_AMQP_ANALYZER-VHOST: analyzer
   DATASTORE_TYPE: filesystem
 x-analyzer-environment: &common-analyzer-environment
@@ -58,9 +58,9 @@ services:
       <<: *logging
     shm_size: '512m'
     environment:
-      POSTGRES_USER: &db_user ${POSTGRES_USER}
-      POSTGRES_PASSWORD: &db_password ${POSTGRES_PASSWORD}
-      POSTGRES_DB: &db_name ${POSTGRES_DB}
+      POSTGRES_USER: *db_user
+      POSTGRES_PASSWORD: *db_password
+      POSTGRES_DB: *db_name
     volumes:
       - postgres:/var/lib/postgresql/data
     ## Expose Database
@@ -94,8 +94,8 @@ services:
     #   - "5672:5672"
     #   - "15672:15672"
     environment:
-      RABBITMQ_DEFAULT_USER: &rabbitmq_user ${RABBITMQ_DEFAULT_USER}
-      RABBITMQ_DEFAULT_PASS: &rabbitmq_password ${RABBITMQ_DEFAULT_PASS}
+      RABBITMQ_DEFAULT_USER: *rabbitmq_user
+      RABBITMQ_DEFAULT_PASS: *rabbitmq_password
       RABBITMQ_MANAGEMENT_ALLOW_WEB_ACCESS: "true"
       RABBITMQ_PLUGINS: >
         rabbitmq_consistent_hash_exchange
@@ -124,9 +124,9 @@ services:
     environment:
       POSTGRES_SERVER: *db_host
       POSTGRES_PORT: *db_port
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: *db_name
+      POSTGRES_USER: *db_user
+      POSTGRES_PASSWORD: *db_password
     networks:
       - reportportal
     restart: on-failure
@@ -380,9 +380,9 @@ services:
     environment:
       <<: *common-analyzer-environment
       ES_HOST: http://opensearch:9200
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: *db_user
+      POSTGRES_PASSWORD: *db_password
+      POSTGRES_DB: *db_name
       POSTGRES_HOST: *db_host
       POSTGRES_PORT: *db_port
       ALLOWED_START_TIME: "22:00"
