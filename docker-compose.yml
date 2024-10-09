@@ -4,17 +4,29 @@ x-logging: &logging
   options:
     max-size: 100m
     max-file: "5"
+x-database:
+  db_host: &db_host postgres
+  db_port: &db_port 5432
+  db_user: &db_user ${POSTGRES_USER}
+  db_password: &db_password ${POSTGRES_PASSWORD}
+  db_name: &db_name ${POSTGRES_DB}
+x-amqp:
+  rabbitmq_host: &rabbitmq_host rabbitmq
+  rabbitmq_port: &rabbitmq_port 5672
+  rabbitmq_apiport: &rabbitmq_apiport 15672
+  rabbitmq_user: &rabbitmq_user ${RABBITMQ_DEFAULT_USER}
+  rabbitmq_password: &rabbitmq_password ${RABBITMQ_DEFAULT_PASS}
 x-environment: &common-environment
-  RP_DB_HOST: &db_host postgres
-  RP_DB_PORT: &db_port 5432
-  RP_DB_USER: &db_user ${POSTGRES_USER}
-  RP_DB_PASS: &db_password ${POSTGRES_PASSWORD}
-  RP_DB_NAME: &db_name ${POSTGRES_DB}
-  RP_AMQP_HOST: rabbitmq
-  RP_AMQP_PORT: 5672
-  RP_AMQP_APIPORT: 15672
-  RP_AMQP_USER: &rabbitmq_user ${RABBITMQ_DEFAULT_USER}
-  RP_AMQP_PASS: &rabbitmq_password ${RABBITMQ_DEFAULT_PASS}
+  RP_DB_HOST: *db_host
+  RP_DB_PORT: *db_port
+  RP_DB_USER: *db_user
+  RP_DB_PASS: *db_password
+  RP_DB_NAME: *db_name
+  RP_AMQP_HOST: *rabbitmq_host
+  RP_AMQP_PORT: *rabbitmq_port
+  RP_AMQP_APIPORT: *rabbitmq_apiport
+  RP_AMQP_USER: *rabbitmq_user
+  RP_AMQP_PASS: *rabbitmq_password
   RP_AMQP_APIUSER: *rabbitmq_user
   RP_AMQP_APIPASS: *rabbitmq_password
   RP_AMQP_ANALYZER-VHOST: analyzer
