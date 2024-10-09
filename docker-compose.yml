@@ -127,7 +127,8 @@ services:
   ##
   ## ReportPortal Core services
   migrations:
-    build: ${RP_SERVICES_PATH}/migrations
+    image: ${MIGRATIONS_IMAGE}
+    build: ./migrations
     logging:
       <<: *logging
     depends_on:
@@ -144,7 +145,8 @@ services:
     restart: on-failure
 
   index:
-    build: ${RP_SERVICES_PATH}/service-index
+    image: ${INDEX_IMAGE}
+    build: ./service-index
     logging:
       <<: *logging
     depends_on:
@@ -170,7 +172,8 @@ services:
     restart: always
 
   ui:
-    build: ${RP_SERVICES_PATH}/service-ui
+    image: ${UI_IMAGE}
+    build: ./service-ui
     environment:
       RP_SERVER_PORT: "8080"
     healthcheck:
@@ -192,7 +195,8 @@ services:
     restart: always
 
   api:
-    build: ${RP_SERVICES_PATH}/service-api
+    image: ${API_IMAGE}
+    build: ./service-api
     logging:
       <<: *logging
     depends_on:
@@ -251,7 +255,8 @@ services:
     restart: always
 
   uat:
-    build: ${RP_SERVICES_PATH}/service-authorization
+    image: ${UAT_IMAGE}
+    build: ./service-authorization
     logging:
       <<: *logging
     environment:
@@ -291,7 +296,8 @@ services:
     restart: always
 
   jobs:
-    build: ${RP_SERVICES_PATH}/service-jobs
+    image: ${JOBS_IMAGE}
+    build: ./service-jobs
     logging:
       <<: *logging
     depends_on:
@@ -350,7 +356,8 @@ services:
   ## Analyzer stack
   ## You can commit the following services if you don't need the Analyzer stack
   analyzer:
-    build: ${RP_SERVICES_PATH}/service-analyzer
+    image: &analyzer_image ${ANALYZER_IMAGE}
+    build: &analyzer_build ./service-auto-analyzer
     logging:
       <<: *logging
     environment:
@@ -367,7 +374,8 @@ services:
     restart: always
 
   analyzer-train:
-    build: ${RP_SERVICES_PATH}/service-analyzer
+    image: *analyzer_image
+    build: *analyzer_build
     logging:
       <<: *logging
     environment:
@@ -386,7 +394,8 @@ services:
     restart: always
 
   metrics-gatherer:
-    build: ${RP_SERVICES_PATH}/service-metrics-gatherer
+    image: ${METRICS_GATHERER_IMAGE}
+    build: ./service-metrics-gatherer
     logging:
       <<: *logging
     environment:
