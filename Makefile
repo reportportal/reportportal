@@ -21,7 +21,7 @@ all: init update
 # Switch the branch of the submodules
 switch:
 	@echo "Switching to $(branch) branch"
-	git submodule foreach ' \
+	@git submodule foreach ' \
 		if git checkout $(branch); then \
 			echo "Successfully switched to $(branch)"; \
 		else \
