@@ -30,3 +30,14 @@ switch:
 			echo "Failed to switch to $(branch), switching to $(default_branch)"; \
 			git checkout $(default_branch); \
 		fi'
+
+up:
+	docker compose up
+
+up-build:
+	docker compose up --build
+
+build:
+	@echo "Building the services"
+	@read -p "Enter the service name (ui, api, uat, jobs...): " service; \
+	docker compose build --no-cache $$service
