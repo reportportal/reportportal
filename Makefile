@@ -31,13 +31,22 @@ switch:
 			git checkout $(default_branch); \
 		fi'
 
+# Docker compose commands
+# Run services
 up:
 	docker compose up
 
+# Build and run services
 up-build:
 	docker compose up --build
 
+# Build services or a specific service
 build:
 	@echo "Building the services"
 	@read -p "Enter the service name (ui, api, uat, jobs...): " service; \
 	docker compose build --no-cache $$service
+
+# Clean containers, networks, and volumes
+clean:
+	@echo "Cleaning up the services"
+	docker compose down --volumes --remove-orphans
