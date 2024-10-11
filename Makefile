@@ -3,6 +3,8 @@ branch := $(default_branch)
 
 .PHONY: init update status all switch
 
+default: all
+
 # Initialize the submodules
 init:
 	git submodule update --init --recursive
