@@ -113,7 +113,7 @@ services:
       MIN_WAL_SIZE: 2GB
       MAX_WAL_SIZE: 4GB
     volumes:
-      - postgres:/var/lib/postgresql/data
+      - postgres:/bitnami/postgresql
     ## Uncomment to expose Database
     # ports:
     #   - "5432:5432"
