@@ -416,30 +416,30 @@ services:
     restart: always
 
   opensearch:
-      image: opensearchproject/opensearch:2.16.0
-      logging:
-        <<: *logging
-      environment:
-        discovery.type: single-node
-        plugins.security.disabled: "true"
-        bootstrap.memory_lock: "true"
-        OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
-        DISABLE_INSTALL_DEMO_CONFIG: "true"
-      ulimits:
-        memlock:
-          soft: -1
-          hard: -1
-      ## Uncomment the following lines to expose OpenSearch on ports 9200 and 9600
-      # ports:
-      #   - "9200:9200"  # OpenSearch HTTP API
-      #   - "9600:9600"  # OpenSearch Performance Analyzer
-      volumes:
-        - opensearch:/usr/share/opensearch/data
-      healthcheck:
-        test: ["CMD", "curl","-s" ,"-f", "http://0.0.0.0:9200/_cat/health"]
-      networks:
-        - reportportal
-      restart: always
+    image: opensearchproject/opensearch:2.16.0
+    logging:
+      <<: *logging
+    environment:
+      discovery.type: single-node
+      plugins.security.disabled: "true"
+      bootstrap.memory_lock: "true"
+      OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
+      DISABLE_INSTALL_DEMO_CONFIG: "true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    ## Uncomment the following lines to expose OpenSearch on ports 9200 and 9600
+    # ports:
+    #   - "9200:9200"  # OpenSearch HTTP API
+    #   - "9600:9600"  # OpenSearch Performance Analyzer
+    volumes:
+      - opensearch:/usr/share/opensearch/data
+    healthcheck:
+      test: ["CMD", "curl","-s" ,"-f", "http://0.0.0.0:9200/_cat/health"]
+    networks:
+      - reportportal
+    restart: always
 
 volumes:
   opensearch:
