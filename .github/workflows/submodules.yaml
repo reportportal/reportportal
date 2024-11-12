@@ -12,6 +12,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
+          ref: develop
           submodules: recursive
 
       - name: Update Submodules
