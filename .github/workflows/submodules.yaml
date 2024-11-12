@@ -15,6 +15,11 @@ jobs:
           ref: develop
           submodules: recursive
 
+      - name: Configure Git
+        run: |
+          git config --global user.name "${{github.actor}}"
+          git config --global user.email "${{github.actor}}@users.noreply.github.com"
+
       - name: Update Submodules
         run: |
           git submodule update --remote
