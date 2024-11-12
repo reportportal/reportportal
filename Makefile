@@ -50,3 +50,7 @@ build:
 clean:
 	@echo "Cleaning up the services"
 	docker compose down --volumes --remove-orphans
+
+release-config:
+	@echo "Generating release compose file"
+	@docker compose config --no-path-resolution --resolve-image-digests -o ./compose.release.yml

@@ -7,15 +7,15 @@ x-logging: &logging
 x-database:
   db_host: &db_host postgres
   db_port: &db_port 5432
-  db_user: &db_user ${POSTGRES_USER}
-  db_password: &db_password ${POSTGRES_PASSWORD}
-  db_name: &db_name ${POSTGRES_DB}
+  db_user: &db_user ${POSTGRES_USER:-rpuser}
+  db_password: &db_password ${POSTGRES_PASSWORD:-rppass}
+  db_name: &db_name ${POSTGRES_DB:-reportportal}
 x-amqp:
   rabbitmq_host: &rabbitmq_host rabbitmq
   rabbitmq_port: &rabbitmq_port 5672
   rabbitmq_apiport: &rabbitmq_apiport 15672
-  rabbitmq_user: &rabbitmq_user ${RABBITMQ_DEFAULT_USER}
-  rabbitmq_password: &rabbitmq_password ${RABBITMQ_DEFAULT_PASS}
+  rabbitmq_user: &rabbitmq_user ${RABBITMQ_DEFAULT_USER:-rabbitmq}
+  rabbitmq_password: &rabbitmq_password ${RABBITMQ_DEFAULT_PASS:-rabbitmq}
 x-environment: &common-environment
   RP_DB_HOST: *db_host
   RP_DB_PORT: *db_port
@@ -35,7 +35,7 @@ x-analyzer-environment: &common-analyzer-environment
   LOGGING_LEVEL: info
   AMQP_EXCHANGE_NAME: analyzer-default
   AMQP_VIRTUAL_HOST: analyzer
-  AMQP_URL: amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672
+  AMQP_URL: amqp://${RABBITMQ_DEFAULT_USER:-rabbitmq}:${RABBITMQ_DEFAULT_PASS:-rabbitmq}@rabbitmq:5672
   ES_HOSTS: http://opensearch:9200 
   ANALYZER_BINARYSTORE_TYPE: filesystem
 
