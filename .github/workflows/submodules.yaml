@@ -1,0 +1,26 @@
+name: Submodules
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Run every day at midnight.
+
+jobs:
+  update-submodules:
+    name: Update Submodules
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          ref: develop
+          submodules: recursive
+
+      - name: Update Submodules
+        run: |
+          git submodule update --remote
+          if [ -n "$(git status --porcelain)" ]; then
+            git add .
+            git commit -m "Update submodules references."
+            git push
+          else
+            echo "No changes to commit"
