@@ -18,6 +18,7 @@ services:
       ANALYZER_BINARYSTORE_TYPE: filesystem
       ES_HOSTS: http://opensearch:9200
       LOGGING_LEVEL: info
+    image: reportportal/service-auto-analyzer:5.12.0-r1
     logging:
       driver: json-file
       options:
@@ -51,6 +52,7 @@ services:
       INSTANCE_TASK_TYPE: train
       LOGGING_LEVEL: info
       UWSGI_WORKERS: "1"
+    image: reportportal/service-auto-analyzer:5.12.0-r1
     logging:
       driver: json-file
       options:
@@ -118,6 +120,7 @@ services:
       interval: 1m0s
       retries: 10
       start_period: 1m0s
+    image: reportportal/service-api:5.12.0
     labels:
       traefik.expose: "true"
       traefik.http.middlewares.api-strip-prefix.stripprefix.prefixes: /api
@@ -190,6 +193,7 @@ services:
       interval: 30s
       retries: 10
       start_period: 10s
+    image: reportportal/service-index:5.12.0
     labels:
       traefik.expose: "true"
       traefik.http.routers.index.rule: PathPrefix(`/`)
@@ -257,6 +261,7 @@ services:
       interval: 1m0s
       retries: 10
       start_period: 1m0s
+    image: reportportal/service-jobs:5.12.0
     labels:
       traefik.expose: "true"
       traefik.http.middlewares.jobs-strip-prefix.stripprefix.prefixes: /jobs
@@ -301,6 +306,7 @@ services:
       POSTGRES_PASSWORD: rppass
       POSTGRES_PORT: "5432"
       POSTGRES_USER: rpuser
+    image: reportportal/service-metrics-gatherer:5.12.0-r1
     logging:
       driver: json-file
       options:
@@ -323,6 +329,7 @@ services:
       POSTGRES_PORT: "5432"
       POSTGRES_SERVER: postgres
       POSTGRES_USER: rpuser
+    image: reportportal/migrations:5.12.1
     logging:
       driver: json-file
       options:
@@ -466,6 +473,7 @@ services:
       interval: 1m0s
       retries: 10
       start_period: 1m0s
+    image: reportportal/service-authorization:5.12.0
     labels:
       traefik.expose: "true"
       traefik.http.middlewares.uat-strip-prefix.stripprefix.prefixes: /uat
@@ -501,6 +509,7 @@ services:
       interval: 30s
       retries: 10
       start_period: 10s
+    image: reportportal/service-ui:5.12.0
     labels:
       traefik.expose: "true"
       traefik.http.middlewares.ui-strip-prefix.stripprefix.prefixes: /ui
