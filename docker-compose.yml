@@ -65,7 +65,8 @@ services:
     restart: always
 
   postgres:
-    image: postgres:12.17-alpine3.17
+    image: bitnami/postgresql:16.4.0-debian-12-r7
+    container_name: *db_host
     logging:
       <<: *logging
     shm_size: '512m'
@@ -73,21 +74,18 @@ services:
       POSTGRES_USER: *db_user
       POSTGRES_PASSWORD: *db_password
       POSTGRES_DB: *db_name
+      POSTGRESQL_CHECKPOINT_COMPLETION_TARGET: 0.9
+      WORK_MEM: 96M
+      WAL_WRITER_DELAY: 20ms
+      SYNCHRONOUS_COMMIT: off
+      WAL_BUFFERS: 32MB
+      MIN_WAL_SIZE: 2GB
+      MAX_WAL_SIZE: 4GB
     volumes:
-      - postgres:/var/lib/postgresql/data
-    ## Expose Database
-    ports:
-      - "5432:5432"
-    command:
-      ## PostgrsSQL performance tuning
-      ## Ref: https://reportportal.io/docs/installation-steps/OptimalPerformanceHardwareSetup#5-postgresql-performance-tuning
-      -c checkpoint_completion_target=0.9
-      -c work_mem=96MB
-      -c wal_writer_delay=20ms
-      -c synchronous_commit=off
-      -c wal_buffers=32MB
-      -c min_wal_size=2GB
-      -c max_wal_size=4GB
+      - postgres:/bitnami/postgresql
+    ## Uncomment to expose Database
+    # ports:
+    #   - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"]
       interval: 10s
@@ -196,7 +194,7 @@ services:
     restart: always
 
   api:
-    image: ${API_IMAGE-reportportal/service-api:5.12.0}
+    image: ${API_IMAGE-reportportal/service-api:5.12.1}
     build: ./service-api
     logging:
       <<: *logging
