@@ -108,6 +108,7 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: *rabbitmq_user
       RABBITMQ_DEFAULT_PASS: *rabbitmq_password
+      RABBITMQ_DISK_FREE_ABSOLUTE_LIMIT: 50MB
       RABBITMQ_MANAGEMENT_ALLOW_WEB_ACCESS: "true"
       RABBITMQ_PLUGINS: >
         rabbitmq_consistent_hash_exchange
