@@ -13,6 +13,15 @@ jobs:
     name: Configure Release file
     runs-on: ubuntu-latest
     environment: release
+    env:
+      MIGRATIONS_IMAGE: ${{ vars.MIGRATIONS_IMAGE }}
+      INDEX_IMAGE: ${{ vars.INDEX_IMAGE }}
+      UI_IMAGE: ${{ vars.UI_IMAGE }}
+      API_IMAGE: ${{ vars.API_IMAGE }}
+      UAT_IMAGE: ${{ vars.UAT_IMAGE }}
+      JOBS_IMAGE: ${{ vars.JOBS_IMAGE }}
+      ANALYZER_IMAGE: ${{ vars.ANALYZER_IMAGE }}
+      METRICS_GATHERER_IMAGE: ${{ vars.METRICS_GATHERER_IMAGE }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
