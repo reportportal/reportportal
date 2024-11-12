@@ -3,7 +3,6 @@ name: Submodules
 on:
   schedule:
     - cron: '0 0 * * *' # Run every day at midnight.
-  workflow_dispatch:
 
 jobs:
   update-submodules:
@@ -13,13 +12,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          ref: develop
           submodules: recursive
-
-      - name: Configure Git
-        run: |
-          git config --global user.name "${{github.actor}}"
-          git config --global user.email "${{github.actor}}@users.noreply.github.com"
 
       - name: Update Submodules
         run: |
@@ -30,4 +23,3 @@ jobs:
             git push
           else
             echo "No changes to commit"
-          fi
