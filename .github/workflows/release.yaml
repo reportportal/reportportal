@@ -7,3 +7,8 @@ jobs:
   config-release-file:
     name: Configure Release file
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Nothing to do
+        run: echo "Nothing to do"
