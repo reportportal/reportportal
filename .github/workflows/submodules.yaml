@@ -14,6 +14,11 @@ jobs:
         with:
           ref: develop
           submodules: recursive
+       
+      - name: Git user info
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
 
       - name: Update Submodules
         run: |
