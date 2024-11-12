@@ -53,4 +53,4 @@ clean:
 
 release-config:
 	@echo "Generating release compose file"
-	@docker compose config --no-path-resolution --resolve-image-digests -o ./compose.release.yml
+	@docker compose config --no-path-resolution -o ./compose.release.yml
