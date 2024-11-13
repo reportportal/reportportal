@@ -30,4 +30,4 @@ jobs:
             git push
           else
             echo "No changes to commit"
-        shell: /usr/bin/bash -e {0}
+          fi
