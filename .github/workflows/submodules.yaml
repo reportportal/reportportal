@@ -3,6 +3,7 @@ name: Submodules
 on:
   schedule:
     - cron: '0 0 * * *' # Run every day at midnight.
+  workflow_dispatch:
 
 jobs:
   update-submodules:
@@ -29,3 +30,4 @@ jobs:
             git push
           else
             echo "No changes to commit"
+        shell: /usr/bin/bash -e {0}
