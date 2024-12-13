@@ -74,13 +74,6 @@ services:
       POSTGRES_USER: *db_user
       POSTGRES_PASSWORD: *db_password
       POSTGRES_DB: *db_name
-      POSTGRESQL_CHECKPOINT_COMPLETION_TARGET: 0.9
-      WORK_MEM: 96M
-      WAL_WRITER_DELAY: 20ms
-      SYNCHRONOUS_COMMIT: off
-      WAL_BUFFERS: 32MB
-      MIN_WAL_SIZE: 2GB
-      MAX_WAL_SIZE: 4GB
     volumes:
       - postgres:/bitnami/postgresql
     ## Uncomment to expose Database
@@ -100,13 +93,12 @@ services:
     logging:
       <<: *logging
     ## Uncomment the following lines to expose RabbitMQ Management on port 5672 and API on 15672
-    ports:
-      - "5672:5672"
-      - "15672:15672"
+    # ports:
+    #   - "5672:5672"
+    #   - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: *rabbitmq_user
       RABBITMQ_DEFAULT_PASS: *rabbitmq_password
-      RABBITMQ_DISK_FREE_ABSOLUTE_LIMIT: 50MB
       RABBITMQ_MANAGEMENT_ALLOW_WEB_ACCESS: "true"
       RABBITMQ_PLUGINS: >
         rabbitmq_consistent_hash_exchange
@@ -138,9 +130,9 @@ services:
         soft: -1
         hard: -1
     ## Uncomment the following lines to expose OpenSearch on ports 9200 and 9600
-    ports:
-      - "9200:9200"  # OpenSearch HTTP API
-      - "9600:9600"  # OpenSearch Performance Analyzer
+    # ports:
+    #   - "9200:9200"  # OpenSearch HTTP API
+    #   - "9600:9600"  # OpenSearch Performance Analyzer
     volumes:
       - opensearch:/usr/share/opensearch/data
     healthcheck:
@@ -440,10 +432,12 @@ services:
       - reportportal
     restart: always
 
+## Define named volumes for persistent storage
 volumes:
   opensearch:
   storage:
   postgres:
 
+## Define custom network for ReportPortal services
 networks:
   reportportal:
