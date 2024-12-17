@@ -1,58 +1,56 @@
-## Common configuration used across various services and environments
+## ReportPortal common variables  
 x-logging: &logging
   driver: "json-file"
   options:
     max-size: 100m
     max-file: "5"
-
-x-hosts:
-  OS_HOST: &opensearch_host opensearch
-  AMQP_HOST: &rabbitmq_host rabbitmq
-  DB_HOST: &db_host postgres
-
-## Common environment variables for ReportPortal Core services
+x-database:
+  db_host: &db_host postgres
+  db_port: &db_port 5432
+  db_user: &db_user ${POSTGRES_USER-rpuser}
+  db_password: &db_password ${POSTGRES_PASSWORD-rppass}
+  db_name: &db_name ${POSTGRES_DB-reportportal}
+x-amqp:
+  rabbitmq_host: &rabbitmq_host rabbitmq
+  rabbitmq_port: &rabbitmq_port 5672
+  rabbitmq_apiport: &rabbitmq_apiport 15672
+  rabbitmq_user: &rabbitmq_user ${RABBITMQ_DEFAULT_USER-rabbitmq}
+  rabbitmq_password: &rabbitmq_password ${RABBITMQ_DEFAULT_PASS-rabbitmq}
 x-environment: &common-environment
   RP_DB_HOST: *db_host
-  RP_DB_PORT: &db_port 5432
-  RP_DB_USER: &db_user rpuser
-  RP_DB_PASS: &db_password rppass
-  RP_DB_NAME: &db_name reportportal
+  RP_DB_PORT: *db_port
+  RP_DB_USER: *db_user
+  RP_DB_PASS: *db_password
+  RP_DB_NAME: *db_name
   RP_AMQP_HOST: *rabbitmq_host
-  RP_AMQP_PORT: 5672
-  RP_AMQP_APIPORT: 15672
-  RP_AMQP_USER: &rabbitmq_user rabbitmq
-  RP_AMQP_PASS: &rabbitmq_password rabbitmq
+  RP_AMQP_PORT: *rabbitmq_port
+  RP_AMQP_APIPORT: *rabbitmq_apiport
+  RP_AMQP_USER: *rabbitmq_user
+  RP_AMQP_PASS: *rabbitmq_password
   RP_AMQP_APIUSER: *rabbitmq_user
   RP_AMQP_APIPASS: *rabbitmq_password
   RP_AMQP_ANALYZER-VHOST: analyzer
   DATASTORE_TYPE: filesystem
-
-## Common environment variables for Analyzer related services
 x-analyzer-environment: &common-analyzer-environment
   LOGGING_LEVEL: info
   AMQP_EXCHANGE_NAME: analyzer-default
   AMQP_VIRTUAL_HOST: analyzer
-  AMQP_URL: amqp://rabbitmq:rabbitmq@rabbitmq:5672
+  AMQP_URL: amqp://${RABBITMQ_DEFAULT_USER-rabbitmq}:${RABBITMQ_DEFAULT_PASS-rabbitmq}@rabbitmq:5672
   ES_HOSTS: http://opensearch:9200 
   ANALYZER_BINARYSTORE_TYPE: filesystem
-
 
 services:
   ##
   ## ReportPortal dependencies
-  ##
-
-  ## Traefik gateway for routing and load balancing
   gateway:
-    image: traefik:v2.11.11
-    container_name: traefik
+    image: traefik:v2.11.15
     logging:
       <<: *logging
     ports:
       ## ReportPortal UI 
       - "8080:8080" 
-      ## Uncomment to expose Traefik dashboard
-      # - "8081:8081" 
+      ## Traefik dashboard
+      - "8081:8081" 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command:
@@ -65,11 +63,69 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - core
+      - ''
 
-  ## OpenSearch for search and analytical capabilities
+  postgres:
+    image: bitnami/postgresql:16.6.0
+    container_name: *db_host
+    logging:
+      <<: *logging
+    shm_size: '512m'
+    environment:
+      POSTGRES_USER: *db_user
+      POSTGRES_PASSWORD: *db_password
+      POSTGRES_DB: *db_name
+    volumes:
+      - postgres:/bitnami/postgresql
+    ## Uncomment to expose Database
+    # ports:
+    #   - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"]
+      interval: 10s
+      timeout: 120s
+      retries: 10
+    networks:
+      - reportportal
+    restart: always
+    profiles:
+      - core
+      - ''
+
+  rabbitmq:
+    image: bitnami/rabbitmq:3.13.7-debian-12-r5
+    logging:
+      <<: *logging
+    ## Uncomment the following lines to expose RabbitMQ Management on port 5672 and API on 15672
+    # ports:
+    #   - "5672:5672"
+    #   - "15672:15672"
+    environment:
+      RABBITMQ_DEFAULT_USER: *rabbitmq_user
+      RABBITMQ_DEFAULT_PASS: *rabbitmq_password
+      RABBITMQ_MANAGEMENT_ALLOW_WEB_ACCESS: "true"
+      RABBITMQ_PLUGINS: >
+        rabbitmq_consistent_hash_exchange
+        rabbitmq_management
+        rabbitmq_auth_backend_ldap
+        rabbitmq_shovel
+        rabbitmq_shovel_management
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 30s
+      timeout: 30s
+      retries: 5
+    networks:
+      - reportportal
+    restart: always
+    profiles:
+      - core
+      - ''
+
   opensearch:
-    image: opensearchproject/opensearch:2.16.0
-    container_name: *opensearch_host
+    image: opensearchproject/opensearch:2.18.0
     logging:
       <<: *logging
     environment:
@@ -93,75 +149,35 @@ services:
     networks:
       - reportportal
     restart: always
-
-  ## PostgreSQL as the main database for ReportPortal
-  postgres:
-    image: bitnami/postgresql:16.4.0-debian-12-r7
-    container_name: *db_host
-    logging:
-      <<: *logging
-    shm_size: '512m'
-    environment:
-      POSTGRES_USER: *db_user
-      POSTGRES_PASSWORD: *db_password
-      POSTGRES_DB: *db_name
-      POSTGRESQL_CHECKPOINT_COMPLETION_TARGET: 0.9
-      WORK_MEM: 96M
-      WAL_WRITER_DELAY: 20ms
-      SYNCHRONOUS_COMMIT: off
-      WAL_BUFFERS: 32MB
-      MIN_WAL_SIZE: 2GB
-      MAX_WAL_SIZE: 4GB
-    volumes:
-      - postgres:/bitnami/postgresql
-    ## Uncomment to expose Database
-    # ports:
-    #   - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"]
-      interval: 10s
-      timeout: 120s
-      retries: 10
-    networks:
-      - reportportal
-    restart: always
-
-  ## RabbitMQ for messaging between services
-  rabbitmq:
-    image: bitnami/rabbitmq:3.13.7-debian-12-r2
-    container_name: *rabbitmq_host
-    logging:
-      <<: *logging
-    ## Uncomment the following lines to expose RabbitMQ Management on port 5672 and API on 15672
-    # ports:
-    #   - "5672:5672"
-    #   - "15672:15672"
-    environment:
-      RABBITMQ_DEFAULT_USER: *rabbitmq_user
-      RABBITMQ_DEFAULT_PASS: *rabbitmq_password
-      RABBITMQ_MANAGEMENT_ALLOW_WEB_ACCESS: "true"
-      RABBITMQ_DISK_FREE_ABSOLUTE_LIMIT: 50MB
-      RABBITMQ_PLUGINS: >
-        rabbitmq_consistent_hash_exchange
-        rabbitmq_management
-        rabbitmq_auth_backend_ldap
-        rabbitmq_shovel
-        rabbitmq_shovel_management
-    healthcheck:
-      test: ["CMD", "rabbitmqctl", "status"]
-      interval: 30s
-      timeout: 30s
-      retries: 5
-    networks:
-      - reportportal
-    restart: always
+    profiles:
+      - ''
 
   ##
   ## ReportPortal Core services
-  ##
-  
+  migrations:
+    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.13.0}
+    build: ./migrations
+    logging:
+      <<: *logging
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_SERVER: *db_host
+      POSTGRES_PORT: *db_port
+      POSTGRES_DB: *db_name
+      POSTGRES_USER: *db_user
+      POSTGRES_PASSWORD: *db_password
+    networks:
+      - reportportal
+    restart: on-failure
+    profiles:
+      - core
+      - ''
+
   index:
-    image: reportportal/service-index:5.12.0
+    image: ${INDEX_IMAGE-reportportal/service-index:5.13.0}
+    build: ./service-index
     logging:
       <<: *logging
     depends_on:
@@ -185,9 +201,13 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - core
+      - ''
 
   ui:
-    image: reportportal/service-ui:5.12.0
+    image: ${UI_IMAGE-reportportal/service-ui:5.12.1}
+    build: ./service-ui
     environment:
       RP_SERVER_PORT: "8080"
     healthcheck:
@@ -207,9 +227,13 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - core
+      - ''
 
   api:
-    image: reportportal/service-api:5.12.1
+    image: ${API_IMAGE-reportportal/service-api:5.13.1}
+    build: ./service-api
     logging:
       <<: *logging
     depends_on:
@@ -266,9 +290,13 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - core
+      - ''
 
   uat:
-    image: reportportal/service-authorization:5.12.0
+    image: ${UAT_IMAGE-reportportal/service-authorization:5.13.0}
+    build: ./service-authorization
     logging:
       <<: *logging
     environment:
@@ -278,8 +306,12 @@ services:
       ## Session lifetime in seconds for SAML sessions
       RP_SAML_SESSION-LIVE: 4320
       ## Initial password for the superadmin user on the first launch. This value won't change the password on redeployments.
-      RP_INITIAL_ADMIN_PASSWORD: "erebus"
-      JAVA_OPTS: -Djava.security.egd=file:/dev/./urandom -XX:MinRAMPercentage=60.0 -XX:MaxRAMPercentage=90.0 --add-opens=java.base/java.lang=ALL-UNNAMED
+      RP_INITIAL_ADMIN_PASSWORD: ${RP_INITIAL_ADMIN_PASSWORD:-erebus}
+      JAVA_OPTS: >
+        -Djava.security.egd=file:/dev/./urandom
+        -XX:MinRAMPercentage=60.0
+        -XX:MaxRAMPercentage=90.0
+        --add-opens=java.base/java.lang=ALL-UNNAMED
     volumes:
       - storage:/data/storage
     healthcheck:
@@ -302,9 +334,13 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - core
+      - ''
 
   jobs:
-    image: reportportal/service-jobs:5.12.0
+    image: ${JOBS_IMAGE-reportportal/service-jobs:5.13.0}
+    build: ./service-jobs
     logging:
       <<: *logging
     depends_on:
@@ -315,7 +351,7 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      <<: *common-environment
+      << : *common-environment
       RP_ENVIRONMENT_VARIABLE_CLEAN_ATTACHMENT_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_LOG_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_LAUNCH_CRON: 0 0 */24 * * *
@@ -358,9 +394,16 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - core
+      - ''
 
+  ##
+  ## Analyzer stack
+  ## You can commit the following services if you don't need the Analyzer stack
   analyzer:
-    image: &analyzer_img reportportal/service-auto-analyzer:5.12.0-r1
+    image: &analyzer_image ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.13.0}
+    build: &analyzer_build ./service-auto-analyzer
     logging:
       <<: *logging
     environment:
@@ -375,13 +418,18 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - ''
 
   analyzer-train:
-    image: *analyzer_img
+    image: *analyzer_image
+    build: *analyzer_build
     logging:
       <<: *logging
     environment:
       <<: *common-analyzer-environment
+      INSTANCE_TASK_TYPE: train
+      UWSGI_WORKERS: 1
     volumes:
       - storage:/data/storage
     depends_on:
@@ -392,9 +440,12 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - ''
 
   metrics-gatherer:
-    image: reportportal/service-metrics-gatherer:5.12.0-r1
+    image: ${METRICS_GATHERER_IMAGE-reportportal/service-metrics-gatherer:5.13.0}
+    build: ./service-metrics-gatherer
     logging:
       <<: *logging
     environment:
@@ -413,29 +464,8 @@ services:
     networks:
       - reportportal
     restart: always
-
-  migrations:
-    image: reportportal/migrations:5.12.1
-    logging:
-      <<: *logging
-    depends_on:
-      postgres:
-        condition: service_healthy
-    environment:
-      POSTGRES_SERVER: *db_host
-      POSTGRES_PORT: *db_port
-      POSTGRES_DB: *db_name
-      POSTGRES_USER: *db_user
-      POSTGRES_PASSWORD: *db_password
-      OS_HOST: *opensearch_host
-      OS_PORT: 9200
-      OS_PROTOCOL: http
-      ## Uncomment and set the following if OpenSearch requires authentication
-      # OS_USER: 
-      # OS_PASSWORD: 
-    networks:
-      - reportportal
-    restart: on-failure
+    profiles:
+      - ''
 
 ## Define named volumes for persistent storage
 volumes:
