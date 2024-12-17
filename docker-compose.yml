@@ -63,6 +63,9 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - core
+      - ''
 
   postgres:
     image: bitnami/postgresql:16.6.0
@@ -87,6 +90,9 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - core
+      - ''
 
   rabbitmq:
     image: bitnami/rabbitmq:3.13.7-debian-12-r5
@@ -114,6 +120,9 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - core
+      - ''
 
   opensearch:
     image: opensearchproject/opensearch:2.18.0
@@ -140,6 +149,8 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - ''
 
   ##
   ## ReportPortal Core services
@@ -160,6 +171,9 @@ services:
     networks:
       - reportportal
     restart: on-failure
+    profiles:
+      - core
+      - ''
 
   index:
     image: ${INDEX_IMAGE-reportportal/service-index:5.13.0}
@@ -187,6 +201,9 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - core
+      - ''
 
   ui:
     image: ${UI_IMAGE-reportportal/service-ui:5.12.1}
@@ -210,9 +227,12 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - core
+      - ''
 
   api:
-    image: ${API_IMAGE-reportportal/service-api:5.13.0}
+    image: ${API_IMAGE-reportportal/service-api:5.13.1}
     build: ./service-api
     logging:
       <<: *logging
@@ -270,6 +290,9 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - core
+      - ''
 
   uat:
     image: ${UAT_IMAGE-reportportal/service-authorization:5.13.0}
@@ -311,6 +334,9 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - core
+      - ''
 
   jobs:
     image: ${JOBS_IMAGE-reportportal/service-jobs:5.13.0}
@@ -368,6 +394,9 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - core
+      - ''
 
   ##
   ## Analyzer stack
@@ -389,6 +418,8 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - ''
 
   analyzer-train:
     image: *analyzer_image
@@ -409,6 +440,8 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - ''
 
   metrics-gatherer:
     image: ${METRICS_GATHERER_IMAGE-reportportal/service-metrics-gatherer:5.13.0}
@@ -431,6 +464,8 @@ services:
     networks:
       - reportportal
     restart: always
+    profiles:
+      - ''
 
 ## Define named volumes for persistent storage
 volumes:
