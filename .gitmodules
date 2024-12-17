@@ -1,0 +1,32 @@
+[submodule "service-api"]
+	path = service-api
+	url = https://github.com/reportportal/service-api.git
+	branch = develop
+[submodule "service-authorization"]
+	path = service-authorization
+	url = https://github.com/reportportal/service-authorization.git
+	branch = develop
+[submodule "service-jobs"]
+	path = service-jobs
+	url = https://github.com/reportportal/service-jobs.git
+	branch = develop
+[submodule "service-ui"]
+	path = service-ui
+	url = https://github.com/reportportal/service-ui.git
+	branch = develop
+[submodule "service-index"]
+	path = service-index
+	url = https://github.com/reportportal/service-index.git
+	branch = develop
+[submodule "service-auto-analyzer"]
+	path = service-auto-analyzer
+	url = https://github.com/reportportal/service-auto-analyzer
+	branch = develop
+[submodule "service-metrics-gatherer"]
+	path = service-metrics-gatherer
+	url = https://github.com/reportportal/service-metrics-gatherer.git
+	branch = develop
+[submodule "migrations"]
+	path = migrations
+	url = https://github.com/reportportal/migrations.git
+	branch = develop
