@@ -106,6 +106,9 @@ services:
       RABBITMQ_DEFAULT_USER: *rabbitmq_user
       RABBITMQ_DEFAULT_PASS: *rabbitmq_password
       RABBITMQ_MANAGEMENT_ALLOW_WEB_ACCESS: "true"
+      ## Block all prcedures when free disk space is less than 50MB
+      ## Ref: https://www.rabbitmq.com/docs/disk-alarms
+      RABBITMQ_DISK_FREE_ABSOLUTE_LIMIT: 50MB
       RABBITMQ_PLUGINS: >
         rabbitmq_consistent_hash_exchange
         rabbitmq_management
