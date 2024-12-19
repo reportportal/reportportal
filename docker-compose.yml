@@ -405,14 +405,14 @@ services:
   ## Analyzer stack
   ## You can commit the following services if you don't need the Analyzer stack
   analyzer:
-    image: &analyzer_image ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.13.0}
+    image: &analyzer_image ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.13.1}
     build: &analyzer_build ./service-auto-analyzer
     logging:
       <<: *logging
     environment:
       <<: *common-analyzer-environment
     volumes:
-      - storage:/data/storage
+      - storage:/backend/storage
     depends_on:
       opensearch:
         condition: service_started
@@ -434,7 +434,7 @@ services:
       INSTANCE_TASK_TYPE: train
       UWSGI_WORKERS: 1
     volumes:
-      - storage:/data/storage
+      - storage:/backend/storage
     depends_on:
       opensearch:
         condition: service_started
