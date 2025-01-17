@@ -32,13 +32,12 @@ switch:
 		fi'
 
 # Docker compose commands
-# Run services
-up:
-	docker compose up
-
 # Build and run services
-up-build:
+up:
 	docker compose up --build
+
+up-core:
+	docker compose --profile core up --build
 
 # Build services or a specific service
 build:

@@ -209,7 +209,7 @@ services:
       - ''
 
   ui:
-    image: ${UI_IMAGE-reportportal/service-ui:5.12.1}
+    image: ${UI_IMAGE-reportportal/service-ui:5.12.3}
     build: ./service-ui
     environment:
       RP_SERVER_PORT: "8080"
@@ -235,7 +235,7 @@ services:
       - ''
 
   api:
-    image: ${API_IMAGE-reportportal/service-api:5.13.1}
+    image: ${API_IMAGE-reportportal/service-api:5.13.2}
     build: ./service-api
     logging:
       <<: *logging
