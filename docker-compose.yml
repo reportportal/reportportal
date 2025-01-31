@@ -235,7 +235,7 @@ services:
       - ''
 
   api:
-    image: ${API_IMAGE-reportportal/service-api:5.13.2}
+    image: ${API_IMAGE-reportportal/service-api:5.13.3}
     build: ./service-api
     logging:
       <<: *logging
@@ -298,7 +298,7 @@ services:
       - ''
 
   uat:
-    image: ${UAT_IMAGE-reportportal/service-authorization:5.13.0}
+    image: ${UAT_IMAGE-reportportal/service-authorization:5.13.1}
     build: ./service-authorization
     logging:
       <<: *logging
@@ -342,7 +342,7 @@ services:
       - ''
 
   jobs:
-    image: ${JOBS_IMAGE-reportportal/service-jobs:5.13.0}
+    image: ${JOBS_IMAGE-reportportal/service-jobs:5.13.1}
     build: ./service-jobs
     logging:
       <<: *logging
