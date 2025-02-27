@@ -209,7 +209,7 @@ services:
       - ''
 
   ui:
-    image: ${UI_IMAGE-reportportal/service-ui:5.12.3}
+    image: ${UI_IMAGE-reportportal/service-ui:5.12.4}
     build: ./service-ui
     environment:
       RP_SERVER_PORT: "8080"
@@ -235,7 +235,7 @@ services:
       - ''
 
   api:
-    image: ${API_IMAGE-reportportal/service-api:5.13.3}
+    image: ${API_IMAGE-reportportal/service-api:5.13.4}
     build: ./service-api
     logging:
       <<: *logging
@@ -405,7 +405,7 @@ services:
   ## Analyzer stack
   ## You can commit the following services if you don't need the Analyzer stack
   analyzer:
-    image: &analyzer_image ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.13.1}
+    image: &analyzer_image ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.13.2}
     build: &analyzer_build ./service-auto-analyzer
     logging:
       <<: *logging
@@ -440,30 +440,6 @@ services:
         condition: service_started
       rabbitmq:
         condition: service_healthy
-    networks:
-      - reportportal
-    restart: always
-    profiles:
-      - ''
-
-  metrics-gatherer:
-    image: ${METRICS_GATHERER_IMAGE-reportportal/service-metrics-gatherer:5.13.0}
-    build: ./service-metrics-gatherer
-    logging:
-      <<: *logging
-    environment:
-      <<: *common-analyzer-environment
-      ES_HOST: http://opensearch:9200
-      POSTGRES_USER: *db_user
-      POSTGRES_PASSWORD: *db_password
-      POSTGRES_DB: *db_name
-      POSTGRES_HOST: *db_host
-      POSTGRES_PORT: *db_port
-      ALLOWED_START_TIME: "22:00"
-      ALLOWED_END_TIME: "08:00"
-    depends_on:
-      opensearch:
-        condition: service_started
     networks:
       - reportportal
     restart: always
