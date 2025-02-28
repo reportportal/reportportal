@@ -65,6 +65,7 @@ services:
     restart: always
     profiles:
       - core
+      - infra
       - ''
 
   postgres:
@@ -92,6 +93,7 @@ services:
     restart: always
     profiles:
       - core
+      - infra
       - ''
 
   rabbitmq:
@@ -125,6 +127,7 @@ services:
     restart: always
     profiles:
       - core
+      - infra
       - ''
 
   opensearch:
@@ -176,6 +179,7 @@ services:
     restart: on-failure
     profiles:
       - core
+      - infra
       - ''
 
   index:
@@ -206,6 +210,7 @@ services:
     restart: always
     profiles:
       - core
+      - infra
       - ''
 
   ui:

@@ -39,6 +39,9 @@ up:
 up-core:
 	docker compose --profile core up --build
 
+up-infra:
+	docker compose --profile infra up --build
+
 # Build services or a specific service
 build:
 	@echo "Building the services"
