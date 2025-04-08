@@ -65,6 +65,7 @@ services:
     restart: always
     profiles:
       - core
+      - infra
       - ''
 
   postgres:
@@ -92,6 +93,7 @@ services:
     restart: always
     profiles:
       - core
+      - infra
       - ''
 
   rabbitmq:
@@ -125,6 +127,7 @@ services:
     restart: always
     profiles:
       - core
+      - infra
       - ''
 
   opensearch:
@@ -158,7 +161,7 @@ services:
   ##
   ## ReportPortal Core services
   migrations:
-    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.13.0}
+    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.13.2}
     build: ./migrations
     logging:
       <<: *logging
@@ -176,10 +179,11 @@ services:
     restart: on-failure
     profiles:
       - core
+      - infra
       - ''
 
   index:
-    image: ${INDEX_IMAGE-reportportal/service-index:5.13.0}
+    image: ${INDEX_IMAGE-reportportal/service-index:5.13.1}
     build: ./service-index
     logging:
       <<: *logging
@@ -206,10 +210,11 @@ services:
     restart: always
     profiles:
       - core
+      - infra
       - ''
 
   ui:
-    image: ${UI_IMAGE-reportportal/service-ui:5.12.4}
+    image: ${UI_IMAGE-reportportal/service-ui:5.12.5}
     build: ./service-ui
     environment:
       RP_SERVER_PORT: "8080"
@@ -235,7 +240,7 @@ services:
       - ''
 
   api:
-    image: ${API_IMAGE-reportportal/service-api:5.13.4}
+    image: ${API_IMAGE-reportportal/service-api:5.13.5}
     build: ./service-api
     logging:
       <<: *logging
@@ -298,7 +303,7 @@ services:
       - ''
 
   uat:
-    image: ${UAT_IMAGE-reportportal/service-authorization:5.13.1}
+    image: ${UAT_IMAGE-reportportal/service-authorization:5.13.2}
     build: ./service-authorization
     logging:
       <<: *logging
@@ -342,7 +347,7 @@ services:
       - ''
 
   jobs:
-    image: ${JOBS_IMAGE-reportportal/service-jobs:5.13.1}
+    image: ${JOBS_IMAGE-reportportal/service-jobs:5.13.2}
     build: ./service-jobs
     logging:
       <<: *logging
