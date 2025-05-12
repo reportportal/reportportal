@@ -1,21 +1,48 @@
-## ReportPortal common variables  
+## ReportPortal common variables
+##
+
+## @section Logging configuration
+## @param x-logging Common logging settings for all services (json-file driver with rotation)
+##
 x-logging: &logging
   driver: "json-file"
   options:
     max-size: 100m
     max-file: "5"
+
+## @section Database configuration
+## @param x-database Common DB config shared across all services
+## @param db_host Hostname of the PostgreSQL database
+## @param db_port Port to connect to PostgreSQL
+## @param db_user Username for PostgreSQL access
+## @param db_password Password for PostgreSQL access
+## @param db_name Database name to connect to
+##
 x-database:
   db_host: &db_host postgres
   db_port: &db_port 5432
   db_user: &db_user ${POSTGRES_USER-rpuser}
   db_password: &db_password ${POSTGRES_PASSWORD-rppass}
   db_name: &db_name ${POSTGRES_DB-reportportal}
+
+## @section AMQP (RabbitMQ) configuration
+## @param x-amqp Common RabbitMQ config shared across all services
+## @param rabbitmq_host RabbitMQ hostname
+## @param rabbitmq_port AMQP communication port
+## @param rabbitmq_apiport RabbitMQ HTTP management UI port
+## @param rabbitmq_user RabbitMQ user
+## @param rabbitmq_password RabbitMQ password
+##
 x-amqp:
   rabbitmq_host: &rabbitmq_host rabbitmq
   rabbitmq_port: &rabbitmq_port 5672
   rabbitmq_apiport: &rabbitmq_apiport 15672
   rabbitmq_user: &rabbitmq_user ${RABBITMQ_DEFAULT_USER-rabbitmq}
   rabbitmq_password: &rabbitmq_password ${RABBITMQ_DEFAULT_PASS-rabbitmq}
+
+## @section Common environment variables
+## @param x-environment Common environment values injected into core services
+##
 x-environment: &common-environment
   RP_DB_HOST: *db_host
   RP_DB_PORT: *db_port
@@ -31,6 +58,10 @@ x-environment: &common-environment
   RP_AMQP_APIPASS: *rabbitmq_password
   RP_AMQP_ANALYZER-VHOST: analyzer
   DATASTORE_TYPE: filesystem
+
+## @section Analyzer service environment
+## @param x-analyzer-environment Custom env vars for analyzer services
+##
 x-analyzer-environment: &common-analyzer-environment
   LOGGING_LEVEL: info
   AMQP_EXCHANGE_NAME: analyzer-default
@@ -41,16 +72,21 @@ x-analyzer-environment: &common-analyzer-environment
 
 services:
   ##
-  ## ReportPortal dependencies
+  ## @section ReportPortal dependencies
+  ##
+
+  ## @param gateway Reverse proxy and entry point for ReportPortal
+  ## - Port 8080: exposes the ReportPortal UI
+  ## - Port 8081: exposes the Traefik dashboard
+  ## - Uses Docker labels to auto-discover services
+  ##
   gateway:
     image: traefik:v2.11.15
     logging:
       <<: *logging
     ports:
-      ## ReportPortal UI 
-      - "8080:8080" 
-      ## Traefik dashboard
-      - "8081:8081" 
+      - "8080:8080"   ## ReportPortal UI
+      - "8081:8081"   ## Traefik dashboard
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command:
@@ -64,10 +100,15 @@ services:
       - reportportal
     restart: always
     profiles:
-      - core
-      - infra
-      - ''
+      - core         ## Part of core services
+      - infra        ## Also needed for infrastructure setup
+      - ''           ## Default profile
 
+  ## @param postgres Main PostgreSQL database for ReportPortal
+  ## - Uses Bitnami image with volume for persistent storage
+  ## - Healthcheck ensures DB is ready before dependent services start
+  ## - Expose port 5432 if needed (currently commented out)
+  ##
   postgres:
     image: bitnami/postgresql:16.6.0
     container_name: *db_host
@@ -80,9 +121,8 @@ services:
       POSTGRES_DB: *db_name
     volumes:
       - postgres:/bitnami/postgresql
-    ## Uncomment to expose Database
     # ports:
-    #   - "5432:5432"
+    #   - "5432:5432"   ## Uncomment to expose PostgreSQL externally
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d $$POSTGRES_DB -U $$POSTGRES_USER"]
       interval: 10s
@@ -96,20 +136,23 @@ services:
       - infra
       - ''
 
+  ## @param rabbitmq Message broker for asynchronous communication
+  ## - Supports queues for test analysis and reporting
+  ## - Healthcheck ensures availability before dependent services start
+  ## - Plugins included: shovel, management, LDAP, etc.
+  ## - Expose ports 5672 (AMQP) and 15672 (Web UI) if needed
+  ##
   rabbitmq:
     image: bitnami/rabbitmq:3.13.7-debian-12-r5
     logging:
       <<: *logging
-    ## Uncomment the following lines to expose RabbitMQ Management on port 5672 and API on 15672
     # ports:
-    #   - "5672:5672"
-    #   - "15672:15672"
+    #   - "5672:5672"     ## Uncomment to expose AMQP protocol port
+    #   - "15672:15672"   ## Uncomment to expose RabbitMQ dashboard
     environment:
       RABBITMQ_DEFAULT_USER: *rabbitmq_user
       RABBITMQ_DEFAULT_PASS: *rabbitmq_password
       RABBITMQ_MANAGEMENT_ALLOW_WEB_ACCESS: "true"
-      ## Block all prcedures when free disk space is less than 50MB
-      ## Ref: https://www.rabbitmq.com/docs/disk-alarms
       RABBITMQ_DISK_FREE_ABSOLUTE_LIMIT: 50MB
       RABBITMQ_PLUGINS: >
         rabbitmq_consistent_hash_exchange
@@ -130,6 +173,11 @@ services:
       - infra
       - ''
 
+  ## @param opensearch Search and analytics engine used by the Analyzer service
+  ## - Runs as a single node with security plugins disabled
+  ## - Volume maps persistent data for reuse across restarts
+  ## - Ports 9200 (API) and 9600 (metrics) can be exposed if needed
+  ##
   opensearch:
     image: opensearchproject/opensearch:2.18.0
     logging:
@@ -144,10 +192,9 @@ services:
       memlock:
         soft: -1
         hard: -1
-    ## Uncomment the following lines to expose OpenSearch on ports 9200 and 9600
     # ports:
-    #   - "9200:9200"  # OpenSearch HTTP API
-    #   - "9600:9600"  # OpenSearch Performance Analyzer
+    #   - "9200:9200"  ## OpenSearch HTTP API
+    #   - "9600:9600"  ## OpenSearch Performance Analyzer
     volumes:
       - opensearch:/usr/share/opensearch/data
     healthcheck:
@@ -156,10 +203,16 @@ services:
       - reportportal
     restart: always
     profiles:
-      - ''
+      - ''  ## Runs in default profile (used by analyzer services)
 
   ##
-  ## ReportPortal Core services
+  ## @section ReportPortal Core Services
+  ##
+
+  ## @param migrations Initializes and applies DB schema changes
+  ## - Runs on startup and exits on completion
+  ## - Depends on PostgreSQL being healthy
+  ##
   migrations:
     image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.13.2}
     build: ./migrations
@@ -182,6 +235,11 @@ services:
       - infra
       - ''
 
+  ## @param index ReportPortal indexing service
+  ## - Registers and manages test data indexing
+  ## - Exposed via Traefik at root URL `/`
+  ## - Healthcheck validates service availability on port 8080
+  ##
   index:
     image: ${INDEX_IMAGE-reportportal/service-index:5.13.1}
     build: ./service-index
@@ -212,7 +270,12 @@ services:
       - core
       - infra
       - ''
-
+      
+   ## @param ui ReportPortal web UI service
+  ## - Serves the frontend web interface on port 8080
+  ## - Routed via Traefik under path `/ui`
+  ## - Healthcheck ensures UI is up before marking container healthy
+  ##
   ui:
     image: ${UI_IMAGE-reportportal/service-ui:5.12.5}
     build: ./service-ui
@@ -239,6 +302,12 @@ services:
       - core
       - ''
 
+  ## @param api Main backend service for ReportPortal
+  ## - Exposes business logic, REST API, and handles background jobs
+  ## - Depends on PostgreSQL, RabbitMQ, and Traefik (gateway)
+  ## - Healthcheck runs on port 8585
+  ## - Routed via Traefik under path `/api`
+  ##
   api:
     image: ${API_IMAGE-reportportal/service-api:5.13.5}
     build: ./service-api
@@ -302,6 +371,12 @@ services:
       - core
       - ''
 
+  ## @param uat Authorization and authentication service
+  ## - Handles login, sessions, and permissions
+  ## - First-time admin password defined via RP_INITIAL_ADMIN_PASSWORD
+  ## - Routed via Traefik under `/uat`
+  ## - Depends on PostgreSQL
+  ##
   uat:
     image: ${UAT_IMAGE-reportportal/service-authorization:5.13.2}
     build: ./service-authorization
@@ -309,11 +384,8 @@ services:
       <<: *logging
     environment:
       <<: *common-environment
-      ## Session lifetime in seconds for regular sessions
-      RP_SESSION_LIVE: 86400
-      ## Session lifetime in seconds for SAML sessions
-      RP_SAML_SESSION-LIVE: 4320
-      ## Initial password for the superadmin user on the first launch. This value won't change the password on redeployments.
+      RP_SESSION_LIVE: 86400                      ## Session duration in seconds (1 day)
+      RP_SAML_SESSION-LIVE: 4320                  ## SAML session duration in seconds (~1.2 hours)
       RP_INITIAL_ADMIN_PASSWORD: ${RP_INITIAL_ADMIN_PASSWORD:-erebus}
       JAVA_OPTS: >
         -Djava.security.egd=file:/dev/./urandom
@@ -346,6 +418,12 @@ services:
       - core
       - ''
 
+
+   ## @param jobs Background job processor for ReportPortal
+  ## - Executes scheduled cleanup, notification, and maintenance tasks
+  ## - Healthcheck on port 8686 ensures it’s alive before usage
+  ## - Routed via Traefik under `/jobs`
+  ##
   jobs:
     image: ${JOBS_IMAGE-reportportal/service-jobs:5.13.2}
     build: ./service-jobs
@@ -407,8 +485,14 @@ services:
       - ''
 
   ##
-  ## Analyzer stack
-  ## You can commit the following services if you don't need the Analyzer stack
+  ## @section Analyzer stack
+  ## Analyzer services (optional): auto-analysis and ML training
+  ##
+
+  ## @param analyzer Automatic test result analyzer
+  ## - Consumes test data and performs log pattern matching
+  ## - Requires OpenSearch and RabbitMQ to function
+  ##
   analyzer:
     image: &analyzer_image ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.13.2}
     build: &analyzer_build ./service-auto-analyzer
@@ -427,8 +511,12 @@ services:
       - reportportal
     restart: always
     profiles:
-      - ''
+      - ''  ## Not included in 'core' by default
 
+  ## @param analyzer-train ML training component of the analyzer
+  ## - Runs training tasks for improving pattern recognition
+  ## - Shares image and build context with main analyzer
+  ##
   analyzer-train:
     image: *analyzer_image
     build: *analyzer_build
@@ -451,12 +539,18 @@ services:
     profiles:
       - ''
 
-## Define named volumes for persistent storage
+##
+## @section Volumes
+## Named volumes for persistent data storage
+##
 volumes:
-  opensearch:
-  storage:
-  postgres:
+  opensearch:   ## Persistent data for OpenSearch
+  storage:      ## Shared storage for API, UAT, Jobs, Analyzer
+  postgres:     ## PostgreSQL database volume
 
-## Define custom network for ReportPortal services
+##
+## @section Networks
+## Custom Docker network for ReportPortal service discovery
+##
 networks:
   reportportal:
