@@ -131,7 +131,7 @@ services:
       - ''
 
   opensearch:
-    image: opensearchproject/opensearch:2.18.0
+    image: opensearchproject/opensearch:2.19.2
     logging:
       <<: *logging
     environment:
@@ -140,6 +140,8 @@ services:
       bootstrap.memory_lock: "true"
       OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
       DISABLE_INSTALL_DEMO_CONFIG: "true"
+      # _JAVA_OPTIONS requited to run OpenSearch on Apple Silicon 
+      _JAVA_OPTIONS: "-XX:UseSVE=0"
     ulimits:
       memlock:
         soft: -1
