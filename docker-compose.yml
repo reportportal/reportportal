@@ -112,7 +112,6 @@ services:
     restart: always
     profiles:
       - core
-      - infra
       - ''
 
   ## @param postgres Database service used by ReportPortal
@@ -144,7 +143,6 @@ services:
     restart: always
     profiles:
       - core
-      - infra
       - ''
 
   ## @param rabbitmq Asynchronous message broker for inter-service communication
@@ -179,7 +177,6 @@ services:
     restart: always
     profiles:
       - core
-      - infra
       - ''
 
   ## @param opensearch Search and analytics engine for the analyzer stack
@@ -214,20 +211,30 @@ services:
       - ''
 
   ##
-  ## @section ReportPortal Core Services
-  ##
+  ## ReportPortal Core services
+  migrations:
+    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.13.0}
+    build: ./migrations
+    logging:
+      <<: *logging
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      POSTGRES_SERVER: *db_host
+      POSTGRES_PORT: *db_port
+      POSTGRES_DB: *db_name
+      POSTGRES_USER: *db_user
+      POSTGRES_PASSWORD: *db_password
+    networks:
+      - reportportal
+    restart: on-failure
+    profiles:
+      - core
+      - ''
 
-  ## @param migrations Applies DB schema migrations before services start
-  ## - Runs once on container start and exits
-  ## - Requires database to be healthy
-  ##
-
-  ## @param index Service for indexing test data and logs
-  ## - Listens for incoming test results and logs
-  ## - Exposed via Traefik on root `/`
-  ##
   index:
-    image: ${INDEX_IMAGE-reportportal/service-index:5.13.1}
+    image: ${INDEX_IMAGE-reportportal/service-index:5.13.0}
     build: ./service-index
     logging:
       <<: *logging
@@ -254,7 +261,6 @@ services:
     restart: always
     profiles:
       - core
-      - infra
       - ''
       
  ## @param ui Web-based frontend for ReportPortal
@@ -263,7 +269,7 @@ services:
   ## - Performs healthcheck on port 8080 to verify availability
   ##
   ui:
-    image: ${UI_IMAGE-reportportal/service-ui:5.12.5}
+    image: ${UI_IMAGE-reportportal/service-ui:5.12.4}
     build: ./service-ui
     environment:
       RP_SERVER_PORT: "8080"
@@ -295,7 +301,7 @@ services:
   ## - Routed via Traefik under path `/api`
   ##
   api:
-    image: ${API_IMAGE-reportportal/service-api:5.13.5}
+    image: ${API_IMAGE-reportportal/service-api:5.13.4}
     build: ./service-api
     logging:
       <<: *logging
@@ -363,7 +369,7 @@ services:
   ## - Routed via Traefik under path `/uat`
   ##
   uat:
-    image: ${UAT_IMAGE-reportportal/service-authorization:5.13.2}
+    image: ${UAT_IMAGE-reportportal/service-authorization:5.13.1}
     build: ./service-authorization
     logging:
       <<: *logging
@@ -410,7 +416,7 @@ services:
   ## - Performs healthcheck on port 8686
   ##
   jobs:
-    image: ${JOBS_IMAGE-reportportal/service-jobs:5.13.2}
+    image: ${JOBS_IMAGE-reportportal/service-jobs:5.13.1}
     build: ./service-jobs
     logging:
       <<: *logging
