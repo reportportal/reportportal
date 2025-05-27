@@ -22,10 +22,6 @@
 	path = service-auto-analyzer
 	url = https://github.com/reportportal/service-auto-analyzer
 	branch = develop
-[submodule "service-metrics-gatherer"]
-	path = service-metrics-gatherer
-	url = https://github.com/reportportal/service-metrics-gatherer.git
-	branch = develop
 [submodule "migrations"]
 	path = migrations
 	url = https://github.com/reportportal/migrations.git
