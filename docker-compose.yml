@@ -518,7 +518,7 @@ services:
   ##
   ##
   analyzer:
-    image: &analyzer_image ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.14.0}
+    image: &analyzer_image ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.14.1}
     build: &analyzer_build ./service-auto-analyzer
     logging:
       <<: *logging
