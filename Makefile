@@ -66,8 +66,8 @@ release-config:
 
 # Build and run services
 # Deprecated: Use `build` instead
-up-core:
-	docker compose --profile core up --build
+#up-core:
+#	docker compose --profile core up --build
 
-up-infra:
-	docker compose --profile infra up --build
+#up-infra:
+#	docker compose --profile infra up --build
