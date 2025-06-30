@@ -32,21 +32,28 @@ switch:
 		fi'
 
 # Docker compose commands
-# Build and run services
 up:
-	docker compose up --build
+	@if [ "$(filter $(MAKECMDGOALS),core infra)" ]; then \
+		docker compose --profile $(filter core infra,$(MAKECMDGOALS)) up -d; \
+	else \
+		docker compose up -d; \
+	fi
 
-up-core:
-	docker compose --profile core up --build
-
-up-infra:
-	docker compose --profile infra up --build
+# Deploy services
+deploy:
+	@if [ "$(filter $(MAKECMDGOALS),core infra)" ]; then \
+		docker compose --profile $(filter core infra,$(MAKECMDGOALS)) up --no-build -d; \
+	else \
+		docker compose up --no-build -d; \
+	fi
 
 # Build services or a specific service
 build:
-	@echo "Building the services"
-	@read -p "Enter the service name (ui, api, uat, jobs...): " service; \
-	docker compose build --no-cache $$service
+	@if [ "$(filter $(MAKECMDGOALS),core infra)" ]; then \
+		docker compose --profile $(filter core infra,$(MAKECMDGOALS)) up --build -d; \
+	else \
+		docker compose up --build -d; \
+	fi
 
 # Clean containers, networks, and volumes
 clean:
@@ -56,3 +63,11 @@ clean:
 release-config:
 	@echo "Generating release compose file"
 	@docker compose config --no-path-resolution -o ./compose.release.yml
+
+# Build and run services
+# Deprecated: Use `build` instead
+up-core:
+	docker compose --profile core up --build
+
+up-infra:
+	docker compose --profile infra up --build
