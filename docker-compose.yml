@@ -301,7 +301,7 @@ services:
   ## - Performs healthcheck on port 8080 to verify availability
   ##
   ui:
-    image: ${UI_IMAGE-reportportal/service-ui:5.14.1}
+    image: ${UI_IMAGE-reportportal/service-ui:5.14.2}
     build: ./service-ui
     environment:
       RP_SERVER_PORT: "8080"
@@ -401,7 +401,7 @@ services:
   ## - Routed via Traefik under path `/uat`
   ##
   uat:
-    image: ${UAT_IMAGE-reportportal/service-authorization:5.14.1}
+    image: ${UAT_IMAGE-reportportal/service-authorization:5.14.2}
     build: ./service-authorization
     logging:
       <<: *logging
