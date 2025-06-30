@@ -31,6 +31,11 @@ switch:
 			git checkout $(default_branch); \
 		fi'
 
+# Create a .env file from the template
+env:
+	@echo "Creating .env file from template"
+	@cp .template.env .env
+
 # Docker compose commands
 up:
 	@if [ "$(filter $(MAKECMDGOALS),core infra)" ]; then \
@@ -42,9 +47,9 @@ up:
 # Deploy services
 deploy:
 	@if [ "$(filter $(MAKECMDGOALS),core infra)" ]; then \
-		docker compose --profile $(filter core infra,$(MAKECMDGOALS)) up --no-build -d; \
+		docker compose --profile $(filter core infra,$(MAKECMDGOALS)) up --pull always -d; \
 	else \
-		docker compose up --no-build -d; \
+		docker compose up --pull always -d; \
 	fi
 
 # Build services or a specific service
@@ -58,11 +63,7 @@ build:
 # Clean containers, networks, and volumes
 clean:
 	@echo "Cleaning up the services"
-	docker compose down --volumes --remove-orphans
-
-release-config:
-	@echo "Generating release compose file"
-	@docker compose config --no-path-resolution -o ./compose.release.yml
+	docker compose down --volumes --remove-orphans --rmi local
 
 # Build and run services
 # Deprecated: Use `build` instead
