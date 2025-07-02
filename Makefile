@@ -1,7 +1,8 @@
 default_branch := develop
 branch := $(default_branch)
+profile := all
 
-.PHONY: init update status all switch core infra
+.PHONY: init update status all switch
 
 default: all
 
@@ -38,27 +39,15 @@ env:
 
 # Docker compose commands
 up:
-	@if [ "$(filter $(MAKECMDGOALS),core infra)" ]; then \
-		docker compose --profile $(filter core infra,$(MAKECMDGOALS)) up -d; \
-	else \
-		docker compose up -d; \
-	fi
+		docker compose --profile $(profile) up -d
 
 # Deploy services
 deploy:
-	@if [ "$(filter $(MAKECMDGOALS),core infra)" ]; then \
-		docker compose --profile $(filter core infra,$(MAKECMDGOALS)) up --pull always -d; \
-	else \
-		docker compose up --pull always -d; \
-	fi
+		docker compose --profile $(profile) up --pull always -d
 
 # Build services or a specific service
 build:
-	@if [ "$(filter $(MAKECMDGOALS),core infra)" ]; then \
-		docker compose --profile $(filter core infra,$(MAKECMDGOALS)) up --build -d; \
-	else \
-		docker compose up --build -d; \
-	fi
+		docker compose --profile $(profile) up --build -d
 
 # Clean containers, networks, and volumes
 clean:
