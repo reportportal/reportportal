@@ -1,7 +1,7 @@
 default_branch := develop
 branch := $(default_branch)
 
-.PHONY: init update status all switch
+.PHONY: init update status all switch core infra
 
 default: all
 
