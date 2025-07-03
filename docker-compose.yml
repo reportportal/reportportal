@@ -401,7 +401,7 @@ services:
   ## - Routed via Traefik under path `/uat`
   ##
   uat:
-    image: ${UAT_IMAGE-reportportal/service-authorization:5.14.2}
+    image: ${UAT_IMAGE-reportportal/service-authorization:5.14.3}
     build: ./service-authorization
     logging:
       <<: *logging
