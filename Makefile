@@ -1,6 +1,6 @@
 default_branch := develop
 branch := $(default_branch)
-profile := all
+profile := ""
 
 .PHONY: init update status all switch
 
