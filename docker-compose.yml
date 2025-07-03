@@ -209,7 +209,7 @@ services:
       bootstrap.memory_lock: "true"
       OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
       DISABLE_INSTALL_DEMO_CONFIG: "true"
-      ## @env _JAVA_OPTIONS requited to run OpenSearch on Apple Silicon 
+      ## @env _JAVA_OPTIONS required to run OpenSearch on Apple Silicon 
       # _JAVA_OPTIONS: "-XX:UseSVE=0"
     ulimits:
       memlock:
@@ -401,7 +401,7 @@ services:
   ## - Routed via Traefik under path `/uat`
   ##
   uat:
-    image: ${UAT_IMAGE-reportportal/service-authorization:5.14.2}
+    image: ${UAT_IMAGE-reportportal/service-authorization:5.14.3}
     build: ./service-authorization
     logging:
       <<: *logging

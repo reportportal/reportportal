@@ -1,5 +1,6 @@
 default_branch := develop
 branch := $(default_branch)
+profile := ""
 
 .PHONY: init update status all switch
 
@@ -31,28 +32,32 @@ switch:
 			git checkout $(default_branch); \
 		fi'
 
+# Create a .env file from the template
+env:
+	@echo "Creating .env file from template"
+	@cp .template.env .env
+
 # Docker compose commands
-# Build and run services
 up:
-	docker compose up --build
+		docker compose --profile $(profile) up -d
 
-up-core:
-	docker compose --profile core up --build
-
-up-infra:
-	docker compose --profile infra up --build
+# Deploy services
+deploy:
+		docker compose --profile $(profile) up --pull always -d
 
 # Build services or a specific service
 build:
-	@echo "Building the services"
-	@read -p "Enter the service name (ui, api, uat, jobs...): " service; \
-	docker compose build --no-cache $$service
+		docker compose --profile $(profile) up --build -d
 
 # Clean containers, networks, and volumes
 clean:
 	@echo "Cleaning up the services"
-	docker compose down --volumes --remove-orphans
+	docker compose down --volumes --remove-orphans --rmi local
 
-release-config:
-	@echo "Generating release compose file"
-	@docker compose config --no-path-resolution -o ./compose.release.yml
+# Build and run services
+# Deprecated: Use `build` instead
+#up-core:
+#	docker compose --profile core up --build
+
+#up-infra:
+#	docker compose --profile infra up --build
