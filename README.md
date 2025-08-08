@@ -133,6 +133,8 @@ Big features are also welcome but if you want to see your contributions included
 
 - [User Manual](http://reportportal.io/#documentation)
 - [Wiki and Guides](https://github.com/reportportal/reportportal/wiki)
+- [Docker Compose Guide](docs/compose-guide.md) - Comprehensive guide for Docker Compose deployment, environment variables, anchors, and submodules
+- [S3 Storage on EC2 with Docker](docs/s3-storage-ec2-docker.md) - Guide for setting up S3 storage on AWS EC2 with Docker
 
 ## Community / Support
 

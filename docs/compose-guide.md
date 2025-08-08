@@ -8,6 +8,9 @@
 - [Submodules Management](#submodules-management)
 - [Development vs Production](#development-vs-production)
 - [Advanced Configuration](#advanced-configuration)
+- [Additional Resources](#additional-resources)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## 🚀 Overview
 
@@ -336,6 +339,8 @@ services:
     volumes:
       - storage:/data/storage  # Named volume
 ```
+
+**Important**: The `api`, `jobs`, and `uat` services must use the same volume to share data between services. This is required for proper functionality.
 
 #### Custom Networks
 ```yaml
