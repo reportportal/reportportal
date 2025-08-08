@@ -115,6 +115,12 @@ services:
       - --entrypoints.traefik.address=:8081
       - --api.dashboard=true
       - --api.insecure=true
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/api/http/routers || wget -q --spider http://localhost:8081/api/http/routers || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     networks:
       - reportportal
     restart: always
@@ -129,7 +135,7 @@ services:
   ## - Volume is used for persistent storage
   ##
   postgres:
-    image: bitnami/postgresql:16.6.0
+    image: bitnami/postgresql:17.5.0-debian-12-r20
     container_name: *db_host
     logging:
       <<: *logging
@@ -161,7 +167,7 @@ services:
   ## - Includes optional plugins for dashboard, LDAP, shovel, etc.
   ##
   rabbitmq:
-    image: bitnami/rabbitmq:3.13.7-debian-12-r5
+    image: bitnami/rabbitmq:4.1.2-debian-12-r1
     logging:
       <<: *logging
     # ports:
@@ -187,6 +193,7 @@ services:
       interval: 30s
       timeout: 30s
       retries: 5
+      start_period: 60s
     networks:
       - reportportal
     restart: always
@@ -200,7 +207,7 @@ services:
   ## - Runs in single-node mode with web security disabled
   ##
   opensearch:
-    image: opensearchproject/opensearch:2.19.2
+    image: opensearchproject/opensearch:2.19.3
     logging:
       <<: *logging
     environment:
@@ -223,7 +230,11 @@ services:
     volumes:
       - opensearch:/usr/share/opensearch/data
     healthcheck:
-      test: ["CMD", "curl","-s" ,"-f", "http://0.0.0.0:9200/_cat/health"]
+      test: ["CMD-SHELL", "curl -s -f http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
     networks:
       - reportportal
     restart: always
@@ -239,7 +250,7 @@ services:
   ## - Requires database to be healthy
   ##
   migrations:
-    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.14.0}
+    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.14.1}
     build: ./migrations
     logging:
       <<: *logging
@@ -276,11 +287,11 @@ services:
       LB_URL: http://gateway:8081
       TRAEFIK_V2_MODE: 'true'
     healthcheck:
-      test: wget -q --spider http://0.0.0.0:8080/health
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || wget -q --spider http://localhost:8080/health || exit 1"]
       interval: 30s
-      timeout: 30s
-      retries: 10
-      start_period: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     labels:
       - "traefik.http.routers.index.rule=PathPrefix(`/`)"
       - "traefik.http.routers.index.service=index"
@@ -301,16 +312,16 @@ services:
   ## - Performs healthcheck on port 8080 to verify availability
   ##
   ui:
-    image: ${UI_IMAGE-reportportal/service-ui:5.14.2}
+    image: ${UI_IMAGE-reportportal/service-ui:5.14.3}
     build: ./service-ui
     environment:
       RP_SERVER_PORT: "8080"
     healthcheck:
-      test: wget -q --spider http://0.0.0.0:8080/health
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || wget -q --spider http://localhost:8080/health || exit 1"]
       interval: 30s
-      timeout: 30s
-      retries: 10
-      start_period: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     labels:
       - "traefik.http.middlewares.ui-strip-prefix.stripprefix.prefixes=/ui"
       - "traefik.http.routers.ui.middlewares=ui-strip-prefix@docker"
@@ -333,7 +344,7 @@ services:
   ## - Routed via Traefik under path `/api`
   ##
   api:
-    image: ${API_IMAGE-reportportal/service-api:5.14.1}
+    image: ${API_IMAGE-reportportal/service-api:5.14.2}
     build: ./service-api
     logging:
       <<: *logging
@@ -375,10 +386,10 @@ services:
     volumes:
       - storage:/data/storage
     healthcheck:
-      test: curl -f http://0.0.0.0:8585/health
-      interval: 60s
-      timeout: 30s
-      retries: 10
+      test: ["CMD-SHELL", "curl -f http://localhost:8585/health || wget -q --spider http://localhost:8585/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
       start_period: 60s
     labels:
       - "traefik.http.middlewares.api-strip-prefix.stripprefix.prefixes=/api"
@@ -401,7 +412,7 @@ services:
   ## - Routed via Traefik under path `/uat`
   ##
   uat:
-    image: ${UAT_IMAGE-reportportal/service-authorization:5.14.3}
+    image: ${UAT_IMAGE-reportportal/service-authorization:5.14.4}
     build: ./service-authorization
     logging:
       <<: *logging
@@ -418,10 +429,10 @@ services:
     volumes:
       - storage:/data/storage
     healthcheck:
-      test: curl -f http://0.0.0.0:9999/health
-      interval: 60s
-      timeout: 30s
-      retries: 10
+      test: ["CMD-SHELL", "curl -f http://localhost:9999/health || wget -q --spider http://localhost:9999/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
       start_period: 60s
     labels:
       - "traefik.http.middlewares.uat-strip-prefix.stripprefix.prefixes=/uat"
@@ -487,10 +498,10 @@ services:
     volumes:
       - storage:/data/storage
     healthcheck:
-      test: curl -f http://0.0.0.0:8686/health || exit 1
-      interval: 60s
-      timeout: 30s
-      retries: 10
+      test: ["CMD-SHELL", "curl -f http://localhost:8686/health || wget -q --spider http://localhost:8686/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
       start_period: 60s
     labels:
       - traefik.http.middlewares.jobs-strip-prefix.stripprefix.prefixes=/jobs
@@ -518,17 +529,23 @@ services:
   ##
   ##
   analyzer:
-    image: &analyzer_image ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.14.1}
-    build: &analyzer_build ./service-auto-analyzer
+    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.14.2}
+    build: ./service-auto-analyzer
     logging:
       <<: *logging
     environment:
       <<: *common-analyzer-environment
     volumes:
       - storage:/backend/storage
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5001 || wget -q --spider http://localhost:5001/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
     depends_on:
       opensearch:
-        condition: service_started
+        condition: service_healthy
       rabbitmq:
         condition: service_healthy
     networks:
@@ -537,32 +554,6 @@ services:
     profiles:
       - ''
 
-
-  ## @param analyzer-train Training job for machine learning analyzer
-  ## - Uses the same container as analyzer, but with training mode enabled
-  ## - Builds models to improve pattern recognition during analysis
-  ##
-  analyzer-train:
-    image: *analyzer_image
-    build: *analyzer_build
-    logging:
-      <<: *logging
-    environment:
-      <<: *common-analyzer-environment
-      INSTANCE_TASK_TYPE: train
-      UWSGI_WORKERS: 1
-    volumes:
-      - storage:/backend/storage
-    depends_on:
-      opensearch:
-        condition: service_started
-      rabbitmq:
-        condition: service_healthy
-    networks:
-      - reportportal
-    restart: always
-    profiles:
-      - ''
 
 ## @section Volumes
 ## Named volumes for persistent data storage
