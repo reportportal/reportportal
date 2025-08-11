@@ -529,7 +529,7 @@ services:
   ##
   ##
   analyzer:
-    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.14.2}
+    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.14.3}
     build: ./service-auto-analyzer
     logging:
       <<: *logging
