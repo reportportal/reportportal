@@ -67,7 +67,7 @@ x-environment: &common-environment
   RP_AMQP_APIUSER: *rabbitmq_user
   RP_AMQP_APIPASS: *rabbitmq_password
   RP_AMQP_ANALYZER-VHOST: analyzer
-  DATASTORE_TYPE: filesystem # Change to 's3' to use S3 storage
+  DATASTORE_TYPE: filesystem # Change to 'aws-s3' to use aws S3 storage
   ## For S3 storage, also set the following variables in addition to @env DATASTORE_TYPE: s3
   ## Ref.: https://reportportal.io/docs/installation-steps-advanced/FileStorageOptions
   # RP_FEATURE_FLAGS: singleBucket
@@ -529,7 +529,7 @@ services:
   ##
   ##
   analyzer:
-    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.14.2}
+    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.14.3}
     build: ./service-auto-analyzer
     logging:
       <<: *logging
