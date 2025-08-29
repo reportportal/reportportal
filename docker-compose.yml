@@ -167,7 +167,7 @@ services:
   ## - Includes optional plugins for dashboard, LDAP, shovel, etc.
   ##
   rabbitmq:
-    image: bitnamilegacy.rabbitmq:4.1.2-debian-12-r1
+    image: bitnamilegacy/rabbitmq:4.1.2-debian-12-r1
     logging:
       <<: *logging
     # ports:
