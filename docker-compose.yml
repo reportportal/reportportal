@@ -344,7 +344,7 @@ services:
   ## - Routed via Traefik under path `/api`
   ##
   api:
-    image: ${API_IMAGE-reportportal/service-api:5.14.3}
+    image: ${API_IMAGE-reportportal/service-api:5.14.4}
     build: ./service-api
     logging:
       <<: *logging
@@ -412,7 +412,7 @@ services:
   ## - Routed via Traefik under path `/uat`
   ##
   uat:
-    image: ${UAT_IMAGE-reportportal/service-authorization:5.14.5}
+    image: ${UAT_IMAGE-reportportal/service-authorization:5.14.6}
     build: ./service-authorization
     logging:
       <<: *logging
@@ -529,7 +529,7 @@ services:
   ##
   ##
   analyzer:
-    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.14.4}
+    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.14.5}
     build: ./service-auto-analyzer
     logging:
       <<: *logging
