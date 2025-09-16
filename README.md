@@ -72,13 +72,13 @@ It's the best way for demo purposes and small teams. The database is already in 
 3. Deploy ReportPortal using `docker compose plugin` within the same folder
 
 ```bash
-docker compose -p reportportal up
+docker compose --profile "*" up
 ```
 
 To start ReportPortal in daemon mode, add '-d' argument:
 
 ```bash
-docker compose -p reportportal up -d
+docker compose --profile "*" up -d
 ```
 
 4. Open in your browser IP address of deployed environment at port `8080`
