@@ -263,6 +263,9 @@ services:
       POSTGRES_DB: *db_name
       POSTGRES_USER: *db_user
       POSTGRES_PASSWORD: *db_password
+      ## Configure SSL connection to the database
+      ## Incoming parameters: require, disable
+      # POSTGRES_SSLMODE: disable
     networks:
       - reportportal
     restart: on-failure
