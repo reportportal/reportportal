@@ -263,6 +263,9 @@ services:
       POSTGRES_DB: *db_name
       POSTGRES_USER: *db_user
       POSTGRES_PASSWORD: *db_password
+      ## Configure SSL connection to the database
+      ## Incoming parameters: require, disable
+      # POSTGRES_SSLMODE: disable
     networks:
       - reportportal
     restart: on-failure
@@ -458,6 +461,22 @@ services:
   ## - Routed via Traefik under `/jobs`
   ## - Performs healthcheck on port 8686
   ##
+  ## @section Core jobs configuration
+  ## Configuration for core jobs that clean the database and storage
+  ##
+  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_ATTACHMENT_CRON Cron expression for the clean attachments job from database
+  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_LOG_CRON Cron expression for the clean logs job
+  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_LAUNCH_CRON Cron expression for the clean launches job
+  ## @param RP_ENVIRONMENT_VARIABLE_BATCH-SIZE Number of launches to be processed in one batch
+  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CRON Cron expression for the clean storage job (binary storage)
+  ## @param RP_ENVIRONMENT_VARIABLE_STORAGE_PROJECT_CRON Cron expression for calculating average project attachments storage job
+  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_CRON Cron expression for the clean expired user job
+  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_RETENTIONPERIOD Number of days to keep expired users in the database
+  ## @param RP_ENVIRONMENT_VARIABLE_NOTIFICATION_EXPIREDUSER_CRON Cron expression for the notification expired user job
+  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_EVENTS_RETENTIONPERIOD Number of days to keep events in the database
+  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_EVENTS_CRON Cron expression for the clean events job
+  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE Number of binaries to be removed from binary storage by storageProjectCron within one job execution
+  ##
   jobs:
     image: ${JOBS_IMAGE-reportportal/service-jobs:5.14.0}
     build: ./service-jobs
@@ -475,11 +494,12 @@ services:
       RP_ENVIRONMENT_VARIABLE_CLEAN_ATTACHMENT_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_LOG_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_LAUNCH_CRON: 0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_BATCH-SIZE: 10000
       RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_STORAGE_PROJECT_CRON: 0 */5 * * * *
-      RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_CRON:  0 0 */24 * * *
+      RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_RETENTIONPERIOD: 365
-      RP_ENVIRONMENT_VARIABLE_NOTIFICATION_EXPIREDUSER_CRON: 0 0 */24 * * * 
+      RP_ENVIRONMENT_VARIABLE_NOTIFICATION_EXPIREDUSER_CRON: 0 0 */24 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_EVENTS_RETENTIONPERIOD: 365
       RP_ENVIRONMENT_VARIABLE_CLEAN_EVENTS_CRON: 0 30 05 * * *
       RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE: 20000
