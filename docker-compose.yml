@@ -315,7 +315,7 @@ services:
   ## - Performs healthcheck on port 8080 to verify availability
   ##
   ui:
-    image: ${UI_IMAGE-reportportal/service-ui:5.14.5}
+    image: ${UI_IMAGE-reportportal/service-ui:5.14.6}
     build: ./service-ui
     environment:
       RP_SERVER_PORT: "8080"
@@ -478,7 +478,7 @@ services:
   ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE Number of binaries to be removed from binary storage by storageProjectCron within one job execution
   ##
   jobs:
-    image: ${JOBS_IMAGE-reportportal/service-jobs:5.14.0}
+    image: ${JOBS_IMAGE-reportportal/service-jobs:5.14.1}
     build: ./service-jobs
     logging:
       <<: *logging
