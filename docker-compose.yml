@@ -106,13 +106,25 @@ services:
     ports:
       - "8080:8080"  ## ReportPortal UI 
       - "8081:8081"  ## Traefik dashboard
+      - "443:443"    ## HTTPS
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
+      ## SSL cert configs
+      # - ./certs:/certs:ro  ## Mount directory containing SSL certificates
+      # - ./acme.json:/acme.json  ## Let's Encrypt ACME challenge file
     command:
       - --providers.docker=true
       - --providers.docker.constraints=Label(`traefik.expose`, `true`)
       - --entrypoints.web.address=:8080
       - --entrypoints.traefik.address=:8081
+      - --entrypoints.websecure.address=:443
+      ## SSL cert configs
+      - --entrypoints.websecure.http.tls=true
+      # - --certificatesresolvers.letsencrypt.acme.email=your-email@example.com
+      # - --certificatesresolvers.letsencrypt.acme.storage=/acme.json
+      # - --certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web
+      # - --certificatesresolvers.letsencrypt.acme.tlschallenge=true
+      # - --certificatesresolvers.filecerts.acme.certificatespath=/certs
       - --api.dashboard=true
       - --api.insecure=true
     healthcheck:
@@ -298,6 +310,12 @@ services:
     labels:
       - "traefik.http.routers.index.rule=PathPrefix(`/`)"
       - "traefik.http.routers.index.service=index"
+      - "traefik.http.routers.index.entrypoints=web"
+      - "traefik.http.routers.index-secure.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.index-secure.service=index"
+      - "traefik.http.routers.index-secure.entrypoints=websecure"
+      # - "traefik.http.routers.index-secure.tls=true"
+      # - "traefik.http.routers.index-secure.tls.certresolver=letsencrypt"
       - "traefik.http.services.index.loadbalancer.server.port=8080"
       - "traefik.http.services.index.loadbalancer.server.scheme=http"
       - "traefik.expose=true"
@@ -330,6 +348,13 @@ services:
       - "traefik.http.routers.ui.middlewares=ui-strip-prefix@docker"
       - "traefik.http.routers.ui.rule=PathPrefix(`/ui`)"
       - "traefik.http.routers.ui.service=ui"
+      - "traefik.http.routers.ui.entrypoints=web"
+      - "traefik.http.routers.ui-secure.middlewares=ui-strip-prefix@docker"
+      - "traefik.http.routers.ui-secure.rule=PathPrefix(`/ui`)"
+      - "traefik.http.routers.ui-secure.service=ui"
+      - "traefik.http.routers.ui-secure.entrypoints=websecure"
+      # - "traefik.http.routers.ui-secure.tls=true"
+      # - "traefik.http.routers.ui-secure.tls.certresolver=letsencrypt"
       - "traefik.http.services.ui.loadbalancer.server.port=8080"
       - "traefik.http.services.ui.loadbalancer.server.scheme=http"
       - "traefik.expose=true"
@@ -358,6 +383,8 @@ services:
         condition: service_started
       postgres:
         condition: service_healthy
+      jobs:
+        condition: service_started
     environment:
       <<: *common-environment
       LOGGING_LEVEL_ORG_HIBERNATE_SQL: info
@@ -399,6 +426,13 @@ services:
       - "traefik.http.routers.api.middlewares=api-strip-prefix@docker"
       - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
       - "traefik.http.routers.api.service=api"
+      - "traefik.http.routers.api.entrypoints=web"
+      - "traefik.http.routers.api-secure.middlewares=api-strip-prefix@docker"
+      - "traefik.http.routers.api-secure.rule=PathPrefix(`/api`)"
+      - "traefik.http.routers.api-secure.service=api"
+      - "traefik.http.routers.api-secure.entrypoints=websecure"
+      # - "traefik.http.routers.api-secure.tls=true"
+      # - "traefik.http.routers.api-secure.tls.certresolver=letsencrypt"
       - "traefik.http.services.api.loadbalancer.server.port=8585"
       - "traefik.http.services.api.loadbalancer.server.scheme=http"
       - "traefik.expose=true"
@@ -442,6 +476,13 @@ services:
       - "traefik.http.routers.uat.middlewares=uat-strip-prefix@docker"
       - "traefik.http.routers.uat.rule=PathPrefix(`/uat`)"
       - "traefik.http.routers.uat.service=uat"
+      - "traefik.http.routers.uat.entrypoints=web"
+      - "traefik.http.routers.uat-secure.middlewares=uat-strip-prefix@docker"
+      - "traefik.http.routers.uat-secure.rule=PathPrefix(`/uat`)"
+      - "traefik.http.routers.uat-secure.service=uat"
+      - "traefik.http.routers.uat-secure.entrypoints=websecure"
+      # - "traefik.http.routers.uat-secure.tls=true"
+      # - "traefik.http.routers.uat-secure.tls.certresolver=letsencrypt"
       - "traefik.http.services.uat.loadbalancer.server.port=9999"
       - "traefik.http.services.uat.loadbalancer.server.scheme=http"
       - "traefik.expose=true"
@@ -528,6 +569,13 @@ services:
       - traefik.http.routers.jobs.middlewares=jobs-strip-prefix@docker
       - traefik.http.routers.jobs.rule=PathPrefix(`/jobs`)
       - traefik.http.routers.jobs.service=jobs
+      - traefik.http.routers.jobs.entrypoints=web
+      - traefik.http.routers.jobs-secure.middlewares=jobs-strip-prefix@docker
+      - traefik.http.routers.jobs-secure.rule=PathPrefix(`/jobs`)
+      - traefik.http.routers.jobs-secure.service=jobs
+      - traefik.http.routers.jobs-secure.entrypoints=websecure
+      # - traefik.http.routers.jobs-secure.tls=true
+      # - traefik.http.routers.jobs-secure.tls.certresolver=letsencrypt
       - traefik.http.services.jobs.loadbalancer.server.port=8686
       - traefik.http.services.jobs.loadbalancer.server.scheme=http
       - traefik.expose=true
