@@ -85,8 +85,25 @@ x-analyzer-environment: &common-analyzer-environment
   AMQP_EXCHANGE_NAME: analyzer-default
   AMQP_VIRTUAL_HOST: analyzer
   AMQP_URL: amqp://${RABBITMQ_DEFAULT_USER-rabbitmq}:${RABBITMQ_DEFAULT_PASS-rabbitmq}@rabbitmq:5672
-  ES_HOSTS: http://opensearch:9200 
+  ES_HOSTS: http://opensearch:9200
   ANALYZER_BINARYSTORE_TYPE: filesystem
+  DATASTORE_TYPE: filesystem # Change to 'minio' or 's3' for object storage
+  ## For filesystem storage, set path where analyzer data will be stored
+  FILESYSTEM_DEFAULT_PATH: storage
+  ## For MinIO storage, set DATASTORE_TYPE: minio and configure:
+  # DATASTORE_ENDPOINT: http://minio:9000
+  # DATASTORE_ACCESSKEY: ${STORAGE_ACCESSKEY-rpuser}
+  # DATASTORE_SECRETKEY: ${STORAGE_SECRETKEY-miniopassword}
+  # DATASTORE_BUCKETPREFIX: prj-
+  # DATASTORE_BUCKETPOSTFIX: ""
+  # DATASTORE_DEFAULTBUCKETNAME: rp-bucket/analyzer
+  ## For S3 storage, set DATASTORE_TYPE: s3 and configure:
+  # DATASTORE_REGION: us-east-1
+  # DATASTORE_ACCESSKEY: ""  # Leave empty for IAM Role-based access
+  # DATASTORE_SECRETKEY: ""  # Leave empty for IAM Role-based access
+  # DATASTORE_BUCKETPREFIX: prj-
+  # DATASTORE_BUCKETPOSTFIX: ""
+  # DATASTORE_DEFAULTBUCKETNAME: my-rp-bucket/analyzer
 
 services:
   ##
@@ -219,7 +236,7 @@ services:
   ## - Runs in single-node mode with web security disabled
   ##
   opensearch:
-    image: opensearchproject/opensearch:2.19.3
+    image: opensearchproject/opensearch:2.19.4
     logging:
       <<: *logging
     environment:
@@ -262,7 +279,7 @@ services:
   ## - Requires database to be healthy
   ##
   migrations:
-    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.14.2}
+    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.15.0}
     build: ./migrations
     logging:
       <<: *logging
@@ -291,7 +308,7 @@ services:
   ## - Exposed via Traefik on root `/`
   ##
   index:
-    image: ${INDEX_IMAGE-reportportal/service-index:5.14.0}
+    image: ${INDEX_IMAGE-reportportal/service-index:5.15.0}
     build: ./service-index
     logging:
       <<: *logging
@@ -333,7 +350,7 @@ services:
   ## - Performs healthcheck on port 8080 to verify availability
   ##
   ui:
-    image: ${UI_IMAGE-reportportal/service-ui:5.14.6}
+    image: ${UI_IMAGE-reportportal/service-ui:5.15.0}
     build: ./service-ui
     environment:
       RP_SERVER_PORT: "8080"
@@ -372,7 +389,7 @@ services:
   ## - Routed via Traefik under path `/api`
   ##
   api:
-    image: ${API_IMAGE-reportportal/service-api:5.14.4}
+    image: ${API_IMAGE-reportportal/service-api:5.15.0}
     build: ./service-api
     logging:
       <<: *logging
@@ -449,7 +466,7 @@ services:
   ## - Routed via Traefik under path `/uat`
   ##
   uat:
-    image: ${UAT_IMAGE-reportportal/service-authorization:5.14.7}
+    image: ${UAT_IMAGE-reportportal/service-authorization:5.15.0}
     build: ./service-authorization
     logging:
       <<: *logging
@@ -519,7 +536,7 @@ services:
   ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE Number of binaries to be removed from binary storage by storageProjectCron within one job execution
   ##
   jobs:
-    image: ${JOBS_IMAGE-reportportal/service-jobs:5.14.1}
+    image: ${JOBS_IMAGE-reportportal/service-jobs:5.15.0}
     build: ./service-jobs
     logging:
       <<: *logging
@@ -597,14 +614,14 @@ services:
   ##
   ##
   analyzer:
-    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.14.6}
+    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.15.0}
     build: ./service-auto-analyzer
     logging:
       <<: *logging
     environment:
       <<: *common-analyzer-environment
     volumes:
-      - storage:/backend/storage
+      - storage:/data/storage/analyzer
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:5001 || wget -q --spider http://localhost:5001/ || exit 1"]
       interval: 30s
