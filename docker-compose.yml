@@ -117,7 +117,7 @@ services:
   ## - Uses Docker labels to auto-discover services
   ##
   gateway:
-    image: traefik:v2.11.31
+    image: traefik:v2.11.32
     logging:
       <<: *logging
     ports:
@@ -401,7 +401,7 @@ services:
       postgres:
         condition: service_healthy
       jobs:
-        condition: service_started
+        condition: service_healthy
     environment:
       <<: *common-environment
       LOGGING_LEVEL_ORG_HIBERNATE_SQL: info
