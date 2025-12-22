@@ -89,7 +89,7 @@ x-analyzer-environment: &common-analyzer-environment
   ANALYZER_BINARYSTORE_TYPE: filesystem
   DATASTORE_TYPE: filesystem # Change to 'minio' or 's3' for object storage
   ## For filesystem storage, set path where analyzer data will be stored
-  FILESYSTEM_DEFAULT_PATH: storage
+  FILESYSTEM_DEFAULT_PATH: /data/storage/analyzer
   ## For MinIO storage, set DATASTORE_TYPE: minio and configure:
   # DATASTORE_ENDPOINT: http://minio:9000
   # DATASTORE_ACCESSKEY: ${STORAGE_ACCESSKEY-rpuser}
@@ -621,7 +621,7 @@ services:
     environment:
       <<: *common-analyzer-environment
     volumes:
-      - storage:/data/storage/analyzer
+      - storage:/data/storage
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:5001 || wget -q --spider http://localhost:5001/ || exit 1"]
       interval: 30s
@@ -642,6 +642,17 @@ services:
 
 ## @section Volumes
 ## Named volumes for persistent data storage
+##
+## @param storage Shared volume for ReportPortal services
+## This volume is mounted at /data/storage and shared between:
+##   - api: stores attachments, plugins, and user uploads
+##   - uat: stores user-related data
+##   - jobs: cleans up expired data from api
+##   - analyzer: stores ML models and analysis data in /data/storage/analyzer subdirectory
+##
+## All services must share the same volume for jobs to properly clean storage data.
+## For custom host path, replace 'storage:' with a bind mount:
+##   - ./data/storage:/data/storage
 ##
 volumes:
   opensearch:
