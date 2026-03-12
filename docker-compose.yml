@@ -409,9 +409,6 @@ services:
       AUDIT_LOGGER: "OFF"
       MANAGEMENT_HEALTH_ELASTICSEARCH_ENABLED: "false"
       RP_ENVIRONMENT_VARIABLE_ALLOW_DELETE_ACCOUNT: "false"
-      RP_SESSION_LIVE: 86400      ## Session duration in seconds (1 day)
-      RP_SAML_SESSION-LIVE: 4320  ## SAML session duration in minutes (3 days)
-      RP_INITIAL_ADMIN_PASSWORD: ${RP_INITIAL_ADMIN_PASSWORD:-erebus}
       JAVA_OPTS: >
         -Xmx1g 
         -XX:+HeapDumpOnOutOfMemoryError 
