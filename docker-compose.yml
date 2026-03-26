@@ -430,6 +430,9 @@ services:
       REPORTING_QUEUES_COUNT: 10
       REPORTING_CONSUMER_PREFETCHCOUNT: 10
       REPORTING_PARKINGLOT_TTL_DAYS: 7
+      RP_SESSION_LIVE: 86400      ## Session duration in seconds (1 day)
+      RP_SAML_SESSION-LIVE: 4320  ## SAML session duration in minutes (3 days)
+      RP_INITIAL_ADMIN_PASSWORD: ${RP_INITIAL_ADMIN_PASSWORD:-erebus}
     volumes:
       - storage:/data/storage
     healthcheck:
