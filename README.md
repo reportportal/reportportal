@@ -112,7 +112,7 @@ You should add **Client Side** code inside your test automation. It consists of:
 - [`agent-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=agent-) - Frameworks integration. Custom reporters/listeners, which monitor test events and trigger event sending via [`client-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=client-)
 - [`logger-*`](https://github.com/reportportal?utf8=%E2%9C%93&q=logger-) - Logging integration. Logger appenders, which helps to collect logs, bind it with test-case via `agent-*` and send to server via `client-*`
 
-[Integration steps and documentation](http://reportportal.io/#documentation/%EF%BB%BFTest-framework-integration)
+[Integration steps and documentation](https://reportportal.io/docs/log-data-in-reportportal/test-framework-integration/)
 
 ## Contribution
 
