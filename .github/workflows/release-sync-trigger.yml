@@ -24,7 +24,7 @@ jobs:
     steps:
       - name: Dispatch release event to docs repo
         env:
-          GH_PAT: ${{ secrets.GH_TOKEN_NEW }}
+          GH_PAT: ${{ secrets.GITHUB_TOKEN }}
           ACTION: ${{ github.event.action }}
           RELEASE_NAME: ${{ github.event.release.name }}
           RELEASE_TAG: ${{ github.event.release.tag_name }}
