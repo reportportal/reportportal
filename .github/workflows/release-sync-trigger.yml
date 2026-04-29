@@ -1,0 +1,52 @@
+# Copyright 2026 EPAM Systems
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: Sync Release to Docs
+
+on:
+  release:
+    types: [published, edited, deleted]
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Dispatch release event to docs repo
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
+          ACTION: ${{ github.event.action }}
+          RELEASE_NAME: ${{ github.event.release.name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_BODY: ${{ github.event.release.body }}
+        run: |
+          PAYLOAD=$(jq -n \
+            --arg action "$ACTION" \
+            --arg release_name "$RELEASE_NAME" \
+            --arg release_tag "$RELEASE_TAG" \
+            --arg release_body "$RELEASE_BODY" \
+            '{
+              event_type: ("release-" + $action),
+              client_payload: {
+                release_name: $release_name,
+                release_tag: $release_tag,
+                release_body: (if $action == "edited" then $release_body else null end)
+              }
+            }')
+
+          curl -f -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_PAT" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            https://api.github.com/repos/reportportal/docs/dispatches \
+            -d "$PAYLOAD"
