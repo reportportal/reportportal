@@ -67,9 +67,9 @@ x-environment: &common-environment
   RP_AMQP_APIUSER: *rabbitmq_user
   RP_AMQP_APIPASS: *rabbitmq_password
   RP_AMQP_ANALYZER-VHOST: analyzer
-  DATASTORE_TYPE: filesystem # Change to 'aws-s3' to use aws S3 storage
+  DATASTORE_TYPE: filesystem # Change to 's3' to use aws S3 storage
   ## For S3 storage, also set the following variables in addition to @env DATASTORE_TYPE: s3
-  ## Ref.: https://reportportal.io/docs/installation-steps-advanced/FileStorageOptions
+  ## Ref.: https://reportportal.io/docs/installation-steps-advanced/file-storage-options/S3CloudStorage/
   # RP_FEATURE_FLAGS: singleBucket
   # DATASTORE_REGION: "us-standard"
   ## @env DATASTORE_ACCESSKEY and DATASTORE_SECRETSKEY must be empty for AIM Role-based access
@@ -117,7 +117,7 @@ services:
   ## - Uses Docker labels to auto-discover services
   ##
   gateway:
-    image: traefik:v2.11.32
+    image: traefik:v2.11.46
     logging:
       <<: *logging
     ports:
@@ -279,7 +279,7 @@ services:
   ## - Requires database to be healthy
   ##
   migrations:
-    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.15.1}
+    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.15.2}
     build: ./migrations
     logging:
       <<: *logging
@@ -350,7 +350,7 @@ services:
   ## - Performs healthcheck on port 8080 to verify availability
   ##
   ui:
-    image: ${UI_IMAGE-reportportal/service-ui:5.15.2}
+    image: ${UI_IMAGE-reportportal/service-ui:5.15.3}
     build: ./service-ui
     environment:
       RP_SERVER_PORT: "8080"
@@ -389,7 +389,7 @@ services:
   ## - Routed via Traefik under path `/api`
   ##
   api:
-    image: ${API_IMAGE-reportportal/service-api:5.15.1}
+    image: ${API_IMAGE-reportportal/service-api:5.15.2}
     build: ./service-api
     logging:
       <<: *logging
@@ -536,7 +536,7 @@ services:
   ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE Number of binaries to be removed from binary storage by storageProjectCron within one job execution
   ##
   jobs:
-    image: ${JOBS_IMAGE-reportportal/service-jobs:5.15.0}
+    image: ${JOBS_IMAGE-reportportal/service-jobs:5.15.1}
     build: ./service-jobs
     logging:
       <<: *logging
@@ -614,7 +614,7 @@ services:
   ##
   ##
   analyzer:
-    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.15.1}
+    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.15.2}
     build: ./service-auto-analyzer
     logging:
       <<: *logging
