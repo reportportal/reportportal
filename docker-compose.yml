@@ -610,7 +610,7 @@ services:
   ## @param analyzer Automatic test result analyzer
   ## - Performs log analysis and pattern detection
   ## - Relies on OpenSearch and RabbitMQ
-  ## - Writes persistent data to shared volume
+  ## - Writes persistent data to a dedicated analyzer volume
   ##
   ##
   analyzer:
@@ -621,7 +621,7 @@ services:
     environment:
       <<: *common-analyzer-environment
     volumes:
-      - storage:/data/storage
+      - analyzer-storage:/data/storage
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/', timeout=5)"]
       interval: 30s
@@ -648,15 +648,20 @@ services:
 ##   - api: stores attachments, plugins, and user uploads
 ##   - uat: stores user-related data
 ##   - jobs: cleans up expired data from api
-##   - analyzer: stores ML models and analysis data in /data/storage/analyzer subdirectory
 ##
 ## All services must share the same volume for jobs to properly clean storage data.
 ## For custom host path, replace 'storage:' with a bind mount:
 ##   - ./data/storage:/data/storage
 ##
+## @param analyzer-storage Dedicated volume for analyzer ML models and analysis data
+## Mounted at /data/storage (FILESYSTEM_DEFAULT_PATH: /data/storage/analyzer)
+## For custom host path, replace 'analyzer-storage:' with a bind mount:
+##   - ./data/analyzer-storage:/data/storage
+##
 volumes:
   opensearch:
   storage:
+  analyzer-storage:
   postgres:
 
 ## @section Networks
