@@ -117,7 +117,7 @@ services:
   ## - Uses Docker labels to auto-discover services
   ##
   gateway:
-    image: traefik:v2.11.46
+    image: traefik:v2.11.53
     logging:
       <<: *logging
     ports:
@@ -164,7 +164,7 @@ services:
   ## - Volume is used for persistent storage
   ##
   postgres:
-    image: bitnamilegacy/postgresql:17.5.0-debian-12-r20
+    image: postgres:18.4
     container_name: *db_host
     logging:
       <<: *logging
@@ -174,7 +174,7 @@ services:
       POSTGRES_PASSWORD: *db_password
       POSTGRES_DB: *db_name
     volumes:
-      - postgres:/bitnami/postgresql
+      - postgres:/var/lib/postgresql
     ## Uncomment to expose PostgreSQL externally
     # ports:
     #   - "5432:5432" 
@@ -196,7 +196,7 @@ services:
   ## - Includes optional plugins for dashboard, LDAP, shovel, etc.
   ##
   rabbitmq:
-    image: bitnamilegacy/rabbitmq:4.1.2-debian-12-r1
+    image: rabbitmq:4.3.3-management
     logging:
       <<: *logging
     # ports:
@@ -207,18 +207,13 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: *rabbitmq_user
       RABBITMQ_DEFAULT_PASS: *rabbitmq_password
-      RABBITMQ_MANAGEMENT_ALLOW_WEB_ACCESS: "true"
-      ## Block all procedures when free disk space is less than 50MB
-      ## Ref: https://www.rabbitmq.com/docs/disk-alarms
-      RABBITMQ_DISK_FREE_ABSOLUTE_LIMIT: 50MB
-      RABBITMQ_PLUGINS: >
-        rabbitmq_consistent_hash_exchange
-        rabbitmq_management
-        rabbitmq_auth_backend_ldap
-        rabbitmq_shovel
-        rabbitmq_shovel_management
+    configs:
+      - source: rabbitmq_extra_config
+        target: /etc/rabbitmq/conf.d/99-extra.conf
+      - source: rabbitmq_enabled_plugins
+        target: /etc/rabbitmq/enabled_plugins
     healthcheck:
-      test: ["CMD", "rabbitmqctl", "status"]
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
       interval: 30s
       timeout: 30s
       retries: 5
@@ -236,7 +231,7 @@ services:
   ## - Runs in single-node mode with web security disabled
   ##
   opensearch:
-    image: opensearchproject/opensearch:2.19.4
+    image: opensearchproject/opensearch:3.7.0
     logging:
       <<: *logging
     environment:
@@ -246,7 +241,7 @@ services:
       OPENSEARCH_JAVA_OPTS: -Xms512m -Xmx512m
       DISABLE_INSTALL_DEMO_CONFIG: "true"
       ## @env _JAVA_OPTIONS required to run OpenSearch on Apple Silicon 
-      # _JAVA_OPTIONS: "-XX:UseSVE=0"
+      _JAVA_OPTIONS: "-XX:UseSVE=0"
     ulimits:
       memlock:
         soft: -1
@@ -639,6 +634,28 @@ services:
     profiles:
       - ''
 
+## @section RabbitMQ configs
+## Docker Compose configs mounted into the official rabbitmq image
+##
+## @param rabbitmq_extra_config Extra RabbitMQ settings written to /etc/rabbitmq/conf.d/99-extra.conf
+## - permit.queue_master_locator: required for ReportPortal clients on RabbitMQ 4.x
+## - disk_free_limit: blocks publishers when free disk space is below 50MB
+##   Ref: https://www.rabbitmq.com/docs/disk-alarms
+##
+## @param rabbitmq_enabled_plugins Plugin list for /etc/rabbitmq/enabled_plugins
+## - rabbitmq_management: management UI/API (included in *-management image)
+## - rabbitmq_consistent_hash_exchange: required by ReportPortal AMQP routing
+## - rabbitmq_auth_backend_ldap: optional LDAP auth backend
+## - rabbitmq_shovel / rabbitmq_shovel_management: shovel plugin required for ReportPortal
+##
+configs:
+  rabbitmq_extra_config:
+    content: |
+      deprecated_features.permit.queue_master_locator = true
+      disk_free_limit.absolute = 50MB
+  rabbitmq_enabled_plugins:
+    content: |
+      [rabbitmq_management,rabbitmq_consistent_hash_exchange,rabbitmq_auth_backend_ldap,rabbitmq_shovel,rabbitmq_shovel_management].
 
 ## @section Volumes
 ## Named volumes for persistent data storage
