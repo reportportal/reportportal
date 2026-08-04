@@ -279,7 +279,7 @@ services:
   ## - Requires database to be healthy
   ##
   migrations:
-    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.15.2}
+    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.15.3}
     build: ./migrations
     logging:
       <<: *logging
@@ -308,7 +308,7 @@ services:
   ## - Exposed via Traefik on root `/`
   ##
   index:
-    image: ${INDEX_IMAGE-reportportal/service-index:5.15.0}
+    image: ${INDEX_IMAGE-reportportal/service-index:5.15.1}
     build: ./service-index
     logging:
       <<: *logging
@@ -350,7 +350,7 @@ services:
   ## - Performs healthcheck on port 8080 to verify availability
   ##
   ui:
-    image: ${UI_IMAGE-reportportal/service-ui:5.15.3}
+    image: ${UI_IMAGE-reportportal/service-ui:5.15.4}
     build: ./service-ui
     environment:
       RP_SERVER_PORT: "8080"
@@ -389,7 +389,7 @@ services:
   ## - Routed via Traefik under path `/api`
   ##
   api:
-    image: ${API_IMAGE-reportportal/service-api:5.15.2}
+    image: ${API_IMAGE-reportportal/service-api:5.15.3}
     build: ./service-api
     logging:
       <<: *logging
@@ -466,7 +466,7 @@ services:
   ## - Routed via Traefik under path `/uat`
   ##
   uat:
-    image: ${UAT_IMAGE-reportportal/service-authorization:5.15.0}
+    image: ${UAT_IMAGE-reportportal/service-authorization:5.15.1}
     build: ./service-authorization
     logging:
       <<: *logging
@@ -536,7 +536,7 @@ services:
   ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE Number of binaries to be removed from binary storage by storageProjectCron within one job execution
   ##
   jobs:
-    image: ${JOBS_IMAGE-reportportal/service-jobs:5.15.1}
+    image: ${JOBS_IMAGE-reportportal/service-jobs:5.15.2}
     build: ./service-jobs
     logging:
       <<: *logging
@@ -610,20 +610,20 @@ services:
   ## @param analyzer Automatic test result analyzer
   ## - Performs log analysis and pattern detection
   ## - Relies on OpenSearch and RabbitMQ
-  ## - Writes persistent data to shared volume
+  ## - Writes persistent data to a dedicated analyzer volume
   ##
   ##
   analyzer:
-    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.15.2}
+    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.15.5}
     build: ./service-auto-analyzer
     logging:
       <<: *logging
     environment:
       <<: *common-analyzer-environment
     volumes:
-      - storage:/data/storage
+      - analyzer-storage:/data/storage
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:5001 || wget -q --spider http://localhost:5001/ || exit 1"]
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/', timeout=5)"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -648,15 +648,20 @@ services:
 ##   - api: stores attachments, plugins, and user uploads
 ##   - uat: stores user-related data
 ##   - jobs: cleans up expired data from api
-##   - analyzer: stores ML models and analysis data in /data/storage/analyzer subdirectory
 ##
 ## All services must share the same volume for jobs to properly clean storage data.
 ## For custom host path, replace 'storage:' with a bind mount:
 ##   - ./data/storage:/data/storage
 ##
+## @param analyzer-storage Dedicated volume for analyzer ML models and analysis data
+## Mounted at /data/storage (FILESYSTEM_DEFAULT_PATH: /data/storage/analyzer)
+## For custom host path, replace 'analyzer-storage:' with a bind mount:
+##   - ./data/analyzer-storage:/data/storage
+##
 volumes:
   opensearch:
   storage:
+  analyzer-storage:
   postgres:
 
 ## @section Networks
