@@ -15,6 +15,7 @@
   - [Installation steps](#installation-steps)
     - [Simple setup with Docker](#simple-setup-with-docker)
     - [Production-ready set and Custom deployment with Docker](#production-ready-set-and-custom-deployment-with-docker)
+  - [Troubleshooting](#troubleshooting)
   - [Integration. How to get log data in](#integration-how-to-get-log-data-in)
   - [Contribution](#contribution)
   - [Documentation](#documentation)
@@ -103,6 +104,16 @@ For production usage, we recommend:
 - choose only required Bug Tracking System integration service. Exclude the rest
 
 To customize deployment and make it production-ready please follow [customization steps and details](https://github.com/reportportal/reportportal/wiki/Production-Ready-set-and-Deployment-Customization)
+
+## Troubleshooting
+
+If the `analyzer` service fails on the `train_models` task with
+`PermissionError: [Errno 13] Permission denied: '/data/storage/analyzer'`,
+it's because the analyzer image (DHI-based since 5.15.5) runs as a non-root
+user while Docker creates the `analyzer-storage` volume root-owned. This is
+handled automatically by the `analyzer-storage-init` job in
+`docker-compose.yml`, which chowns the volume to the analyzer's runtime
+UID/GID before `analyzer` starts.
 
 ## Integration. How to get log data in
 

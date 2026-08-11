@@ -602,6 +602,40 @@ services:
   ## Analyzer services (optional): auto-analysis and ML training
   ##
 
+  ## @param analyzer-storage-init One-off job that fixes ownership of the analyzer storage volume
+  ## - Since 5.15.5 the analyzer image is built from a Docker Hardened Image
+  ##   (DHI) base and runs as non-root UID/GID 65532 by default
+  ## - Docker Compose creates a brand-new named volume owned by root, so the
+  ##   analyzer process cannot create FILESYSTEM_DEFAULT_PATH
+  ##   (/data/storage/analyzer) on it without this fix, and fails with
+  ##   `PermissionError: [Errno 13] Permission denied: '/data/storage/analyzer'`
+  ##   while processing the `train_models` task
+  ## - Runs as root once, pre-creates the analyzer subfolder and re-chowns the
+  ##   whole volume to the analyzer's runtime UID/GID, then exits
+  ##
+  analyzer-storage-init:
+    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.15.5}
+    build: ./service-auto-analyzer
+    user: "0:0"
+    entrypoint:
+      - python
+      - -c
+      - |
+        import os
+        UID = GID = 65532  # DHI python image default non-root user
+        os.makedirs("/data/storage/analyzer", exist_ok=True)
+        for root, dirs, files in os.walk("/data/storage"):
+            for name in dirs + files:
+                os.chown(os.path.join(root, name), UID, GID)
+        os.chown("/data/storage", UID, GID)
+    volumes:
+      - analyzer-storage:/data/storage
+    networks:
+      - reportportal
+    restart: "no"
+    profiles:
+      - ''
+
   ## @param analyzer Automatic test result analyzer
   ## - Performs log analysis and pattern detection
   ## - Relies on OpenSearch and RabbitMQ
@@ -628,6 +662,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      analyzer-storage-init:
+        condition: service_completed_successfully
     networks:
       - reportportal
     restart: always
