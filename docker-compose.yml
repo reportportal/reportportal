@@ -117,7 +117,7 @@ services:
   ## - Uses Docker labels to auto-discover services
   ##
   gateway:
-    image: traefik:v2.11.53
+    image: traefik:v2.11.54
     logging:
       <<: *logging
     ports:
@@ -196,7 +196,7 @@ services:
   ## - Includes optional plugins for dashboard, LDAP, shovel, etc.
   ##
   rabbitmq:
-    image: rabbitmq:4.3.3-management
+    image: rabbitmq:4.3.4-management
     logging:
       <<: *logging
     # ports:
@@ -231,7 +231,7 @@ services:
   ## - Runs in single-node mode with web security disabled
   ##
   opensearch:
-    image: opensearchproject/opensearch:3.7.0
+    image: opensearchproject/opensearch:3.8.0
     logging:
       <<: *logging
     environment:
@@ -274,7 +274,7 @@ services:
   ## - Requires database to be healthy
   ##
   migrations:
-    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.15.3}
+    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.15.4}
     build: ./migrations
     logging:
       <<: *logging
@@ -345,7 +345,7 @@ services:
   ## - Performs healthcheck on port 8080 to verify availability
   ##
   ui:
-    image: ${UI_IMAGE-reportportal/service-ui:5.15.4}
+    image: ${UI_IMAGE-reportportal/service-ui:5.15.5}
     build: ./service-ui
     environment:
       RP_SERVER_PORT: "8080"
@@ -384,7 +384,7 @@ services:
   ## - Routed via Traefik under path `/api`
   ##
   api:
-    image: ${API_IMAGE-reportportal/service-api:5.15.3}
+    image: ${API_IMAGE-reportportal/service-api:5.15.4}
     build: ./service-api
     logging:
       <<: *logging
