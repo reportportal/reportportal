@@ -89,7 +89,7 @@ x-analyzer-environment: &common-analyzer-environment
   ANALYZER_BINARYSTORE_TYPE: filesystem
   DATASTORE_TYPE: filesystem # Change to 'minio' or 's3' for object storage
   ## For filesystem storage, set path where analyzer data will be stored
-  FILESYSTEM_DEFAULT_PATH: /data/storage/analyzer
+  FILESYSTEM_DEFAULT_PATH: &analyzer-default-path /data/storage/analyzer
   ## For MinIO storage, set DATASTORE_TYPE: minio and configure:
   # DATASTORE_ENDPOINT: http://minio:9000
   # DATASTORE_ACCESSKEY: ${STORAGE_ACCESSKEY-rpuser}
@@ -104,6 +104,39 @@ x-analyzer-environment: &common-analyzer-environment
   # DATASTORE_BUCKETPREFIX: prj-
   # DATASTORE_BUCKETPOSTFIX: ""
   # DATASTORE_DEFAULTBUCKETNAME: my-rp-bucket/analyzer
+
+## @section Analyzer storage mount
+## Shared mount definition for the Analyzer and its one-shot permissions initializer.
+##
+## By default, `analyzer-storage` is a managed Docker named volume.
+## Analyzer receives it at `FILESYSTEM_DEFAULT_PATH`
+## (`/data/storage/analyzer`), while the init service mounts the same volume
+## at `/data` to set its root owner to the rootless Analyzer UID/GID.
+##
+## `nocopy: true` prevents Docker from copying files from the image filesystem
+## into a newly created volume. Ownership is initialized explicitly by
+## `analyzer-storage-init`.
+##
+x-analyzer-storage-volume: &analyzer-storage-volume
+  type: volume
+  # type: bind
+  source: ${ANALYZER_STORAGE_PATH:-analyzer-storage}
+  target: *analyzer-default-path
+  volume:
+    nocopy: true
+  ## Local host-path option:
+  ##
+  ## 1. Replace `type: volume` with `type: bind`
+  ## 2. Replace `source: analyzer-storage` with:
+  ##      source: ${ANALYZER_STORAGE_PATH:-./data/analyzer-storage}
+  ## 3. Remove the `volume:` block above.
+  ## 4. Uncomment the `bind:` block below.
+  ##
+  ## The init service will assign UID:GID 65532:65532 only to this
+  ## directory. Do not point it to the shared ReportPortal storage path.
+  ##
+  # bind:
+  #   create_host_path: true
 
 services:
   ##
@@ -601,6 +634,53 @@ services:
   ## @section Analyzer stack
   ## Analyzer services (optional): auto-analysis and ML training
   ##
+  
+  ## @param analyzer-storage-init One-shot rootless storage permissions initializer
+  ## - Runs before Analyzer and exits successfully after ownership verification.
+  ## - Mounts only `analyzer-storage`, never the shared `storage` volume used by
+  ##   API, UAT, and Jobs.
+  ## - Uses a root process only to change the root directory owner once; it is
+  ##   not privileged, has no network, and receives only the `CHOWN` capability.
+  ## - Maps the volume to `/data` so its root can be handled independently from
+  ##   the Analyzer application path `/data/storage/analyzer`.
+  ## - On later deployments it verifies existing ownership and exits without
+  ##   recursively traversing Analyzer files.
+  ##
+  analyzer-storage-init:
+    image: busybox:1.38.0
+    logging:
+      <<: *logging
+    user: "0:0"
+    command:
+      - sh
+      - -ec
+      - |
+        current="$$(stat -c '%u:%g' /data)"
+        expected="65532:65532"
+
+        if [ "$$current" = "$$expected" ]; then
+          echo "analyzer-storage-init: already ready ($$current)"
+          exit 0
+        fi
+
+        echo "analyzer-storage-init: fixing owner $$current -> $$expected"
+        chown "$$expected" /data
+        echo "analyzer-storage-init: ready ($$(stat -c '%u:%g mode=%a' /data))"
+    volumes:
+      - <<: *analyzer-storage-volume
+        target: /data
+    network_mode: "none"
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+    restart: "no"
+    profiles:
+      - analyzer
+      - ''
 
   ## @param analyzer Automatic test result analyzer
   ## - Performs log analysis and pattern detection
@@ -616,7 +696,7 @@ services:
     environment:
       <<: *common-analyzer-environment
     volumes:
-      - analyzer-storage:/data/storage
+      - <<: *analyzer-storage-volume
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5001/', timeout=5)"]
       interval: 30s
@@ -624,6 +704,8 @@ services:
       retries: 3
       start_period: 60s
     depends_on:
+      analyzer-storage-init:
+        condition: service_completed_successfully
       opensearch:
         condition: service_healthy
       rabbitmq:
@@ -632,6 +714,7 @@ services:
       - reportportal
     restart: always
     profiles:
+      - analyzer
       - ''
 
 ## @section RabbitMQ configs
