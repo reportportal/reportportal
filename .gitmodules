@@ -2,10 +2,6 @@
 	path = service-api
 	url = https://github.com/reportportal/service-api.git
 	branch = develop
-[submodule "service-authorization"]
-	path = service-authorization
-	url = https://github.com/reportportal/service-authorization.git
-	branch = develop
 [submodule "service-jobs"]
 	path = service-jobs
 	url = https://github.com/reportportal/service-jobs.git
