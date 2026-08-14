@@ -119,24 +119,22 @@ x-analyzer-environment: &common-analyzer-environment
 ##
 x-analyzer-storage-volume: &analyzer-storage-volume
   type: volume
-  # type: bind
-  source: ${ANALYZER_STORAGE_PATH:-analyzer-storage}
+  source: analyzer-storage
   target: *analyzer-default-path
   volume:
     nocopy: true
-  ## Local host-path option:
-  ##
-  ## 1. Replace `type: volume` with `type: bind`
-  ## 2. Replace `source: analyzer-storage` with:
-  ##      source: ${ANALYZER_STORAGE_PATH:-./data/analyzer-storage}
-  ## 3. Remove the `volume:` block above.
-  ## 4. Uncomment the `bind:` block below.
-  ##
-  ## The init service will assign UID:GID 65532:65532 only to this
-  ## directory. Do not point it to the shared ReportPortal storage path.
-  ##
-  # bind:
-  #   create_host_path: true
+
+## Local host-path alternative:
+## To use it, comment out the named-volume block above and uncomment this
+## complete block. The init service assigns UID:GID 65532:65532 only to this
+## directory; do not point it to the shared ReportPortal storage path.
+##
+# x-analyzer-storage-volume: &analyzer-storage-volume
+#   type: bind
+#   source: ${ANALYZER_STORAGE_PATH:-./data/analyzer-storage}
+#   target: *analyzer-default-path
+#   bind:
+#     create_host_path: true
 
 services:
   ##
