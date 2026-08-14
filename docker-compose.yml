@@ -329,47 +329,6 @@ services:
       - infra
       - ''
 
-  ## @param index Service for indexing test data and logs
-  ## - Listens for incoming test results and logs
-  ## - Exposed via Traefik on root `/`
-  ##
-  index:
-    image: ${INDEX_IMAGE-reportportal/service-index:5.15.1}
-    build: ./service-index
-    logging:
-      <<: *logging
-    depends_on:
-      gateway:
-        condition: service_started
-    environment:
-      LB_URL: http://gateway:8081
-      TRAEFIK_V2_MODE: 'true'
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || wget -q --spider http://localhost:8080/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    labels:
-      - "traefik.http.routers.index.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.index.service=index"
-      - "traefik.http.routers.index.entrypoints=web"
-      - "traefik.http.routers.index-secure.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.index-secure.service=index"
-      - "traefik.http.routers.index-secure.entrypoints=websecure"
-      # - "traefik.http.routers.index-secure.tls=true"
-      # - "traefik.http.routers.index-secure.tls.certresolver=letsencrypt"
-      - "traefik.http.services.index.loadbalancer.server.port=8080"
-      - "traefik.http.services.index.loadbalancer.server.scheme=http"
-      - "traefik.expose=true"
-    networks:
-      - reportportal
-    restart: always
-    profiles:
-      - core
-      - infra
-      - ''
-
   ## @param ui Web-based frontend for ReportPortal
   ## - Provides the visual interface for test reports
   ## - Routed via Traefik under path `/ui`
