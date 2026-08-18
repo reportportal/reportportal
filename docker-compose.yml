@@ -148,7 +148,7 @@ services:
   ## - Uses Docker labels to auto-discover services
   ##
   gateway:
-    image: traefik:v2.11.54
+    image: traefik:v3.7.10
     logging:
       <<: *logging
     ports:
@@ -162,6 +162,7 @@ services:
       # - ./acme.json:/acme.json  ## Let's Encrypt ACME challenge file
     command:
       - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
       - --providers.docker.constraints=Label(`traefik.expose`, `true`)
       - --entrypoints.web.address=:8080
       - --entrypoints.traefik.address=:8081
@@ -239,8 +240,6 @@ services:
       RABBITMQ_DEFAULT_USER: *rabbitmq_user
       RABBITMQ_DEFAULT_PASS: *rabbitmq_password
     configs:
-      - source: rabbitmq_extra_config
-        target: /etc/rabbitmq/conf.d/99-extra.conf
       - source: rabbitmq_enabled_plugins
         target: /etc/rabbitmq/enabled_plugins
     healthcheck:
@@ -359,6 +358,16 @@ services:
       # - "traefik.http.routers.ui-secure.tls.certresolver=letsencrypt"
       - "traefik.http.services.ui.loadbalancer.server.port=8080"
       - "traefik.http.services.ui.loadbalancer.server.scheme=http"
+      - "traefik.http.middlewares.root-to-ui.redirectregex.regex=^(https?://[^/]+)/?$$"
+      - "traefik.http.middlewares.root-to-ui.redirectregex.replacement=$${1}/ui/"
+      - "traefik.http.routers.root.rule=Path(`/`)"
+      - "traefik.http.routers.root.middlewares=root-to-ui@docker"
+      - "traefik.http.routers.root.service=ui"
+      - "traefik.http.routers.root.entrypoints=web"
+      - "traefik.http.routers.root-secure.rule=Path(`/`)"
+      - "traefik.http.routers.root-secure.middlewares=root-to-ui@docker"
+      - "traefik.http.routers.root-secure.service=ui"
+      - "traefik.http.routers.root-secure.entrypoints=websecure"
       - "traefik.expose=true"
     networks:
       - reportportal
@@ -627,11 +636,6 @@ services:
 ## @section RabbitMQ configs
 ## Docker Compose configs mounted into the official rabbitmq image
 ##
-## @param rabbitmq_extra_config Extra RabbitMQ settings written to /etc/rabbitmq/conf.d/99-extra.conf
-## - permit.queue_master_locator: required for ReportPortal clients on RabbitMQ 4.x
-## - disk_free_limit: blocks publishers when free disk space is below 50MB
-##   Ref: https://www.rabbitmq.com/docs/disk-alarms
-##
 ## @param rabbitmq_enabled_plugins Plugin list for /etc/rabbitmq/enabled_plugins
 ## - rabbitmq_management: management UI/API (included in *-management image)
 ## - rabbitmq_consistent_hash_exchange: required by ReportPortal AMQP routing
@@ -639,16 +643,12 @@ services:
 ## - rabbitmq_shovel / rabbitmq_shovel_management: shovel plugin required for ReportPortal
 ##
 configs:
-  rabbitmq_extra_config:
-    content: |
-      deprecated_features.permit.queue_master_locator = true
-      disk_free_limit.absolute = 50MB
   rabbitmq_enabled_plugins:
     content: |
       [rabbitmq_management,rabbitmq_consistent_hash_exchange,rabbitmq_auth_backend_ldap,rabbitmq_shovel,rabbitmq_shovel_management].
 
 ## @section Volumes
-## Named volumes for persistent data storage
+## Named volumes xwfor persistent data storage
 ##
 ## @param storage Shared volume for ReportPortal services
 ## This volume is mounted at /data/storage and shared between:
