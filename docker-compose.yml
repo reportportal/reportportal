@@ -164,6 +164,7 @@ services:
       - --providers.docker=true
       - --providers.docker.exposedByDefault=false
       - --providers.docker.constraints=Label(`traefik.expose`, `true`)
+      - --log.level=INFO
       - --entrypoints.web.address=:8080
       - --entrypoints.traefik.address=:8081
       - --entrypoints.websecure.address=:443
@@ -345,6 +346,7 @@ services:
       retries: 3
       start_period: 30s
     labels:
+      - "traefik.enable=true"
       - "traefik.http.middlewares.ui-strip-prefix.stripprefix.prefixes=/ui"
       - "traefik.http.routers.ui.middlewares=ui-strip-prefix@docker"
       - "traefik.http.routers.ui.rule=PathPrefix(`/ui`)"
@@ -436,6 +438,7 @@ services:
       retries: 3
       start_period: 60s
     labels:
+      - "traefik.enable=true"
       - "traefik.http.middlewares.api-strip-prefix.stripprefix.prefixes=/api"
       - "traefik.http.routers.api.middlewares=api-strip-prefix@docker"
       - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
@@ -526,6 +529,7 @@ services:
       retries: 3
       start_period: 60s
     labels:
+      - traefik.enable=true
       - traefik.http.middlewares.jobs-strip-prefix.stripprefix.prefixes=/jobs
       - traefik.http.routers.jobs.middlewares=jobs-strip-prefix@docker
       - traefik.http.routers.jobs.rule=PathPrefix(`/jobs`)
