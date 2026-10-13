@@ -195,7 +195,7 @@ services:
   ## - Volume is used for persistent storage
   ##
   postgres:
-    image: postgres:18.4
+    image: postgres:18.6
     container_name: *db_host
     logging:
       <<: *logging
@@ -227,7 +227,7 @@ services:
   ## - Includes optional plugins for dashboard, LDAP, shovel, etc.
   ##
   rabbitmq:
-    image: rabbitmq:4.3.4-management
+    image: rabbitmq:4.3.6-management
     logging:
       <<: *logging
     # ports:
@@ -305,7 +305,7 @@ services:
   ## - Requires database to be healthy
   ##
   migrations:
-    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.15.4}
+    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.15.5}
     build: ./migrations
     logging:
       <<: *logging
@@ -334,7 +334,7 @@ services:
   ## - Exposed via Traefik on root `/`
   ##
   index:
-    image: ${INDEX_IMAGE-reportportal/service-index:5.15.1}
+    image: ${INDEX_IMAGE-reportportal/service-index:5.15.2}
     build: ./service-index
     logging:
       <<: *logging
@@ -376,7 +376,7 @@ services:
   ## - Performs healthcheck on port 8080 to verify availability
   ##
   ui:
-    image: ${UI_IMAGE-reportportal/service-ui:5.15.5}
+    image: ${UI_IMAGE-reportportal/service-ui:5.15.6}
     build: ./service-ui
     environment:
       RP_SERVER_PORT: "8080"
@@ -415,7 +415,7 @@ services:
   ## - Routed via Traefik under path `/api`
   ##
   api:
-    image: ${API_IMAGE-reportportal/service-api:5.15.4}
+    image: ${API_IMAGE-reportportal/service-api:5.15.5}
     build: ./service-api
     logging:
       <<: *logging
@@ -492,7 +492,7 @@ services:
   ## - Routed via Traefik under path `/uat`
   ##
   uat:
-    image: ${UAT_IMAGE-reportportal/service-authorization:5.15.1}
+    image: ${UAT_IMAGE-reportportal/service-authorization:5.15.2}
     build: ./service-authorization
     logging:
       <<: *logging
@@ -562,7 +562,7 @@ services:
   ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE Number of binaries to be removed from binary storage by storageProjectCron within one job execution
   ##
   jobs:
-    image: ${JOBS_IMAGE-reportportal/service-jobs:5.15.2}
+    image: ${JOBS_IMAGE-reportportal/service-jobs:5.15.3}
     build: ./service-jobs
     logging:
       <<: *logging
@@ -687,7 +687,7 @@ services:
   ##
   ##
   analyzer:
-    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.15.5}
+    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.15.6}
     build: ./service-auto-analyzer
     logging:
       <<: *logging
