@@ -305,7 +305,7 @@ services:
   ## - Requires database to be healthy
   ##
   migrations:
-    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.15.5}
+    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.15.6}
     build: ./migrations
     logging:
       <<: *logging
@@ -415,7 +415,7 @@ services:
   ## - Routed via Traefik under path `/api`
   ##
   api:
-    image: ${API_IMAGE-reportportal/service-api:5.15.5}
+    image: ${API_IMAGE-reportportal/service-api:5.15.6}
     build: ./service-api
     logging:
       <<: *logging
