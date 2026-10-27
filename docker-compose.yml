@@ -148,7 +148,7 @@ services:
   ## - Uses Docker labels to auto-discover services
   ##
   gateway:
-    image: traefik:v2.11.54
+    image: traefik:v2.11.60
     logging:
       <<: *logging
     ports:
@@ -227,7 +227,7 @@ services:
   ## - Includes optional plugins for dashboard, LDAP, shovel, etc.
   ##
   rabbitmq:
-    image: rabbitmq:4.3.6-management
+    image: rabbitmq:4.4.0-management
     logging:
       <<: *logging
     # ports:
@@ -262,7 +262,7 @@ services:
   ## - Runs in single-node mode with web security disabled
   ##
   opensearch:
-    image: opensearchproject/opensearch:3.8.0
+    image: opensearchproject/opensearch:3.9.0
     logging:
       <<: *logging
     environment:
