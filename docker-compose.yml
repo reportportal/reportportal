@@ -148,7 +148,7 @@ services:
   ## - Uses Docker labels to auto-discover services
   ##
   gateway:
-    image: traefik:v2.11.54
+    image: traefik:v2.11.60
     logging:
       <<: *logging
     ports:
