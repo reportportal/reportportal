@@ -148,7 +148,7 @@ services:
   ## - Uses Docker labels to auto-discover services
   ##
   gateway:
-    image: traefik:v3.7.16
+    image: traefik:v3.7.19
     logging:
       <<: *logging
     ports:
@@ -305,7 +305,7 @@ services:
   ## - Requires database to be healthy
   ##
   migrations:
-    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.15.4}
+    image: ${MIGRATIONS_IMAGE-reportportal/migrations:6.0.0}
     build: ./migrations
     logging:
       <<: *logging
@@ -335,7 +335,7 @@ services:
   ## - Performs healthcheck on port 8080 to verify availability
   ##
   ui:
-    image: ${UI_IMAGE-reportportal/service-ui:5.15.5}
+    image: ${UI_IMAGE-reportportal/service-ui:6.0.0}
     build: ./service-ui
     environment:
       RP_SERVER_PORT: "8080"
@@ -385,7 +385,7 @@ services:
   ## - Routed via Traefik under path `/api`
   ##
   api:
-    image: ${API_IMAGE-reportportal/service-api:5.15.4}
+    image: ${API_IMAGE-reportportal/service-api:6.0.0}
     build: ./service-api
     logging:
       <<: *logging
@@ -483,7 +483,7 @@ services:
   ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE Number of binaries to be removed from binary storage by storageProjectCron within one job execution
   ##
   jobs:
-    image: ${JOBS_IMAGE-reportportal/service-jobs:5.15.2}
+    image: ${JOBS_IMAGE-reportportal/service-jobs:6.0.0}
     build: ./service-jobs
     logging:
       <<: *logging
@@ -558,7 +558,7 @@ services:
   ## @param analyzer-storage-init One-shot rootless storage permissions initializer
   ## - Runs before Analyzer and exits successfully after ownership verification.
   ## - Mounts only `analyzer-storage`, never the shared `storage` volume used by
-  ##   API, UAT, and Jobs.
+  ##   API, and Jobs.
   ## - Uses a root process only to change the root directory owner once; it is
   ##   not privileged, has no network, and receives only the `CHOWN` capability.
   ## - Maps the volume to `/data` so its root can be handled independently from
@@ -609,7 +609,7 @@ services:
   ##
   ##
   analyzer:
-    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.15.5}
+    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:6.0.0}
     build: ./service-auto-analyzer
     logging:
       <<: *logging
