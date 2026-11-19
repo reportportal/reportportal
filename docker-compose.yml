@@ -50,6 +50,43 @@ x-amqp:
   rabbitmq_user: &rabbitmq_user ${RABBITMQ_DEFAULT_USER-rabbitmq}
   rabbitmq_password: &rabbitmq_password ${RABBITMQ_DEFAULT_PASS-rabbitmq}
 
+## @section Storage configuration (OpenDAL)
+## @param x-storage Shared storage configuration for all services (API, Jobs, Analyzer)
+## ReportPortal 26.1+ uses Apache OpenDAL for object storage with S3 backend support
+##
+## Storage types:
+## - filesystem (default): Local volume storage
+## - s3-compatible: MinIO, SeaweedFS, Ceph RGW, and other S3-compatible services
+## - aws-s3: Native Amazon S3 with IAM role support
+##
+x-storage: &storage-environment
+  DATASTORE_TYPE: filesystem
+  ## For filesystem storage (default):
+  DATASTORE_PATH: /data/storage
+  ## For S3-compatible storage (MinIO, SeaweedFS, Ceph RGW, etc.):
+  ## Uncomment and configure the following:
+  # DATASTORE_TYPE: s3-compatible
+  # DATASTORE_ENDPOINT: "http://minio:9000"  # Required: host:port format
+  # DATASTORE_REGION: ""  # Optional for s3-compatible
+  # DATASTORE_ACCESSKEY: ${STORAGE_ACCESSKEY-rpuser}
+  # DATASTORE_SECRETKEY: ${STORAGE_SECRETKEY-rppassword}
+  # DATASTORE_DEFAULTBUCKETNAME: rp-bucket
+  ## Bucket strategy: 'single' or 'multi' (default)
+  ## - single: All data in one bucket with prefixes (project-data/, plugins/, etc.)
+  ## - multi: Projects as folders (prj-1/, prj-2/, etc.) in the default bucket
+  # RP_FEATURE_FLAGS: singleBucket  # Uncomment for single bucket mode
+  # DATASTORE_BUCKETPREFIX: prj-  # For multi mode
+  # DATASTORE_BUCKETPOSTFIX: ""  # For multi mode
+  # RP_INTEGRATION_SALT_PATH: keystore  # For multi mode (salt location)
+  ## For Amazon S3:
+  ## Uncomment and configure the following:
+  # DATASTORE_TYPE: aws-s3
+  # DATASTORE_REGION: us-east-1  # Required for aws-s3
+  # DATASTORE_ACCESSKEY: ""  # Leave empty for IAM Role-based access
+  # DATASTORE_SECRETKEY: ""  # Leave empty for IAM Role-based access
+  # DATASTORE_DEFAULTBUCKETNAME: my-rp-bucket
+  # RP_FEATURE_FLAGS: singleBucket  # Recommended for aws-s3
+
 ## @section Common environment variables
 ## @param x-environment Environment values used by services for database, AMQP and storage connectivity
 ##
@@ -67,15 +104,7 @@ x-environment: &common-environment
   RP_AMQP_APIUSER: *rabbitmq_user
   RP_AMQP_APIPASS: *rabbitmq_password
   RP_AMQP_ANALYZER-VHOST: analyzer
-  DATASTORE_TYPE: filesystem # Change to 's3' to use aws S3 storage
-  ## For S3 storage, also set the following variables in addition to @env DATASTORE_TYPE: s3
-  ## Ref.: https://reportportal.io/docs/installation-steps-advanced/file-storage-options/S3CloudStorage/
-  # RP_FEATURE_FLAGS: singleBucket
-  # DATASTORE_REGION: "us-standard"
-  ## @env DATASTORE_ACCESSKEY and DATASTORE_SECRETSKEY must be empty for AIM Role-based access
-  # DATASTORE_ACCESSKEY: ""
-  # DATASTORE_SECRETSKEY: ""
-  # DATASTORE_DEFAULTBUCKETNAME: my-rp-docker-bucket
+  <<: *storage-environment
 
 ## @section Analyzer service environment
 ## @param x-analyzer-environment Environment variables specific to analyzer services (e.g., auto-analyzer)
@@ -87,23 +116,15 @@ x-analyzer-environment: &common-analyzer-environment
   AMQP_URL: amqp://${RABBITMQ_DEFAULT_USER-rabbitmq}:${RABBITMQ_DEFAULT_PASS-rabbitmq}@rabbitmq:5672
   ES_HOSTS: http://opensearch:9200
   ANALYZER_BINARYSTORE_TYPE: filesystem
-  DATASTORE_TYPE: filesystem # Change to 'minio' or 's3' for object storage
-  ## For filesystem storage, set path where analyzer data will be stored
+  <<: *storage-environment
+  ## For filesystem storage, analyzer uses a dedicated subdirectory
   FILESYSTEM_DEFAULT_PATH: &analyzer-default-path /data/storage/analyzer
-  ## For MinIO storage, set DATASTORE_TYPE: minio and configure:
-  # DATASTORE_ENDPOINT: http://minio:9000
-  # DATASTORE_ACCESSKEY: ${STORAGE_ACCESSKEY-rpuser}
-  # DATASTORE_SECRETKEY: ${STORAGE_SECRETKEY-miniopassword}
-  # DATASTORE_BUCKETPREFIX: prj-
+  ## For S3 storage, analyzer stores models under a dedicated path:
+  ## <DATASTORE_DEFAULTBUCKETNAME>/<analyzerSubpath>/<DATASTORE_BUCKETPREFIX><projectId>/
+  ## Example: rp-bucket/analyzer/prj-1/
+  ## Uncomment and adjust DATASTORE_BUCKETPREFIX for S3:
+  # DATASTORE_BUCKETPREFIX: analyzer/prj-
   # DATASTORE_BUCKETPOSTFIX: ""
-  # DATASTORE_DEFAULTBUCKETNAME: rp-bucket/analyzer
-  ## For S3 storage, set DATASTORE_TYPE: s3 and configure:
-  # DATASTORE_REGION: us-east-1
-  # DATASTORE_ACCESSKEY: ""  # Leave empty for IAM Role-based access
-  # DATASTORE_SECRETKEY: ""  # Leave empty for IAM Role-based access
-  # DATASTORE_BUCKETPREFIX: prj-
-  # DATASTORE_BUCKETPOSTFIX: ""
-  # DATASTORE_DEFAULTBUCKETNAME: my-rp-bucket/analyzer
 
 ## @section Analyzer storage mount
 ## Shared mount definition for the Analyzer and its one-shot permissions initializer.
@@ -258,7 +279,7 @@ services:
       - ''
 
   ## @param opensearch Search and analytics engine for the analyzer stack
-  ## - Used to store and query indexed test logs
+  ## - Used to store and query test log analysis data and ML models
   ## - Runs in single-node mode with web security disabled
   ##
   opensearch:
