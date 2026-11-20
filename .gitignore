@@ -3,3 +3,6 @@
 .vscode
 .env
 tmp/
+.DS_Store
+.codemie
+data/
