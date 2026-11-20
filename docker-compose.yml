@@ -1,18 +1,19 @@
-## ReportPortal common variables
+## ReportPortal.io AI-powered Test Automation Dashboard
+## Docker Compose deployment configuration
 ##
 
 ## @section Deployment Profiles
 ##
 ## The following profiles can be used to control which services are launched:
-##
 ## - core: Essential services required for a standard ReportPortal deployment
-## - infra: Infrastructure dependencies (e.g., database, message broker, gateway)
-## - "": Default profile, typically used for optional or internal services (e.g., analyzers)
+## - infra: Infrastructure dependencies (database, message broker, gateway)
+## - "": Default profile for optional services (analyzers, etc.)
 ##
 
 ## @section Logging configuration
+##
 ## @param x-logging Shared logging configuration for all services
-## - Uses json-file logging driver with rotation
+## Uses json-file logging driver with automatic log rotation
 ##
 x-logging: &logging
   driver: "json-file"
@@ -21,11 +22,12 @@ x-logging: &logging
     max-file: "5"
 
 ## @section Database configuration
+##
 ## @param x-database Shared database connection settings used across services
-## @param db_host Internal hostname of the database container (e.g., "postgres")
+## @param db_host Internal hostname of the database container
 ## @param db_port Port used to connect to the database (default: 5432)
 ## @param db_user Username for service-level access to the database
-## @param db_password Password for the specified DB user
+## @param db_password Password for the specified database user
 ## @param db_name Logical database name used by services
 ##
 x-database:
@@ -36,10 +38,11 @@ x-database:
   db_name: &db_name ${POSTGRES_DB-reportportal}
 
 ## @section AMQP (RabbitMQ) configuration
-## @param x-amqp Shared message broker settings used for internal service communication
+##
+## @param x-amqp Shared message broker settings for internal service communication
 ## @param rabbitmq_host Hostname of the RabbitMQ container (Docker internal DNS)
 ## @param rabbitmq_port Port for AMQP protocol communication (default: 5672)
-## @param rabbitmq_apiport Port to access RabbitMQ web UI (default: 15672)
+## @param rabbitmq_apiport Port to access RabbitMQ management UI (default: 15672)
 ## @param rabbitmq_user Username for authenticating RabbitMQ clients
 ## @param rabbitmq_password Password for the RabbitMQ user
 ##
@@ -50,8 +53,47 @@ x-amqp:
   rabbitmq_user: &rabbitmq_user ${RABBITMQ_DEFAULT_USER-rabbitmq}
   rabbitmq_password: &rabbitmq_password ${RABBITMQ_DEFAULT_PASS-rabbitmq}
 
+## @section Storage configuration (OpenDAL)
+##
+## @param x-storage Shared storage configuration for API, Jobs, and Analyzer
+## ReportPortal 6.0+ uses Apache OpenDAL for object storage with S3 backend support
+##
+## Storage types:
+## - filesystem (default): Local volume storage
+## - s3-compatible: MinIO, SeaweedFS, Ceph RGW, and other S3-compatible services
+## - aws-s3: Native Amazon S3 with IAM role support
+##
+x-storage: &storage-environment
+  DATASTORE_TYPE: filesystem
+  ## @param DATASTORE_PATH Path for filesystem storage (default mode)
+  ##
+  DATASTORE_PATH: /data/storage
+  ##
+  ## For S3-compatible storage (MinIO, SeaweedFS, Ceph RGW, etc.):
+  ##
+  # DATASTORE_TYPE: s3-compatible
+  # DATASTORE_ENDPOINT: "http://minio:9000"
+  # DATASTORE_REGION: ""
+  # DATASTORE_ACCESSKEY: ${STORAGE_ACCESSKEY-rpuser}
+  # DATASTORE_SECRETKEY: ${STORAGE_SECRETKEY-rppassword}
+  # DATASTORE_DEFAULTBUCKETNAME: rp-bucket
+  # RP_FEATURE_FLAGS: singleBucket
+  # DATASTORE_BUCKETPREFIX: prj-
+  # DATASTORE_BUCKETPOSTFIX: ""
+  # RP_INTEGRATION_SALT_PATH: keystore
+  ##
+  ## For Amazon S3:
+  ##
+  # DATASTORE_TYPE: aws-s3
+  # DATASTORE_REGION: us-east-1
+  # DATASTORE_ACCESSKEY: ""
+  # DATASTORE_SECRETKEY: ""
+  # DATASTORE_DEFAULTBUCKETNAME: my-rp-bucket
+  # RP_FEATURE_FLAGS: singleBucket
+
 ## @section Common environment variables
-## @param x-environment Environment values used by services for database, AMQP and storage connectivity
+##
+## @param x-environment Environment values for database, AMQP, and storage connectivity
 ##
 x-environment: &common-environment
   RP_DB_HOST: *db_host
@@ -67,18 +109,11 @@ x-environment: &common-environment
   RP_AMQP_APIUSER: *rabbitmq_user
   RP_AMQP_APIPASS: *rabbitmq_password
   RP_AMQP_ANALYZER-VHOST: analyzer
-  DATASTORE_TYPE: filesystem # Change to 's3' to use aws S3 storage
-  ## For S3 storage, also set the following variables in addition to @env DATASTORE_TYPE: s3
-  ## Ref.: https://reportportal.io/docs/installation-steps-advanced/file-storage-options/S3CloudStorage/
-  # RP_FEATURE_FLAGS: singleBucket
-  # DATASTORE_REGION: "us-standard"
-  ## @env DATASTORE_ACCESSKEY and DATASTORE_SECRETSKEY must be empty for AIM Role-based access
-  # DATASTORE_ACCESSKEY: ""
-  # DATASTORE_SECRETSKEY: ""
-  # DATASTORE_DEFAULTBUCKETNAME: my-rp-docker-bucket
+  <<: *storage-environment
 
 ## @section Analyzer service environment
-## @param x-analyzer-environment Environment variables specific to analyzer services (e.g., auto-analyzer)
+##
+## @param x-analyzer-environment Environment variables for analyzer services (auto-analyzer)
 ##
 x-analyzer-environment: &common-analyzer-environment
   LOGGING_LEVEL: info
@@ -86,32 +121,24 @@ x-analyzer-environment: &common-analyzer-environment
   AMQP_VIRTUAL_HOST: analyzer
   AMQP_URL: amqp://${RABBITMQ_DEFAULT_USER-rabbitmq}:${RABBITMQ_DEFAULT_PASS-rabbitmq}@rabbitmq:5672
   ES_HOSTS: http://opensearch:9200
-  ANALYZER_BINARYSTORE_TYPE: filesystem
-  DATASTORE_TYPE: filesystem # Change to 'minio' or 's3' for object storage
-  ## For filesystem storage, set path where analyzer data will be stored
+  <<: *storage-environment
+  ## For filesystem storage, analyzer uses a dedicated subdirectory
   FILESYSTEM_DEFAULT_PATH: &analyzer-default-path /data/storage/analyzer
-  ## For MinIO storage, set DATASTORE_TYPE: minio and configure:
-  # DATASTORE_ENDPOINT: http://minio:9000
-  # DATASTORE_ACCESSKEY: ${STORAGE_ACCESSKEY-rpuser}
-  # DATASTORE_SECRETKEY: ${STORAGE_SECRETKEY-miniopassword}
-  # DATASTORE_BUCKETPREFIX: prj-
+  ## For S3 storage, analyzer stores models under a dedicated path:
+  ## <DATASTORE_DEFAULTBUCKETNAME>/<analyzerSubpath>/<DATASTORE_BUCKETPREFIX><projectId>/
+  ## Example: rp-bucket/analyzer/prj-1/
+  ## Uncomment and adjust DATASTORE_BUCKETPREFIX for S3:
+  # DATASTORE_BUCKETPREFIX: analyzer/prj-
   # DATASTORE_BUCKETPOSTFIX: ""
-  # DATASTORE_DEFAULTBUCKETNAME: rp-bucket/analyzer
-  ## For S3 storage, set DATASTORE_TYPE: s3 and configure:
-  # DATASTORE_REGION: us-east-1
-  # DATASTORE_ACCESSKEY: ""  # Leave empty for IAM Role-based access
-  # DATASTORE_SECRETKEY: ""  # Leave empty for IAM Role-based access
-  # DATASTORE_BUCKETPREFIX: prj-
-  # DATASTORE_BUCKETPOSTFIX: ""
-  # DATASTORE_DEFAULTBUCKETNAME: my-rp-bucket/analyzer
 
 ## @section Analyzer storage mount
-## Shared mount definition for the Analyzer and its one-shot permissions initializer.
+##
+## Shared mount definition for the Analyzer and its one-shot permissions initializer
 ##
 ## By default, `analyzer-storage` is a managed Docker named volume.
-## Analyzer receives it at `FILESYSTEM_DEFAULT_PATH`
-## (`/data/storage/analyzer`), while the init service mounts the same volume
-## at `/data` to set its root owner to the rootless Analyzer UID/GID.
+## Analyzer receives it at `FILESYSTEM_DEFAULT_PATH` (`/data/storage/analyzer`),
+## while the init service mounts the same volume at `/data` to set its root owner
+## to the rootless Analyzer UID/GID.
 ##
 ## `nocopy: true` prevents Docker from copying files from the image filesystem
 ## into a newly created volume. Ownership is initialized explicitly by
@@ -137,18 +164,17 @@ x-analyzer-storage-volume: &analyzer-storage-volume
 #     create_host_path: true
 
 services:
-  ##
-  ## ReportPortal dependencies
-  ## @section ReportPortal dependencies
+  ## @section ReportPortal services
   ##
 
   ## @param gateway Reverse proxy and entry point for ReportPortal
-  ## - Port 8080: exposes the ReportPortal UI
-  ## - Port 8081: exposes the Traefik dashboard
-  ## - Uses Docker labels to auto-discover services
+  ## - Port 8080: ReportPortal UI
+  ## - Port 8081: Traefik dashboard
+  ## - Port 443: HTTPS
+  ## Uses Docker labels to auto-discover services
   ##
   gateway:
-    image: traefik:v2.11.60
+    image: traefik:v3.7.19
     logging:
       <<: *logging
     ports:
@@ -162,7 +188,9 @@ services:
       # - ./acme.json:/acme.json  ## Let's Encrypt ACME challenge file
     command:
       - --providers.docker=true
+      - --providers.docker.exposedByDefault=false
       - --providers.docker.constraints=Label(`traefik.expose`, `true`)
+      - --log.level=INFO
       - --entrypoints.web.address=:8080
       - --entrypoints.traefik.address=:8081
       - --entrypoints.websecure.address=:443
@@ -189,10 +217,9 @@ services:
       - infra
       - ''
 
-  ## @param postgres Database service used by ReportPortal
-  ## - Stores metadata and user/test results
-  ## - Exposes healthcheck for service readiness
-  ## - Volume is used for persistent storage
+  ## @param postgres PostgreSQL database service
+  ## Stores metadata, user data, and test results
+  ## Uses persistent volume for data storage
   ##
   postgres:
     image: postgres:18.6
@@ -222,9 +249,9 @@ services:
       - infra
       - ''
 
-  ## @param rabbitmq Asynchronous message broker for inter-service communication
-  ## - Provides queues used in analysis and background jobs
-  ## - Includes optional plugins for dashboard, LDAP, shovel, etc.
+  ## @param rabbitmq RabbitMQ message broker for inter-service communication
+  ## Provides queues for analysis and background jobs
+  ## Includes management plugin for web UI
   ##
   rabbitmq:
     image: rabbitmq:4.4.0-management
@@ -239,8 +266,6 @@ services:
       RABBITMQ_DEFAULT_USER: *rabbitmq_user
       RABBITMQ_DEFAULT_PASS: *rabbitmq_password
     configs:
-      - source: rabbitmq_extra_config
-        target: /etc/rabbitmq/conf.d/99-extra.conf
       - source: rabbitmq_enabled_plugins
         target: /etc/rabbitmq/enabled_plugins
     healthcheck:
@@ -257,9 +282,9 @@ services:
       - infra
       - ''
 
-  ## @param opensearch Search and analytics engine for the analyzer stack
-  ## - Used to store and query indexed test logs
-  ## - Runs in single-node mode with web security disabled
+  ## @param opensearch OpenSearch engine for analyzer stack
+  ## Stores and queries test log analysis data and ML models
+  ## Runs in single-node mode with security disabled
   ##
   opensearch:
     image: opensearchproject/opensearch:3.9.0
@@ -296,16 +321,15 @@ services:
     profiles:
       - ''
 
-  ##
   ## @section ReportPortal Core Services
   ##
 
-  ## @param migrations Applies DB schema migrations before services start
-  ## - Runs once on container start and exits
-  ## - Requires database to be healthy
+  ## @param migrations Database schema migrations
+  ## Applies DB schema migrations before services start
+  ## Runs once on container start and exits
   ##
   migrations:
-    image: ${MIGRATIONS_IMAGE-reportportal/migrations:5.15.6}
+    image: ${MIGRATIONS_IMAGE-reportportal/migrations:6.0.0}
     build: ./migrations
     logging:
       <<: *logging
@@ -329,54 +353,12 @@ services:
       - infra
       - ''
 
-  ## @param index Service for indexing test data and logs
-  ## - Listens for incoming test results and logs
-  ## - Exposed via Traefik on root `/`
-  ##
-  index:
-    image: ${INDEX_IMAGE-reportportal/service-index:5.15.2}
-    build: ./service-index
-    logging:
-      <<: *logging
-    depends_on:
-      gateway:
-        condition: service_started
-    environment:
-      LB_URL: http://gateway:8081
-      TRAEFIK_V2_MODE: 'true'
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/health || wget -q --spider http://localhost:8080/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
-    labels:
-      - "traefik.http.routers.index.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.index.service=index"
-      - "traefik.http.routers.index.entrypoints=web"
-      - "traefik.http.routers.index-secure.rule=PathPrefix(`/`)"
-      - "traefik.http.routers.index-secure.service=index"
-      - "traefik.http.routers.index-secure.entrypoints=websecure"
-      # - "traefik.http.routers.index-secure.tls=true"
-      # - "traefik.http.routers.index-secure.tls.certresolver=letsencrypt"
-      - "traefik.http.services.index.loadbalancer.server.port=8080"
-      - "traefik.http.services.index.loadbalancer.server.scheme=http"
-      - "traefik.expose=true"
-    networks:
-      - reportportal
-    restart: always
-    profiles:
-      - core
-      - infra
-      - ''
-
-  ## @param ui Web-based frontend for ReportPortal
-  ## - Provides the visual interface for test reports
-  ## - Routed via Traefik under path `/ui`
-  ## - Performs healthcheck on port 8080 to verify availability
+  ## @param ui ReportPortal web frontend
+  ## Provides the visual interface for test reports
+  ## Routed via Traefik under path `/ui` and root path `/`
   ##
   ui:
-    image: ${UI_IMAGE-reportportal/service-ui:5.15.6}
+    image: ${UI_IMAGE-reportportal/service-ui:6.0.0}
     build: ./service-ui
     environment:
       RP_SERVER_PORT: "8080"
@@ -387,6 +369,7 @@ services:
       retries: 3
       start_period: 30s
     labels:
+      - "traefik.enable=true"
       - "traefik.http.middlewares.ui-strip-prefix.stripprefix.prefixes=/ui"
       - "traefik.http.routers.ui.middlewares=ui-strip-prefix@docker"
       - "traefik.http.routers.ui.rule=PathPrefix(`/ui`)"
@@ -400,6 +383,14 @@ services:
       # - "traefik.http.routers.ui-secure.tls.certresolver=letsencrypt"
       - "traefik.http.services.ui.loadbalancer.server.port=8080"
       - "traefik.http.services.ui.loadbalancer.server.scheme=http"
+      - "traefik.http.routers.root.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.root.priority=1"
+      - "traefik.http.routers.root.service=ui"
+      - "traefik.http.routers.root.entrypoints=web"
+      - "traefik.http.routers.root-secure.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.root-secure.priority=1"
+      - "traefik.http.routers.root-secure.service=ui"
+      - "traefik.http.routers.root-secure.entrypoints=websecure"
       - "traefik.expose=true"
     networks:
       - reportportal
@@ -409,13 +400,12 @@ services:
       - ''
 
   ## @param api ReportPortal backend API service
-  ## - Hosts core business logic and background processing
-  ## - Requires database, RabbitMQ, and gateway to be available
-  ## - Exposes a REST API and internal job coordination endpoints
-  ## - Routed via Traefik under path `/api`
+  ## Hosts core business logic and background processing
+  ## Exposes REST API and internal job coordination endpoints
+  ## Routed via Traefik under path `/api`
   ##
   api:
-    image: ${API_IMAGE-reportportal/service-api:5.15.6}
+    image: ${API_IMAGE-reportportal/service-api:6.0.0}
     build: ./service-api
     logging:
       <<: *logging
@@ -456,6 +446,9 @@ services:
       REPORTING_QUEUES_COUNT: 10
       REPORTING_CONSUMER_PREFETCHCOUNT: 10
       REPORTING_PARKINGLOT_TTL_DAYS: 7
+      RP_SESSION_LIVE: 86400      ## Session duration in seconds (1 day)
+      RP_SAML_SESSION-LIVE: 4320  ## SAML session duration in minutes (3 days)
+      RP_INITIAL_ADMIN_PASSWORD: ${RP_INITIAL_ADMIN_PASSWORD:-erebus}
     volumes:
       - storage:/data/storage
     healthcheck:
@@ -465,6 +458,7 @@ services:
       retries: 3
       start_period: 60s
     labels:
+      - "traefik.enable=true"
       - "traefik.http.middlewares.api-strip-prefix.stripprefix.prefixes=/api"
       - "traefik.http.routers.api.middlewares=api-strip-prefix@docker"
       - "traefik.http.routers.api.rule=PathPrefix(`/api`)"
@@ -486,83 +480,31 @@ services:
       - core
       - ''
 
-  ## @param uat Authorization and authentication service
-  ## - Manages login, session lifecycle, and token issuance
-  ## - Initializes admin password on first deployment via env variable
-  ## - Routed via Traefik under path `/uat`
-  ##
-  uat:
-    image: ${UAT_IMAGE-reportportal/service-authorization:5.15.2}
-    build: ./service-authorization
-    logging:
-      <<: *logging
-    environment:
-      <<: *common-environment
-      RP_SESSION_LIVE: 86400      ## Session duration in seconds (1 day)
-      RP_SAML_SESSION-LIVE: 4320  ## SAML session duration in minutes (3 days)
-      RP_INITIAL_ADMIN_PASSWORD: ${RP_INITIAL_ADMIN_PASSWORD:-erebus}
-      JAVA_OPTS: >
-        -Djava.security.egd=file:/dev/./urandom
-        -XX:MinRAMPercentage=60.0
-        -XX:MaxRAMPercentage=90.0
-        --add-opens=java.base/java.lang=ALL-UNNAMED
-    volumes:
-      - storage:/data/storage
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9999/health || wget -q --spider http://localhost:9999/health || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
-    labels:
-      - "traefik.http.middlewares.uat-strip-prefix.stripprefix.prefixes=/uat"
-      - "traefik.http.routers.uat.middlewares=uat-strip-prefix@docker"
-      - "traefik.http.routers.uat.rule=PathPrefix(`/uat`)"
-      - "traefik.http.routers.uat.service=uat"
-      - "traefik.http.routers.uat.entrypoints=web"
-      - "traefik.http.routers.uat-secure.middlewares=uat-strip-prefix@docker"
-      - "traefik.http.routers.uat-secure.rule=PathPrefix(`/uat`)"
-      - "traefik.http.routers.uat-secure.service=uat"
-      - "traefik.http.routers.uat-secure.entrypoints=websecure"
-      # - "traefik.http.routers.uat-secure.tls=true"
-      # - "traefik.http.routers.uat-secure.tls.certresolver=letsencrypt"
-      - "traefik.http.services.uat.loadbalancer.server.port=9999"
-      - "traefik.http.services.uat.loadbalancer.server.scheme=http"
-      - "traefik.expose=true"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - reportportal
-    restart: always
-    profiles:
-      - core
-      - ''
-
   ## @param jobs Scheduled job processor for ReportPortal
-  ## - Executes cleanup, notification, and cron-based background tasks
-  ## - Uses AMQP and DB to manage lifecycle of stored data and plugins
-  ## - Routed via Traefik under `/jobs`
-  ## - Performs healthcheck on port 8686
+  ## @param jobs Scheduled job processor for ReportPortal
+  ## Executes cleanup, notification, and cron-based background tasks
+  ## Uses AMQP and database to manage lifecycle of stored data and plugins
+  ## Routed via Traefik under path `/jobs`
   ##
   ## @section Core jobs configuration
+  ##
   ## Configuration for core jobs that clean the database and storage
   ##
-  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_ATTACHMENT_CRON Cron expression for the clean attachments job from database
-  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_LOG_CRON Cron expression for the clean logs job
-  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_LAUNCH_CRON Cron expression for the clean launches job
-  ## @param RP_ENVIRONMENT_VARIABLE_BATCH-SIZE Number of launches to be processed in one batch
-  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CRON Cron expression for the clean storage job (binary storage)
-  ## @param RP_ENVIRONMENT_VARIABLE_STORAGE_PROJECT_CRON Cron expression for calculating average project attachments storage job
-  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_CRON Cron expression for the clean expired user job
-  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_RETENTIONPERIOD Number of days to keep expired users in the database
-  ## @param RP_ENVIRONMENT_VARIABLE_NOTIFICATION_EXPIREDUSER_CRON Cron expression for the notification expired user job
-  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_EVENTS_RETENTIONPERIOD Number of days to keep events in the database
-  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_EVENTS_CRON Cron expression for the clean events job
-  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE Number of binaries to be removed from binary storage by storageProjectCron within one job execution
+  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_ATTACHMENT_CRON Cron expression for clean attachments job
+  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_LOG_CRON Cron expression for clean logs job
+  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_LAUNCH_CRON Cron expression for clean launches job
+  ## @param RP_ENVIRONMENT_VARIABLE_BATCH-SIZE Number of launches processed in one batch
+  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CRON Cron expression for clean storage job (binary storage)
+  ## @param RP_ENVIRONMENT_VARIABLE_STORAGE_PROJECT_CRON Cron expression for calculating average project attachments storage
+  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_CRON Cron expression for clean expired user job
+  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_EXPIREDUSER_RETENTIONPERIOD Number of days to keep expired users
+  ## @param RP_ENVIRONMENT_VARIABLE_NOTIFICATION_EXPIREDUSER_CRON Cron expression for notification expired user job
+  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_EVENTS_RETENTIONPERIOD Number of days to keep events
+  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_EVENTS_CRON Cron expression for clean events job
+  ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE Number of binaries removed from storage per job execution
   ##
   jobs:
-    image: ${JOBS_IMAGE-reportportal/service-jobs:5.15.3}
+    image: ${JOBS_IMAGE-reportportal/service-jobs:6.0.0}
     build: ./service-jobs
     logging:
       <<: *logging
@@ -608,6 +550,7 @@ services:
       retries: 3
       start_period: 60s
     labels:
+      - traefik.enable=true
       - traefik.http.middlewares.jobs-strip-prefix.stripprefix.prefixes=/jobs
       - traefik.http.routers.jobs.middlewares=jobs-strip-prefix@docker
       - traefik.http.routers.jobs.rule=PathPrefix(`/jobs`)
@@ -630,19 +573,19 @@ services:
       - ''
 
   ## @section Analyzer stack
+  ##
   ## Analyzer services (optional): auto-analysis and ML training
   ##
   
   ## @param analyzer-storage-init One-shot rootless storage permissions initializer
-  ## - Runs before Analyzer and exits successfully after ownership verification.
-  ## - Mounts only `analyzer-storage`, never the shared `storage` volume used by
-  ##   API, UAT, and Jobs.
-  ## - Uses a root process only to change the root directory owner once; it is
-  ##   not privileged, has no network, and receives only the `CHOWN` capability.
-  ## - Maps the volume to `/data` so its root can be handled independently from
-  ##   the Analyzer application path `/data/storage/analyzer`.
-  ## - On later deployments it verifies existing ownership and exits without
-  ##   recursively traversing Analyzer files.
+  ## Runs before Analyzer and exits successfully after ownership verification
+  ## Mounts only `analyzer-storage`, never the shared `storage` volume used by API and Jobs
+  ## Uses a root process only to change the root directory owner once; it is not privileged,
+  ## has no network, and receives only the `CHOWN` capability
+  ## Maps the volume to `/data` so its root can be handled independently from
+  ## the Analyzer application path `/data/storage/analyzer`
+  ## On later deployments it verifies existing ownership and exits without
+  ## recursively traversing Analyzer files
   ##
   analyzer-storage-init:
     image: busybox:1.38.0
@@ -681,13 +624,12 @@ services:
       - ''
 
   ## @param analyzer Automatic test result analyzer
-  ## - Performs log analysis and pattern detection
-  ## - Relies on OpenSearch and RabbitMQ
-  ## - Writes persistent data to a dedicated analyzer volume
-  ##
+  ## Performs log analysis and pattern detection
+  ## Relies on OpenSearch and RabbitMQ
+  ## Writes persistent data to a dedicated analyzer volume
   ##
   analyzer:
-    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:5.15.6}
+    image: ${ANALYZER_IMAGE-reportportal/service-auto-analyzer:6.0.0}
     build: ./service-auto-analyzer
     logging:
       <<: *logging
@@ -716,36 +658,28 @@ services:
       - ''
 
 ## @section RabbitMQ configs
+##
 ## Docker Compose configs mounted into the official rabbitmq image
 ##
-## @param rabbitmq_extra_config Extra RabbitMQ settings written to /etc/rabbitmq/conf.d/99-extra.conf
-## - permit.queue_master_locator: required for ReportPortal clients on RabbitMQ 4.x
-## - disk_free_limit: blocks publishers when free disk space is below 50MB
-##   Ref: https://www.rabbitmq.com/docs/disk-alarms
-##
 ## @param rabbitmq_enabled_plugins Plugin list for /etc/rabbitmq/enabled_plugins
-## - rabbitmq_management: management UI/API (included in *-management image)
-## - rabbitmq_consistent_hash_exchange: required by ReportPortal AMQP routing
-## - rabbitmq_auth_backend_ldap: optional LDAP auth backend
-## - rabbitmq_shovel / rabbitmq_shovel_management: shovel plugin required for ReportPortal
+## - rabbitmq_management: Management UI/API (included in *-management image)
+## - rabbitmq_consistent_hash_exchange: Required by ReportPortal AMQP routing
+## - rabbitmq_auth_backend_ldap: Optional LDAP auth backend
+## - rabbitmq_shovel / rabbitmq_shovel_management: Shovel plugin required for ReportPortal
 ##
 configs:
-  rabbitmq_extra_config:
-    content: |
-      deprecated_features.permit.queue_master_locator = true
-      disk_free_limit.absolute = 50MB
   rabbitmq_enabled_plugins:
     content: |
       [rabbitmq_management,rabbitmq_consistent_hash_exchange,rabbitmq_auth_backend_ldap,rabbitmq_shovel,rabbitmq_shovel_management].
 
 ## @section Volumes
+##
 ## Named volumes for persistent data storage
 ##
 ## @param storage Shared volume for ReportPortal services
 ## This volume is mounted at /data/storage and shared between:
-##   - api: stores attachments, plugins, and user uploads
-##   - uat: stores user-related data
-##   - jobs: cleans up expired data from api
+## - api: Stores attachments, plugins, and user uploads
+## - jobs: Cleans up expired data from api
 ##
 ## All services must share the same volume for jobs to properly clean storage data.
 ## For custom host path, replace 'storage:' with a bind mount:
@@ -763,6 +697,7 @@ volumes:
   postgres:
 
 ## @section Networks
+##
 ## Custom Docker network for ReportPortal service discovery
 ##
 networks:
