@@ -10,10 +10,6 @@
 	path = service-ui
 	url = https://github.com/reportportal/service-ui.git
 	branch = develop
-[submodule "service-index"]
-	path = service-index
-	url = https://github.com/reportportal/service-index.git
-	branch = develop
 [submodule "service-auto-analyzer"]
 	path = service-auto-analyzer
 	url = https://github.com/reportportal/service-auto-analyzer
