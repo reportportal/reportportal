@@ -148,7 +148,7 @@ services:
   ## - Uses Docker labels to auto-discover services
   ##
   gateway:
-    image: traefik:v2.11.60
+    image: traefik:v2.11.64
     logging:
       <<: *logging
     ports:
@@ -376,7 +376,7 @@ services:
   ## - Performs healthcheck on port 8080 to verify availability
   ##
   ui:
-    image: ${UI_IMAGE-reportportal/service-ui:5.15.6}
+    image: ${UI_IMAGE-reportportal/service-ui:5.15.7}
     build: ./service-ui
     environment:
       RP_SERVER_PORT: "8080"
@@ -415,7 +415,7 @@ services:
   ## - Routed via Traefik under path `/api`
   ##
   api:
-    image: ${API_IMAGE-reportportal/service-api:5.15.6}
+    image: ${API_IMAGE-reportportal/service-api:5.15.7}
     build: ./service-api
     logging:
       <<: *logging
@@ -492,7 +492,7 @@ services:
   ## - Routed via Traefik under path `/uat`
   ##
   uat:
-    image: ${UAT_IMAGE-reportportal/service-authorization:5.15.2}
+    image: ${UAT_IMAGE-reportportal/service-authorization:5.15.3}
     build: ./service-authorization
     logging:
       <<: *logging
@@ -562,7 +562,7 @@ services:
   ## @param RP_ENVIRONMENT_VARIABLE_CLEAN_STORAGE_CHUNKSIZE Number of binaries to be removed from binary storage by storageProjectCron within one job execution
   ##
   jobs:
-    image: ${JOBS_IMAGE-reportportal/service-jobs:5.15.3}
+    image: ${JOBS_IMAGE-reportportal/service-jobs:5.15.4}
     build: ./service-jobs
     logging:
       <<: *logging
